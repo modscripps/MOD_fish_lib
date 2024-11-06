@@ -17,9 +17,7 @@ end
 if isnumeric(Profile_or_profNum) && ~isstruct(Profile_or_profNum)
     profNum = Profile_or_profNum;
     load(fullfile(Meta_Data.paths.profiles,sprintf('Profile%04.0f',profNum)));
-    if ~isfield(Profile,'profNum')
-        Profile.profNum = profNum;
-    end
+    
 elseif isstruct(Profile_or_profNum)
     Profile = Profile_or_profNum;
 elseif isclassfield(Profile_or_profNum,'epsi') && isclassfield(Profile_or_profNum,'ctd') && isclassfield(Profile_or_profNum,'Meta_Data')
@@ -159,7 +157,7 @@ Prmax = Meta_Data.PROCESS.Prmax(Profile.ctd.P);
 
 % Find ctdtime values within this pressure range
 inRange = Profile.ctd.P>=Prmin & Profile.ctd.P<=Prmax;
-%ctdtime = Profile.ctd.time_s(inRange); %ctdtime never gets used
+ctdtime = Profile.ctd.time_s(inRange);
 
 % ALB data drops can choke the code here (i.e. inRange is empty)
 
@@ -317,18 +315,14 @@ for p = 1:nbscan % p is the scan index.
     % Get spectral data for each scan
     try
        scan  =  get_scan_spectra(Profile,p);
-    catch err
-        fprintf('x')
-        if 1 %Toggle on for debugging
-            display_error_stack(err)
-            a = [];
-        end
+    catch
+        disp ('pb with scan')
     end
 %==================================================================%%    
 %==================================================================%%    
 
     % If there is data in the scan, add it to the profile
-    if exist('scan') && isfield(scan,'ind_ctdscan')
+    if isfield(scan,'ind_ctdscan')
         Profile.ind_range_ctd(p,:) = [scan.ind_ctdscan(1),scan.ind_ctdscan(end)];
         Profile.ind_range_epsi(p,:) = [scan.ind_scan(1),scan.ind_scan(end)];
         

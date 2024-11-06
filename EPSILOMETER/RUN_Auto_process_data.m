@@ -72,7 +72,7 @@ switch data_mode
         input_struct.raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
 
         % Path to setup file
-        root_software='/Volumes/MOD HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
+        root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
         path2setup=fullfile(root_software,'Acquisition/fctd_epsi_acq/build/fctd_epsi/Build/Products/Debug/Setup');
 
         process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed';

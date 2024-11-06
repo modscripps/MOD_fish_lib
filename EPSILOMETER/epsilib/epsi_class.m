@@ -804,7 +804,7 @@ classdef epsi_class < handle
             if nargin<2
                 warning('f_check_spectra(id_profile)');
             end
-            check_spectra(id_profile);
+            check_spectra(id_profile,obj);
         end
         %%
         function f_plot_profile_and_spectra(obj,id_profile) %Nicole's version.  Requires obj as input

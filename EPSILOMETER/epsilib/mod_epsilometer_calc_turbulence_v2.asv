@@ -157,7 +157,7 @@ Prmax = Meta_Data.PROCESS.Prmax(Profile.ctd.P);
 
 % Find ctdtime values within this pressure range
 inRange = Profile.ctd.P>=Prmin & Profile.ctd.P<=Prmax;
-%ctdtime = Profile.ctd.time_s(inRange); %ctdtime never gets used
+ctdtime = Profile.ctd.time_s(inRange);
 
 % ALB data drops can choke the code here (i.e. inRange is empty)
 
@@ -241,7 +241,6 @@ Profile.th             = nan(nbscan,1);
 Profile.sgth           = nan(nbscan,1);
 Profile.epsilon_final  = nan(nbscan,1);
 Profile.kvis           = nan(nbscan,1);
-Profile.ktemp          = nan(nbscan,1);
 Profile.sumPa.a1       = nan(nbscan,1);
 Profile.sumPa.a2       = nan(nbscan,1);
 Profile.sumPa.a3       = nan(nbscan,1);
@@ -322,7 +321,7 @@ for p = 1:nbscan % p is the scan index.
 %==================================================================%%    
 
     % If there is data in the scan, add it to the profile
-    if exist(scan) && isfield(scan,'ind_ctdscan')
+    if isfield(scan,'ind_ctdscan')
         Profile.ind_range_ctd(p,:) = [scan.ind_ctdscan(1),scan.ind_ctdscan(end)];
         Profile.ind_range_epsi(p,:) = [scan.ind_scan(1),scan.ind_scan(end)];
         
@@ -346,8 +345,7 @@ for p = 1:nbscan % p is the scan index.
         Profile.sh_fc(p,2) = scan.fc.s2(2); %only saving the shear_co limit ALB 03/06/2023 the 2nd idx is the shear_co
         Profile.sh_kc(p,1) = scan.kc.s1(2); 
         Profile.sh_kc(p,2) = scan.kc.s2(2); 
-        Profile.kvis(p,1)  = scan.kvis;
-        Profile.ktemp(p,1) = scan.ktemp;
+        Profile.kvis(p,1) = scan.kvis;
         
         if isfield(scan.chi,'t1')
             Profile.chi(p,1)   = scan.chi.t1;

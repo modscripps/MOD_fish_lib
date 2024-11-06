@@ -124,6 +124,9 @@ if isclassfield(obj,'ctd')
         annotation(gcf,'arrow',[0.94 0.94], [0.29 0.25],'Color',[0.2157 0.4941 0.7216]);
         annotation(gcf,'arrow',[0.96 0.96], [0.25 0.29],'Color',[0.9686 0.5059 0.7490]);
 
+    % Pressure
+    plot(ax(8),time_array.ctd,obj.ctd.P,'.','Color',cols.P,'LineWidth',obj.plot_properties.LineWidth)
+
         % Alitmeter
         if isclassfield(obj,'alt') && ~isempty(obj.alt)
             plot(ax(8),time_array.alt,obj.alt.dst,'.','Color',cols.alt)
@@ -225,7 +228,7 @@ ylabel(ax(3),'Accel [g]');
 ylabel(ax(5),'T [°C]');
 ylabel(ax(6),'S');
 ylabel(ax(7),'dz/dt [m/s]'); % ALB TODO add z also 
-ylabel(ax(8),'altimeter');
+ylabel(ax(8),'P [db]');
 
 [ax(:).FontSize] = deal(obj.plot_properties.FontSize);
 [ax(:).FontName] = deal(obj.plot_properties.FontName);
@@ -233,7 +236,7 @@ ylabel(ax(8),'altimeter');
 % Right-hand y-axes
 ax(4).YAxisLocation = 'right';
 ax(8).Color = 'none';
-ax(8).YLim = [0 30];
+%ax(8).YLim = [0 30];
 ax(8).YGrid = 'on';
 
 % Flip pressure axis

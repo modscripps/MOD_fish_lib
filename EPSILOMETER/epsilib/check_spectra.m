@@ -1,16 +1,12 @@
-function check_spectra(id_profile)
+function check_spectra(id_profile,ec)
 
-filename4=sprintf('Profile%04i.mat',id_profile);
-filename3=sprintf('Profile%03i.mat',id_profile);
-rootpath=strsplit(pwd,'/');
-filepath4=fullfile(pwd,'profiles',filename4);
-filepath3=fullfile(pwd,'profiles',filename3);
-if isfile(filepath4)
-    load(filepath4);
-elseif isfile(filepath3)
-    load(filepath3)
+filename=sprintf('Profile%04i.mat',id_profile);
+filepath= ...
+    fullfile(ec.Meta_Data.paths.profiles,filename);
+if isfile(filepath)
+    load(filepath,'Profile');
 else
-    warning(['Can not find ' filepath4 ' or ' filename3])
+    warning(['Can not find ' filepath])
     return
 end
 
@@ -37,7 +33,7 @@ else
 end
 
 figure
-set(gcf,'position',[0,0,1500,1000])
+set(gcf,'position',[0,0,15,10])
 a=1
 ax(a)=subplot('Position',[.04 .08 .08 .8]);
 semilogx(ax(a),Profile.epsilon_co,Profile.pr);
@@ -51,7 +47,8 @@ ax(a).FontSize=strfontsize;
 ax(a).FontName='Time New Roman';
 grid(ax(a),'on')
 axis(ax(a),'ij')
-ax(a).XLim=[min(Profile.epsilon_co(:)) max(Profile.epsilon_co(:))];
+% ax(a).XLim=[min(Profile.epsilon_co(:)) max(Profile.epsilon_co(:))];
+ax(a).XLim=[1e-11 1e-6];
 ax(a).YLim=[max(min(Profile.pr),0) max(Profile.pr)];
 xlabel(ax(a),'\epsilon','fontsize',strfontsize,'fontname','time new roman')
 ylabel(ax(a),'Depth [m]','fontsize',strfontsize,'fontname','time new roman')
@@ -141,8 +138,7 @@ str_title=sprintf('%s %s Profile %i ',            ...
                   Profile.Meta_Data.vehicle_name, ...
                   Profile.profNum);
 
-text(ax(a),-pi/2,Profile.vnav.pr(1)-15,{rootpath{end},...
-                                        str_title},...
+text(ax(a),-pi/2,Profile.vnav.pr(1)-15,{str_title},...
      'fontsize',strfontsize,...
      'fontname','time new roman',...
      'Interpreter','none')
@@ -178,6 +174,7 @@ grid(ax(a),'on')
 ax(a).XTickLabel='';
 ax(a).FontSize=strfontsize;
 ax(a).FontName='Time New Roman';
+ax(a).YLim=[1e-15 1e-4];
 
 a=a+1;
 ax(a)=subplot('Position',[.53 .21 .45 .13]);
@@ -339,8 +336,10 @@ while plot_flag
     ax(a).YScale='log';    
     ax(a).XLim  =[Profile.f(2) Profile.f(end)];    
     try
-        ax(a).YLim  =[.5.*min(Profile.Pt_Tg_k.t1(idx1,:)) ...
-            max(Profile.Pt_Tg_k.t1(idx1,:))];
+        % ax(a).YLim  =[.5.*min(Profile.Pt_Tg_k.t1(idx1,:)) ...
+        %     max(Profile.Pt_Tg_k.t1(idx1,:))];
+        ax(a).YLim=[1e-5 1];
+
     catch
         ax(a).YLim  =[.5.*min(Profile.Pt_Tg_k.t2(idx1,:)) ...
             max(Profile.Pt_Tg_k.t2(idx1,:))];

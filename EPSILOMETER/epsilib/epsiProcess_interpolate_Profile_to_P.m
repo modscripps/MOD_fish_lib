@@ -82,6 +82,8 @@ if ~isempty(Profile.w)
         else
             GRID.bottom_depth = nan;
         end %End if Profile is at least 20 points long
+    else
+        GRID.bottom_depth = nan;
     end
 
 end %end if ~isempty(Profile.w)

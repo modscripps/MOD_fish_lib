@@ -3,7 +3,7 @@ data=load(fullfile(ec.Meta_Data.paths.profiles,'griddedProfiles'));
 
 % ALB 2024/08/20 load last Profile to plot it
 last_profileID=data.GRID.profNum(end);
-last_profile_name=sprintf('Profile%03i.mat',last_profileID);
+last_profile_name=sprintf('Profile%04i.mat',last_profileID);
 lastProfile=load(fullfile(ec.Meta_Data.paths.profiles,last_profile_name));
 
 data.GRID.bottom_depth=filloutliers(data.GRID.bottom_depth,'linear');

@@ -267,6 +267,7 @@ else
         Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
         if epsi_probes.ch3.cal~=0
             Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
+            Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
         else
             AFE=get_shear_calibration(Meta_Data.AFE);
             Meta_Data.AFE=AFE;
@@ -2331,7 +2332,13 @@ if ~isempty(v)
 end
 s=fgetl(FID);
 while ~strncmp(s,'%*****END_FCTD',14) && ~feof(FID)
-    [v,val]=FastCTD_ASCII_parseheadline(s);
+    % ALB20241106 Matlab send a lot of warning when decoding 
+    % "psia:  13-dec-23" because of the colon. adding a quick fix to skip that line.
+    if ~contains(s,"psia: ")
+        [v,val]=FastCTD_ASCII_parseheadline(s);
+    else
+        v=[];
+    end
     if ~isempty(v)
         try
             eval(['FCTD.header.' lower(v) '=' val ';']);
@@ -2339,7 +2346,9 @@ while ~strncmp(s,'%*****END_FCTD',14) && ~feof(FID)
             if strncmp(v,'FCTD_VER',8)
                 eval(['FCTD.header.' lower(v) '=''' val ''';']);
             else
-                if ~contains(v,'$CH')
+                %ALB 20241106 adding a condition on "CTD" so it does not
+                %spit out an error when reading the new strSETUP
+                if (~contains(v,'$CH') && ~contains(v,'CTD') && ~contains(v,'CALDATE'))
                     disp(obj.message);
                     disp(['Error occured in string: ' s]);
                 end
