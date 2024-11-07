@@ -15,20 +15,37 @@ function [PT] = epsiProcess_get_profiles_from_PressureTimeseries(PressureTimeser
 %                    .plotFig = 0;
 % (All speed limits should be positive values in m/s (technically db/s) )
 
+
 PT = PressureTimeseries;
+
+if ~all(isnan(PT.dnum))
 p = PT.P;
 dt = seconds(days(mode(diff(PT.dnum))));
 sampling_rate_Hz = 1/dt;
 
 % Set defaults
 numSec_lowpass = 4;
-% All speed limits should be positive values in m/s (technically db/s)
-speedLim_down_start_m_s = 0.3;
-speedLim_down_end_m_s = 0.1;
-speedLim_up_start_m_s = 0.1;
-speedLim_up_end_m_s = 0.05;
 minLength_m = 10;
 plotFig = 0;
+% All speed limits should be positive values in m/s (technically db/s)
+switch lower(Meta_Data.vehicle_name)
+    case 'fctd'
+        speedLim_down_start_m_s = 0.3;
+        speedLim_down_end_m_s = 0.1;
+        speedLim_up_start_m_s = 0.1;
+        speedLim_up_end_m_s = 0.05;   
+    case 'epsi'
+        speedLim_down_start_m_s = 0.3;
+        speedLim_down_end_m_s = 0.1;
+        speedLim_up_start_m_s = 0.1;
+        speedLim_up_end_m_s = 0.05;
+    case {'wirewalker','ww'}
+        % For wirewalker
+        speedLim_down_start_m_s = 0.5;
+        speedLim_down_end_m_s = 0.5;
+        speedLim_up_start_m_s = 0.5;
+        speedLim_up_end_m_s = 0.05;
+end
 
 % If Meta_Data has any of the profile processing fields specified, switch
 % default values to those.
@@ -284,6 +301,17 @@ if plotFig
     lp = linkprop([ax(:)],'xlim');
 
 end
+
+elseif all(isnan(PT.dnum))
+    PT.drop = nan(size(PT.dnum,1),size(PT.dnum,2));
+    PT.startdown = nan;
+    PT.enddown = nan;
+    PT.startup = nan;
+    PT.endup = nan;
+    PT.startprof = nan;
+    PT.endprof = nan;
+
+end %end if ~all(isnan(PT.dnum))
 
 end %/end epsiProcess_get_profiles_from_PressureTimeseries
 
