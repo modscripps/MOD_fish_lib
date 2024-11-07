@@ -21,7 +21,7 @@ end
 conv16d=@(x) (x(2).*256+x(1));
 conv32d=@(x) (x(4).*256^3+x(3).*256^2+x(2).*256+x(1));
 %%
-size_offset=1;
+size_offset=33;
 size_length=4-1;
 %ALB  I am getting the size now so wecan handle previous Firmware  parse config
 setup.size=conv32d(double(uint8(str(size_offset+(0:size_length)))));

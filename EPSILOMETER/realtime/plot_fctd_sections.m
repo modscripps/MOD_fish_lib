@@ -70,6 +70,7 @@ sort_S    = FCTDgrid.salinity.*nan;
 OT        = FCTDgrid.salinity.*nan;
 for p=1:length(FCTDgrid.time)
     local_dens=FCTDgrid.density(:,p);
+    sort_dens=FCTDgrid.density(:,p).*nan;
     dens_Inan=find(~isnan(local_dens));
     [~,IA]=sort(local_dens(dens_Inan),'ascend');
     sort_dens(dens_Inan)=local_dens(dens_Inan(IA));

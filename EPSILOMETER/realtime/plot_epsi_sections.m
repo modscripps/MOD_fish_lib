@@ -175,5 +175,5 @@ end
 
 % Save section plot
 save_name = fullfile(ec.Meta_Data.paths.figures,'deployment_sections');
-%eval(['export_fig ' save_name ' -png -r150 -nocrop']);
-%print('-dpng2',save_name)
+% eval(['export_fig ' save_name ' -png -r150 -nocrop']);
+print('-dpng',save_name)
