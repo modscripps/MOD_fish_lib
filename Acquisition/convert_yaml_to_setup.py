@@ -4,10 +4,9 @@
 import yaml
 import os
 import shutil
+import argparse
 
-def convert_yaml_to_setup():
-
-    yaml_file_path = '/Users/Shared/Software_current_cruise/MOD_fish_lib/Acquisition/setup.yml'
+def convert_yaml_to_setup(yaml_file_path):
 
     with open(yaml_file_path, 'r') as yaml_file:
         data = yaml.safe_load(yaml_file)
@@ -114,4 +113,10 @@ def convert_yaml_to_setup():
     print(f"Setup file has been created at: {setup_file_hardcoded_path}")
 
 if __name__ == "__main__":
-  convert_yaml_to_setup()
+    parser = argparse.ArgumentParser(description="Convert YAML to Setup format")
+    parser.add_argument("yaml_file", type=str, help="Path to the YAML file to convert")
+    args = parser.parse_args()
+
+    # Run the conversion function with the provided YAML file
+    convert_yaml_to_setup(args.yaml_file)
+
