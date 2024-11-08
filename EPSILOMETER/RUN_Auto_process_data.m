@@ -24,8 +24,8 @@ clear input_struct
 input_struct.Meta_Data_process_file = '/Volumes/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2024.txt';
 input_struct.refresh_time_sec =  2*60;
 % input_struct.cruise_specifics = 'tfo_2024';
-epsi_depth_array = 0:300;
-fctd_depth_array = 0:2100;
+epsi_depth_array = 0:200;
+fctd_depth_array = 0:500;
 
 % Realtime or Simulator mode
 data_mode = 'realtime'; %'realtime' or 'simulator'
@@ -91,10 +91,10 @@ if newSetup_flag
     fishflag_str      = fishflag_str(1:find(uint8(fishflag_str)==10,1,'first'));
     fishflag_name      = strsplit(fishflag_str,'=');
     fishflag_name      = fishflag_name{2}(2:end-2);
-    instrument = fishflag_name;
+    instrument_setupfile = fishflag_name;
 
 else
-    instrument = input('What fish are we using? [''epsi'',''fctd'']');
+    instrument_setupfile = input('What fish are we using? [''epsi'',''fctd'']');
 
 end
 
@@ -105,10 +105,10 @@ if newSetup_flag
     surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
     surveyflag_name     = strsplit(surveyflag_str,'=');
     surveylag_name      = surveyflag_name{2}(1:end-1);
-    survey_name = surveylag_name;
+    survey_name_setupfile = surveylag_name;
 
 else
-    survey_name = input('What is the survey name? [''yyyymmdd_d##_NAME'']');
+    survey_name_setupfile = input('What is the survey name? [''yyyymmdd_d##_NAME'']');
 
 end
 
@@ -116,7 +116,7 @@ end
 % found in the Setup file or what you input
 input_struct.process_dir = fullfile( ...
     process_dir_root, ...
-    strrep(survey_name,'''','')); %This will create a directory with this name
+    strrep(survey_name_setupfile,'''','')); %This will create a directory with this name
 
 %% Look for the files that match the survey name
 N_files_to_search = 10; %Maximum number of files to search for CTD.survey
@@ -158,7 +158,7 @@ if exist(fullfile(input_struct.process_dir,'raw'),'dir')
                 surveylag1_name      = surveyflag1_name{2}(1:end-1);
                 survey1_name         = surveylag1_name;
 
-                if contains(survey1_name,survey_name)
+                if contains(survey1_name,survey_name_setupfile)
                     input_struct.str_to_match = ...
                         listfile_raw_dir(length(listfile_raw_dir)-count).name;
                     count=count+1;
@@ -182,6 +182,7 @@ else
         path2setup1=fullfile(...
             listfile_raw_dir((length(listfile_raw_dir)-count)).folder,...
             listfile_raw_dir((length(listfile_raw_dir)-count)).name);
+
         fid=fopen(path2setup1,'r');
         fseek(fid,0,1);
         frewind(fid);
@@ -195,15 +196,18 @@ else
             surveylag1_name      = surveyflag1_name{2}(1:end-1);
             survey1_name         = surveylag1_name;
 
-            if contains(survey1_name,survey_name)
+            if contains(survey1_name,survey_name_setupfile)
                 input_struct.str_to_match = ...
                     listfile_raw_dir(length(listfile_raw_dir)-count).name;
                 count=count+1;
             else
-                input_struct.str_to_match = ...
-                    listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
-                % setting count to 10 to break out from while loop
-                count=N_files_to_search; % The previous file is the first of the survey
+                if count>0
+                    input_struct.str_to_match = ...
+                        listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
+                    count=N_files_to_search; % The previous file is the first of the survey
+                else
+                    count = N_files_to_search; % If you're on the most recent file and it doesn't match the setup file, get out of the loop and ask explicitly for file name
+                end
             end % if survey1=survey
         else
             count=count+1;
@@ -221,7 +225,7 @@ end
 
 %% All options have been determined. Now get depth array, create output directory, and get ready to run the processing script
 % Get the depth array based on instrument choice
-switch instrument
+switch instrument_setupfile
     case {'epsi','EPSI'}
         input_struct.depth_array = epsi_depth_array;
     case {'fctd','FCTD'}
@@ -263,7 +267,7 @@ input_struct.Meta_Data_process_file = newfile_name;
 
 
 %% Run the processing script on a timer
-switch instrument
+switch instrument_setupfile
     case {'epsi','EPSI'}
         epsiAuto_process_data
     case {'fctd','FCTD'}

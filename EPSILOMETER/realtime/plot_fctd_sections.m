@@ -11,7 +11,7 @@ clf
 fig = figure(1);
 fig.Units = 'normalized';
 fig.Position = [0 0 0.6 0.9];
-zlim = [0 2000];
+zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
 clim_temp = [4 30.2]; 
 clim_sal = [34.5 37.1];
 % clim_chi = [0.2 1];

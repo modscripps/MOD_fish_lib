@@ -31,7 +31,7 @@ irecent=find(dnumm>(dnumm(end)-1));
 dnummask=dnummask(irecent);
 
 % depth limits for plotting
-zlim=[0 1500];
+zlim=[input_struct.depth_array(1),input_struct.depth_array(end)];
 sgf=19.9; % front we are tracking 27 may
 
 ax(1) =subtightplot(nr,nc,1);

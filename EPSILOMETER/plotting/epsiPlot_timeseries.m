@@ -126,16 +126,17 @@ if isclassfield(obj,'ctd')
 
     % Pressure
     plot(ax(8),time_array.ctd,obj.ctd.P,'.','Color',cols.P,'LineWidth',obj.plot_properties.LineWidth)
-
-        % Alitmeter
-        if isclassfield(obj,'alt') && ~isempty(obj.alt)
-            plot(ax(8),time_array.alt,obj.alt.dst,'.','Color',cols.alt)
-            hold(ax(8),'on');
-            too_close = obj.alt.dst<=2;
-            if sum(too_close)>0
-                plot(ax(8),time_array.alt(too_close),obj.alt.dst(too_close),'or');
-            end
-        end
+    ax(8).YDir = 'reverse';
+    
+        % % Alitmeter
+        % if isclassfield(obj,'alt') && ~isempty(obj.alt)
+        %     plot(ax(8),time_array.alt,obj.alt.dst,'.','Color',cols.alt)
+        %     hold(ax(8),'on');
+        %     too_close = obj.alt.dst<=2;
+        %     if sum(too_close)>0
+        %         plot(ax(8),time_array.alt(too_close),obj.alt.dst(too_close),'or');
+        %     end
+        % end
     
     end  
 end

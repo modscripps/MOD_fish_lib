@@ -8,12 +8,12 @@ jTextArea=listeners(5); %or listeners(3) or listeners (4) depending on matlab
 jTextArea.setBackground(java.awt.Color(0.5,0.2,0.2));
 
 %% input structure
-rot_strut.raw_incoming = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/RAW_full_cruise/';
-rot_strut.mat    = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/MAT_full_cruise/';
-rot_strut.rot    = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/ROT_full_cruise/';
-rot_strut.raw_copy   = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/RAW_full_cruise/raw/';
+rot_strut.raw_incoming = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise/';
+rot_strut.mat    = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise/';
+rot_strut.rot    = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise/';
+rot_strut.raw_copy   = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise/raw/';
 
-root_software='/Volumes/MOD HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
+root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 Meta_Data_process_file = 'MDP_motive_2024.txt';
 input_struct.raw_dir   = rot_strut.raw_incoming;
 Meta_Data_process_dir = fullfile(root_software,'/EPSILOMETER/Meta_Data_Process/');
