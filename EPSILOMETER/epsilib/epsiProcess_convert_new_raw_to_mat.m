@@ -279,10 +279,12 @@ if ~isempty(myASCIIfiles)
 
                 % Read file and save data in matData structure
                 filename = fullfile(raw_dir,myASCIIfiles(i).name);
+                [folder,name] = fileparts(filename);
                 matData = read_data_file(filename,Meta_Data,version);
 
                 % Add raw_file_info to matData - NC added 8 Aug. 2022
                 matData.raw_file_info.bytes = myASCIIfiles(i).bytes;
+                matData.raw_file_info.filename = name;
 
                 % Option to display file data
                 if display_file_data_flag

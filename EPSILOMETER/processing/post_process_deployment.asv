@@ -1,9 +1,12 @@
 %% Change these parameters for post-processing data
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:500;
-instrument = 'fctd';
+instrument = 'fctd'; %Select so the code knows which depth array to use. The processing will get the instrument name from .modraw files
 
 survey_name = '24_1107_d4_fctd1_test';
+
+% List FCTD variables to grid
+vars2grid_list = {'pressure','temperature','conductivity','longitude','latitude','bb','chla','fDOM','chi','chi2'};
 
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
@@ -28,6 +31,10 @@ switch lower(instrument)
     case 'fctd'
         depth_array = fctd_depth_array;
 end
+
+%% Begin processing
+fprintf('Processing survey %s\n', survey_name)
+fprintf('-----------------------------------------------------\n')
 
 %% Make directories
 % Make the process directory
@@ -94,11 +101,13 @@ end %End loop through all files
 
 % Keep only files in survey
 file_list = file_list_all(idx_in_survey);
+already_copied_list = dir(fullfile(dirs.raw_copy,'*.modraw'));
+already_copied_list = {already_copied_list(:).name};
 
 for i=1:length(file_list)
-    try
-    eval(['!cp ' fullfile(file_list(i).folder,file_list(i).name) ' ' dirs.raw_copy]);
-    catch
+    % Copy each file unless it has already been copied
+    if ~any(contains(already_copied_list,file_list(i).name))
+        eval(['!cp ' fullfile(file_list(i).folder,file_list(i).name) ' ' dirs.raw_copy]);
     end
 end
 
@@ -110,13 +119,13 @@ switch lower(instrument)
         ec.f_readData;
         ec.f_makeNewProfiles;
         ec.f_computeTurbulence
-        ec.f_gridProfiles(depth_array)
+        ec.f_gridProfiles(depth_array);
         plot_epsi_sections
     case 'fctd'
         epsiProcess_convert_new_raw_to_mat(dirs,ec.Meta_Data,"doFCTD");
         ec.f_makeNewProfiles;
-        ec.f_gridProfiles(depth_array)
-        [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir,vars2grid_list);
+        ec.f_gridProfiles(depth_array);
+        [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(dirs.fctd_deployment,vars2grid_list);
         plot_fctd_sections
 end
 

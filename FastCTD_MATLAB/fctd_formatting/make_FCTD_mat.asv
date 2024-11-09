@@ -105,7 +105,7 @@ if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
     FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.c1_count(keep)),time_fast),20,[])';
 else
     FCTD.uConductivity=nan(length(ctd.dnum),20);
-    fprintf(['   ' matData.raw_file_info.filename ' has no uConductivity data\n' ]);
+    fprintf(['   ' matData.raw_file_info.filename ' has no uConductivity data ' ]);
 end
 
 % f1_volt = fluorometer
@@ -114,7 +114,7 @@ if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)
     FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.f1_volt(keep),time_fast),20,[])';
 else
     FCTD.fluorometer=nan(length(ctd.dnum),20);
-    fprintf(['   ' matData.raw_file_info.filename ' has no fluorometer data\n' ]);
+    fprintf(['   ' matData.raw_file_info.filename ' has no fluorometer data ' ]);
 end
 
 %% Extra outputs for specific cruise setups
