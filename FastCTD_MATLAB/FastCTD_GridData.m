@@ -55,32 +55,36 @@ while (n_items > 0)
             if n_items == 1
                 error('MATLAB:FastCTD_GridData:missingArgs','Missing input arguments');
             end
-            vars2Grid = varargin{index+1};
-            if iscellstr(vars2Grid)
-                for i = 1:length(vars2Grid)
-                    if ~isfield(FCTD,vars2Grid{i})
-                        error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
-                    else
-                        switch lower(vars2Grid{i})
-                            case vars2Grid_default
-                                vars2Grid{i} = lower(vars2Grid{i});
-                                continue;
-                            otherwise
-                                error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
-                        end
-                    end
-                end
-            elseif ischar(vars2Grid)
-                switch lower(vars2Grid)
-                    case vars2Grid_default
-                        vars2Grid = {lower(vars2Grid)};
-                        continue;
-                    otherwise
-                        error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid);
-                end
-            else
-                error('MATLAB:FastCTD_GridData:wrongVar2Grid','Variable to grid must be specified as a cell strings of variables: pressure, temperature, conductivity');
-            end
+             vars2Grid = varargin{index+1};
+
+             % NC 11/9/24 - Commenting this out because it makes my
+             % vars2Grid list error out.
+             %
+            % if iscellstr(vars2Grid)
+            %     for i = 1:length(vars2Grid)
+            %         if ~isfield(FCTD,vars2Grid{i})
+            %             error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
+            %         else
+            %             switch lower(vars2Grid{i})
+            %                 case vars2Grid_default
+            %                     vars2Grid{i} = lower(vars2Grid{i});
+            %                     continue;
+            %                 otherwise
+            %                     error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
+            %             end
+            %         end
+            %     end
+            % elseif ischar(vars2Grid)
+            %     switch lower(vars2Grid)
+            %         case vars2Grid_default
+            %             vars2Grid = {lower(vars2Grid)};
+            %             continue;
+            %         otherwise
+            %             error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid);
+            %     end
+            % else
+            %     error('MATLAB:FastCTD_GridData:wrongVar2Grid','Variable to grid must be specified as a cell strings of variables: pressure, temperature, conductivity');
+            % end
             
             index = index +2;
             n_items = n_items-2;

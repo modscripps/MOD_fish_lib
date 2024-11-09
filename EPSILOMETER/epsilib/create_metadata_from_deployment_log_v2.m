@@ -39,16 +39,16 @@ disp(['Done reading ' filename])
 
 % define Meta_Data parameters
 mission=strsplit(A{1},',');
-Meta_Data.mission=mission{2};
+Meta_Data.mission=mission{2}(:)';
 
 vehicle=strsplit(A{3},',');
-Meta_Data.vehicle=vehicle{2};
+Meta_Data.vehicle=vehicle{2}(:)';
 
 vehicle_name=strsplit(A{4},',');
-Meta_Data.vehicle_name=vehicle_name{2};
+Meta_Data.vehicle_name=vehicle_name{2}(:)';
 
 deployment=strsplit(A{5},',');
-Meta_Data.deployment=deployment{2};
+Meta_Data.deployment=deployment{2}(:)';
 
 NFFT=strsplit(A{6},',');
 Meta_Data.PROCESS.nfft=str2double(NFFT{2});
@@ -58,18 +58,18 @@ Fs_epsi=strsplit(A{7},',');
 Meta_Data.PROCESS.Fs_epsi=str2double(Fs_epsi{2});
 
 s1_SN=strsplit(A{8},',');
-Meta_Data.epsi.s1.SN=s1_SN{2};
+Meta_Data.epsi.s1.SN=s1_SN{2}(:)';
 
 s2_SN=strsplit(A{9},',');
-Meta_Data.epsi.s2.SN=s2_SN{2};
+Meta_Data.epsi.s2.SN=s2_SN{2}(:)';
 
 Meta_Data=mod_som_get_shear_probe_calibration_v2(Meta_Data);
 
 t1_SN=strsplit(A{10},',');
-Meta_Data.epsi.t1.SN=t1_SN{2};
+Meta_Data.epsi.t1.SN=t1_SN{2}(:)';
 
 t2_SN=strsplit(A{11},',');
-Meta_Data.epsi.t2.SN=t2_SN{2};
+Meta_Data.epsi.t2.SN=t2_SN{2}(:)';
 
 CTD_name=strsplit(A{12},',');
 Meta_Data.aux1.name = CTD_name{2};

@@ -28,7 +28,8 @@ numSec_lowpass = 4;
 minLength_m = 10;
 plotFig = 0;
 % All speed limits should be positive values in m/s (technically db/s)
-switch strrep(lower(Meta_Data.fishflag_name(:)'),'''','')
+fish_flag = strrep(lower(Meta_Data.fishflag_name(:)'),'''','');
+switch fish_flag(1:4)
     case 'fctd'
         speedLim_down_start_m_s = 0.3;
         speedLim_down_end_m_s = 0.1;
@@ -286,7 +287,7 @@ end
 %% If you're using downcasts startprof/endprof = startdown/enddown. 
 % If you're using upcasts, startprof/endprof = startup/endup
 % If you're using both, startprof/endprof = startdown/enddown and startup/endup
-switch Meta_Data.paths.profiles
+switch Meta_Data.PROCESS.profile_dir
     case 'down'
         PT.startprof = PT.startdown;
         PT.endprof = PT.enddown;

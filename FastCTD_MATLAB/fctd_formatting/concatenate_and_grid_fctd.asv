@@ -1,7 +1,7 @@
 function [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir,vars2grid_list)
 
 if nargin==1
-    vars2grid_list = {'pressure','temperature','conductivity','density','salinity'};
+    vars2grid_list = 
 end
 
 
@@ -84,8 +84,8 @@ save(fullfile(fctd_mat_dir,'FCTDall'),'FCTDall')
 % NC May 2023 - grid both up and downcast data
 % Get downcasts and upcasts
 
-FCTDdown = FastCTD_GridData(FCTDall,'downcast','VarsToGrid',vars2grid_list);
-FCTDup = FastCTD_GridData(FCTDall,'upcast','VarsToGrid',vars2grid_list);
+FCTDdown = FastCTD_GridData(FCTDall,'downcast','VarsToGrid',);
+FCTDup = FastCTD_GridData(FCTDall,'upcast');
 
 if (~isempty(FCTDup) & ~isempty(FCTDdown))
     % Merge all the structure fields for the down and up casts

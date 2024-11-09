@@ -33,7 +33,7 @@ load(fullfile(obj.Meta_Data.paths.mat_data,'PressureTimeseries.mat'),'PressureTi
 
 % Look for the current list of profiles
 profList = dir(fullfile(obj.Meta_Data.paths.profiles,'Profile*.mat'));
-profNumChar = cell2mat(cellfun(@(C) C(8:10),{profList(:).name},'uniformoutput',0).');
+profNumChar = cell2mat(cellfun(@(C) C(8:11),{profList(:).name},'uniformoutput',0).');
 if ~isempty(profNumChar)
     lastProfNum = str2double(profNumChar(end,:));
     % Load the last profile

@@ -155,7 +155,7 @@ end
 % Save FCTD mat files to the new FCTD mat directory FCTDmat
 myFCTDMATfile = fullfile(FCTDdir,base);
 save(myFCTDMATfile,'FCTD');
-fprintf(1,'%s: Wrote  %s%s\n\n',datestr(now,'YY.mm.dd HH:MM:SS'), FCTDdir,myFCTDMATfile);
+%fprintf(1,'%s: Wrote  %s%s\n\n',datestr(now,'YY.mm.dd HH:MM:SS'), FCTDdir,myFCTDMATfile);
 
 % Update FCTD .mat time index
 FastCTD_UpdateMATFileTimeIndex(FCTDdir,base,FCTD);

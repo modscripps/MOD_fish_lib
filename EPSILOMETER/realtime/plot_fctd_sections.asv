@@ -3,16 +3,19 @@ fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
 
 %% First, concatenate the individual fctd files in the deployment directory
 [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir);
+
+if ~isempty(FCTDgrid)
 %% Plot some stuff
 clf
 %%ax = [];
 fig = figure(1);
 fig.Units = 'normalized';
 fig.Position = [0 0 0.6 0.9];
-zlim = [0 2000];
+zlim = [depth_array(1),depth_array(end)];
 clim_temp = [4 30.2]; 
-clim_sal = [35.1 36.5];
-clim_chi = [0.2 1];
+clim_sal = [34.5 37.1];
+% clim_chi = [0.2 1];
+clim_chi = [-10 -6];
 levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
 
 % which data to plot? How about the most recent 1 day
@@ -37,12 +40,13 @@ colormap(ax(2),cmocean('delta'))
 cb(2).Label.String = 'Salinity';
 set(cb(2),'ydir','reverse');
 
-% Chlorophyll
+% chi
 ax(3) = subtightplot(4,1,3);
-pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chi(:,iplot)));
+pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
 ax(3).CLim = [clim_chi(1) clim_chi(2)];
 cb(3) = colorbar;
-cb(3).Label.String = 'Chla';
+colormap(ax(3),cmocean('amp'))
+cb(3).Label.String = '\chi';
 
 % if isfield(FCTDgrid,'chla')
 %     pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
@@ -66,6 +70,7 @@ sort_S    = FCTDgrid.salinity.*nan;
 OT        = FCTDgrid.salinity.*nan;
 for p=1:length(FCTDgrid.time)
     local_dens=FCTDgrid.density(:,p);
+    sort_dens=FCTDgrid.density(:,p).*nan;
     dens_Inan=find(~isnan(local_dens));
     [~,IA]=sort(local_dens(dens_Inan),'ascend');
     sort_dens(dens_Inan)=local_dens(dens_Inan(IA));
@@ -103,5 +108,5 @@ end
 %MHA hack
 %[ax(1:2).YLim] = deal([zlim(1) 500]);
 
-
+end %end of ~isempty(FCTDgrid)
 

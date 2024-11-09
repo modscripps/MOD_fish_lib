@@ -27,12 +27,13 @@ input_struct.refresh_time_sec =  2*60;
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:500;
 
+% List FCTD variables to grid
+vars2grid_list = {'pressure','temperature','conductivity','longitude','latitude','bb','chla','fDOM','chi','chi2'};
+
 % Realtime or Simulator mode
 data_mode = 'realtime'; %'realtime' or 'simulator'
 
 % -------------------------------------------------------------------------
-
-
 
 %% Find the fish name and the path to store processed data
 % 1. If you're running this in realtime mode, the path to processed data will

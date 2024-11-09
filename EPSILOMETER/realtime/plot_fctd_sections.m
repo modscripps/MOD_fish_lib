@@ -2,7 +2,7 @@
 fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
 
 %% First, concatenate the individual fctd files in the deployment directory
-[FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir);
+[FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir,vars2grid_list);
 
 if ~isempty(FCTDgrid)
 %% Plot some stuff
@@ -11,7 +11,7 @@ clf
 fig = figure(1);
 fig.Units = 'normalized';
 fig.Position = [0 0 0.6 0.9];
-zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
+zlim = [depth_array(1),depth_array(end)];
 clim_temp = [4 30.2]; 
 clim_sal = [34.5 37.1];
 % clim_chi = [0.2 1];
@@ -48,17 +48,18 @@ cb(3) = colorbar;
 colormap(ax(3),cmocean('amp'))
 cb(3).Label.String = '\chi';
 
-% if isfield(FCTDgrid,'chla')
-%     pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
-%     ax(3).CLim = [clim_chi(1) clim_chi(2)];
-%     cb(3) = colorbar;
-%     cb(3).Label.String = 'Chla';
-% else
-%     pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.fluor(:,iplot));
-%     ax(3).CLim = [clim_chi(1) clim_chi(2)];
-%     cb(3) = colorbar;
-%     cb(3).Label.String = 'fluor';
-% end
+if isfield(FCTDgrid,'chla')
+    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
+    %pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot));
+    %ax(3).CLim = [clim_chi(1) clim_chi(2)];
+    cb(3) = colorbar;
+    cb(3).Label.String = 'Chla';
+else
+    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.fluor(:,iplot));
+    %ax(3).CLim = [clim_chi(1) clim_chi(2)];
+    cb(3) = colorbar;
+    cb(3).Label.String = 'fluor';
+end
 
 
 % N^2
