@@ -1,7 +1,7 @@
 # Mission and deployment info
 mission_name: MOTIVE
 experiment_name: 'transit_tests' #ex) cross-Gulf Stream, post-storm survey
-survey_name: '24_11##_d#_xxxxx'
+survey_name: '24_1109_d6_mako4_ctd0237_s1_swap'
 vehicle_name: MAKO4
 telemetry_case: TM4
 pressure_case: PC4

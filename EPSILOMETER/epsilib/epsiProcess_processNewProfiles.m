@@ -41,11 +41,14 @@ load(fullfile(obj.Meta_Data.paths.mat_data,'PressureTimeseries.mat'),'PressureTi
 
 %ALB VErsion control issue. The ESPIlib on  DEV3 has a slightly
 %different EPSIlib version
+if~isfield(PressureTimeseries,'startprof')
 if(~isfield(PressureTimeseries,'startprof') && isfield(PressureTimeseries,'startdown'))
     PressureTimeseries.startprof=PressureTimeseries.startdown;
     PressureTimeseries.endprof=PressureTimeseries.startup;
 else
+
     error('PressureTimeseries has the wrong format')
+end
 end
 % Look for the current list of profiles
 profList = dir(fullfile(obj.Meta_Data.paths.profiles,'Profile*.mat'));

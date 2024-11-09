@@ -2336,7 +2336,7 @@ while ~strncmp(s,'%*****END_FCTD',14) && ~feof(FID)
     % ALB20241106 Matlab send a lot of warning when decoding 
     % "psia:  13-dec-23" because of the colon. adding a quick fix to skip that line.
     if ~contains(s,"psia: ")
-       
+        disp(s)
         [v,val]=FastCTD_ASCII_parseheadline(s);
     else
         v=[];
@@ -2366,23 +2366,16 @@ end
 
 %  parse each line in the header to detect comments
 function [v,val]=FastCTD_ASCII_parseheadline(s)
-% NC 11/9/24 - add an if statement to check that s is not a blank line - I
-% accidentally introduced some blank lines in the header with the
-% convert_yaml_to_setup python function
-if ~isempty(s)
-    if s(1)~='%'
-
-        i = strfind(s,'=');
-        v=s(1:i-1);
-        val = s(i+1:end);
-    else
-        v=[];
-        val=[];
-    end
-else 
-    v = [];
-    val = [];
+if s(1)~='%'
+    
+    i = strfind(s,'=');
+    v=s(1:i-1);
+    val = s(i+1:end);
+else
+    v=[];
+    val=[];
 end
+
 return
 end
 
