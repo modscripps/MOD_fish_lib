@@ -245,19 +245,20 @@ fall_rate = dp(:)./dt(:);
 % set(2,'position',[0 0 1500 900])
 h = [0,0,0,0];
 clf;
-% h(1) = plot(datetime(tot_time,'ConvertFrom','datenum'), -tot_rot_acc/pi/2,'linewidth',2,'color','r');
+% h(1) = plot(datetime(tot_time,'ConvertFrom','datenum'), -tot_rot_acc/pi/2,'linewidth',2,'color','r','legend','Rot by acc [up]');
 % hold on;
 % if sum(fall_rate<0.001)>10
-%     h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k');
+%     h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k','legend','Rot by acc [up]');
 % end
 last_value = -tot_rot_acc/pi/2;
 last_value=last_value(~isnan(last_value));
 
 disp(['Most recent turn count: ' datestr(now),'   ' num2str(round(last_value(end)))])
 
-h(3) = plot(datetime(tot_time,'ConvertFrom','datenum'), tot_rot_gyro/pi/2,'linewidth',2,'color','b');
+h(3) = plot(datetime(tot_time,'ConvertFrom','datenum'), tot_rot_gyro/pi/2,'o','linewidth',2,'color','b','DisplayName','Rot by gyro [dn]');
+hold on
 if sum(fall_rate<0.001)>10
-    h(4) = plot(datetime(tot_time(fall_rate<0.001),'ConvertFrom','datenum'), tot_rot_gyro(fall_rate<0.001)/pi/2,'.','linewidth',2,'color','c');
+    h(4) = plot(datetime(tot_time(fall_rate<0.001),'ConvertFrom','datenum'), tot_rot_gyro(fall_rate<0.001)/pi/2,'x','linewidth',2,'color','c','DisplayName','Rot by gyro [up]');
 end
 % set(gca,'XTick',datetime(time(1):12/24:time(end),'ConvertFrom','datenum'))
 set(gca,'XTickLabelRotation',45)
@@ -270,7 +271,8 @@ ylabel('Number of rotations');
 title(['MODfish: Rotation count = ' num2str(round(last_value(end))) '  _ _ _ ']);
 
 str_legend={'Rot by acc [dn]','Rot by acc [up]','Rot by gyro [dn]','Rot by gyro [up]'};
-hl = legend(h(h>0),str_legend(h>0),'Location','NorthWest');
+%hl = legend(h(h>0),str_legend(h>0),'Location','NorthWest');
+hl = legend('Location','NorthWest');
 set(hl,'Fontsize',20);
 set(gca,'Fontsize',20);
 ax(1) = gca;

@@ -42,8 +42,8 @@ comms:
 #   raw_incoming    = directory where raw data are streaming into (for realtime) or where raw data are downloaded (for standalone)
 #   processed_data  = top level directory where data will be processed. The library will create a directory inside this directory with a name specified by  'survey_name'
 paths_from_processing_machine: 
-  process_library: 'Volumes/Software_current_cruise/MOD_fish_lib/EPSILOMETER/'
-  raw_incoming: 'Volumes/FCTD_EPSI_DATA/Current_Cruise/'
+  process_library: '/Volumes/Software_current_cruise/MOD_fish_lib/EPSILOMETER/'
+  raw_incoming: '/Volumes/FCTD_EPSI_DATA/Current_Cruise/'
   processed_data: '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/'
 paths_from_acquisition_machine:
   raw_incoming: '/Users/Shared/FCTD_EPSI_DATA/Current_Cruise/'

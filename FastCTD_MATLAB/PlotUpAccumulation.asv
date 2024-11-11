@@ -8,8 +8,8 @@
 %
 %%
 
-matDataDir = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/MAT_full_cruise/'; %Directory where FCTD*.mat are stored
-rotDataDir = '/Users/Shared/EPSI_PROCESSING/MOTIVE2024/Processed/ROT_full_cruise/'; %Directory where rotation data for each FCTD*.mat file will be stored
+matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise/'; %Directory where FCTD*.mat are stored
+rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise/'; %Directory where rotation data for each FCTD*.mat file will be stored
 %matFiles = dir([matDataDir 'FCTD*.mat']);
 matFiles = dir([matDataDir 'EPSI*.mat']);
 rotFiles = dir([rotDataDir 'EPSI*.mat']);
@@ -163,8 +163,8 @@ end
 % compass      = [];
 % gyro         = [];
 % org_gyro     = [];
-pressure     = [];
-time         = [];
+% pressure     = [];
+% time         = [];
 % acceleration = [];
 tic
 for i = file_index_ofset:numel(rotFiles)
@@ -199,22 +199,22 @@ for i = file_index_ofset:numel(rotFiles)
     % tot_rot_gyro = [tot_rot_gyro; tot_rot_gyro(end,:)+rot.tot_rot_gyro];
     % tot_rot_acc = [tot_rot_acc; tot_rot_acc(end,:)+rot.tot_rot_acc];
     if ~isempty(tot_rot_gyro)
-        tot_rot_gyro = [tot_rot_gyro; tot_rot_gyro(last_rot_gyro)+rot.tot_rot_gyro(start_idx:end,3)];
-        tot_rot_acc  = [tot_rot_acc; tot_rot_acc(last_rot_acc)+rot.tot_rot_acc(start_idx:end)];
+        tot_rot_gyro = [tot_rot_gyro(1:end-1); tot_rot_gyro(last_rot_gyro)+rot.tot_rot_gyro(start_idx:end,3)];
+        tot_rot_acc  = [tot_rot_acc(1:end-1); tot_rot_acc(last_rot_acc)+rot.tot_rot_acc(start_idx:end)];
     else
         tot_rot_gyro = rot.tot_rot_gyro(start_idx:end,3);
         tot_rot_acc  = rot.tot_rot_acc(start_idx:end);
 
     end
-    pressure = [pressure; rot.pressure(start_idx:end)];
-    time = [time; rot.time(start_idx:end)];    
+    tot_pressure = [tot_pressure(1:end-1); rot.pressure(start_idx:end)];
+    tot_time = [tot_time(1:end-1); rot.time(start_idx:end)];    
     last_file_idx=i;
     clear rot;
 end
 % tot_rot_gyro = tot_rot_gyro(2:end,:);
 % tot_rot_acc = tot_rot_acc(2:end,:);
-tot_time=[tot_time ; time];
-tot_pressure=[tot_pressure ; pressure];
+% tot_time=[tot_time(1:end-1) ; time];
+% tot_pressure=[tot_pressure(1:end-1) ; pressure];
 
 
 save([rotDataDir 'Latest_rot_acc_count.mat'], ...
@@ -245,11 +245,11 @@ fall_rate = dp(:)./dt(:);
 % set(2,'position',[0 0 1500 900])
 h = [0,0,0,0];
 clf;
-h(1) = plot(datetime(tot_time,'ConvertFrom','datenum'), -tot_rot_acc/pi/2,'linewidth',2,'color','r');
-hold on;
-if sum(fall_rate<0.001)>10
-    h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k');
-end
+% h(1) = plot(datetime(tot_time,'ConvertFrom','datenum'), -tot_rot_acc/pi/2,'linewidth',2,'color','r');
+% hold on;
+% if sum(fall_rate<0.001)>10
+%     h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k');
+% end
 last_value = -tot_rot_acc/pi/2;
 last_value=last_value(~isnan(last_value));
 
@@ -271,6 +271,7 @@ title(['MODfish: Rotation count = ' num2str(round(last_value(end))) '  _ _ _ '])
 
 str_legend={'Rot by acc [dn]','Rot by acc [up]','Rot by gyro [dn]','Rot by gyro [up]'};
 hl = legend(h(h>0),str_legend(h>0),'Location','NorthWest');
+hl = legend('Location','NorthWest')
 set(hl,'Fontsize',20);
 set(gca,'Fontsize',20);
 ax(1) = gca;

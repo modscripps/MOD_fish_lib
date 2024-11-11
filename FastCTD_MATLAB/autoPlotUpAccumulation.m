@@ -5,7 +5,7 @@ listeners = cmdWinDoc.getDocumentListeners;
 %find text area part
 jTextArea=listeners(5); %or listeners(3) or listeners (4) depending on matlab
 %set colour of command window
-jTextArea.setBackground(java.awt.Color(0.5,0.2,0.2));
+jTextArea.setBackground(java.awt.Color(1,0.4,0.4));
 
 %% input structure
 rot_strut.raw_incoming = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise/';
