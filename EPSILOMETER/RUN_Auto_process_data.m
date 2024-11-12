@@ -119,109 +119,163 @@ input_struct.process_dir = fullfile( ...
     process_dir_root, ...
     strrep(survey_name_setupfile,'''','')); %This will create a directory with this name
 
-%% Look for the files that match the survey name
-N_files_to_search = 10; %Maximum number of files to search for CTD.survey
-if exist(fullfile(input_struct.process_dir,'raw'),'dir')
-    listfile_process_dir=dir(fullfile(input_struct.process_dir,'raw','*.modraw'));
-    % If the processed data directory is not empty, that means you've
-    % already started copying files, so 'str_to_match' is the last file in
-    % the directory. Copy everything from the raw incoming directory
-    % beginning with that file.
-    if ~isempty(listfile_process_dir)
-        input_struct.str_to_match = listfile_process_dir(end).name;
-    else
-        % If the processed data directory is empty, look for files in the
-        % raw directory. Look for what you defined as 'survey_name' in the
-        % last 10 files and start copying from the first one with that
-        % survey name.
-        
+%% Look for the files that match the survey name and copy them to the processing directory
+% Instead of looking through the last 10 files, just look at ALL of the
+% files and find the ones that match the survey name.
+%
+%
 
-        listfile_raw_dir=dir(fullfile(input_struct.raw_dir,'*.modraw'));
-        count=0;
-        % quick look in the previous files if survey name exist.
-        % In case blue matlab was launched few minutes after fctd_epsi
-        
-        while count<min([N_files_to_search,length(listfile_raw_dir)]) %Count up to the total number of files in the directory or N_files_to_search, whatever is smaller
-            path2setup1=fullfile(...
-                listfile_raw_dir((length(listfile_raw_dir)-count)).folder,...
-                listfile_raw_dir((length(listfile_raw_dir)-count)).name);
-            fid=fopen(path2setup1,'r');
-            fseek(fid,0,1);
-            frewind(fid);
-            str = fread(fid,'*char')';
-            fclose(fid);
-            % If you find 'CTD.survey' in the .mod raw file, get the survey
-            % name
-            if ~isempty(strfind(str,'CTD.survey'))
-                surveyflag1_str      = str(strfind(str,'CTD.survey')+(0:100));
-                surveyflag1_str      = surveyflag1_str(1:find(uint8(surveyflag1_str)==10,1,'first'));
-                surveyflag1_name     = strsplit(surveyflag1_str,'=');
-                surveylag1_name      = surveyflag1_name{2}(1:end-1);
-                survey1_name         = surveylag1_name;
+% Make the process directory
+if ~exist(fullfile(input_struct.process_dir,'raw'),'dir')
+    mkdir(input_struct.process_dir);
+    mkdir(fullfile(input_struct.process_dir),'raw/')
+end
 
-                if contains(survey1_name,survey_name_setupfile)
-                    input_struct.str_to_match = ...
-                        listfile_raw_dir(length(listfile_raw_dir)-count).name;
-                    count=count+1;
-                else
-                    input_struct.str_to_match = ...
-                        listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
-                    % setting count to 10 to break out from while loop
-                    count=N_files_to_search; % The previous file is the first of the survey
-                end % if survey1=survey
-            else % If you don't find 'CTD.survey', count up.
-                count=count+1;
-            end %end if CTD.survey exists
-        end % end of while loop.
+
+file_list_all = dir(fullfile(input_struct.raw_dir,'*.modraw'));
+
+% Loop through files and find the ones with survey_name
+idx_in_survey = false(length(file_list_all),1);
+for i=1:length(file_list_all)
+
+    % Open file
+    fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
+    fseek(fid,0,1);
+    frewind(fid);
+    str = fread(fid,'*char')';
+    fclose(fid);
+
+    % Find line that has survey name
+    survey_flag=contains(str,'CTD.survey');
+
+    if survey_flag
+        surveyflag_str      = str(strfind(str,'CTD.survey')+(0:100));
+        surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
+        surveyflag_name     = strsplit(surveyflag_str,'=');
+        survey_name_in_file = surveyflag_name{2}(1:end-1);
+
+        % Does survey name in file match the survey name we're looking for?
+        if contains(survey_name_in_file,survey_name)
+            idx_in_survey(i) = true;
+        end
     end
-else
-    listfile_raw_dir=dir(fullfile(input_struct.raw_dir,'*.modraw'));
-    count=0;
-    % quick look in the previous files if survey name exist.
-    % In case RUN_Auto_process_data was launched few minutes after ./fctd_epsi
-    while count<min([N_files_to_search,length(listfile_raw_dir)])
-        path2setup1=fullfile(...
-            listfile_raw_dir((length(listfile_raw_dir)-count)).folder,...
-            listfile_raw_dir((length(listfile_raw_dir)-count)).name);
+end %End loop through all files
 
-        fid=fopen(path2setup1,'r');
-        fseek(fid,0,1);
-        frewind(fid);
-        str = fread(fid,'*char')';
-        fclose(fid);% If you find 'CTD.survey' in the .mod raw file, get the survey
-        % name
-        if ~isempty(strfind(str,'CTD.survey'))
-            surveyflag1_str      = str(strfind(str,'CTD.survey')+(0:100));
-            surveyflag1_str      = surveyflag1_str(1:find(uint8(surveyflag1_str)==10,1,'first'));
-            surveyflag1_name     = strsplit(surveyflag1_str,'=');
-            surveylag1_name      = surveyflag1_name{2}(1:end-1);
-            survey1_name         = surveylag1_name;
+% Keep only files in survey
+file_list = file_list_all(idx_in_survey);
+already_copied_list = dir(fullfile(input_struct.process_dir,'raw','*.modraw'));
+already_copied_list = {already_copied_list(:).name};
 
-            if contains(survey1_name,survey_name_setupfile)
-                input_struct.str_to_match = ...
-                    listfile_raw_dir(length(listfile_raw_dir)-count).name;
-                count=count+1;
-            else
-                if count>0
-                    input_struct.str_to_match = ...
-                        listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
-                    count=N_files_to_search; % The previous file is the first of the survey
-                else
-                    count = N_files_to_search; % If you're on the most recent file and it doesn't match the setup file, get out of the loop and ask explicitly for file name
-                end
-            end % if survey1=survey
-        else
-            count=count+1;
-        end %end if CTD.survey exists
-    end % end of while loop.
+for i=1:length(file_list)
+    % Copy each file unless it has already been copied
+    if ~any(contains(already_copied_list,file_list(i).name))
+        eval(['!cp ' fullfile(file_list(i).folder,file_list(i).name) ' ' fullfile(input_struct.process_dir,'raw/')]);
+    end
 end
 
-% If you get to the end of that and haven't found any files that match
-% CTD.survey (maybe you're using old .modraw files that don't have them),
-% ask for the name of the first file to process
-if ~isfield(input_struct,'str_to_match')
-    input_struct.str_to_match = input('What is the first file in this deployment? [''EPSIyy_mm_dd_HHMMSS.modraw'']');
-end
+
+% N_files_to_search = 10; %Maximum number of files to search for CTD.survey
+% if exist(fullfile(input_struct.process_dir,'raw'),'dir')
+%     listfile_process_dir=dir(fullfile(input_struct.process_dir,'raw','*.modraw'));
+%     % If the processed data directory is not empty, that means you've
+%     % already started copying files, so 'str_to_match' is the last file in
+%     % the directory. Copy everything from the raw incoming directory
+%     % beginning with that file.
+%     if ~isempty(listfile_process_dir)
+%         input_struct.str_to_match = listfile_process_dir(end).name;
+%     else
+%         % If the processed data directory is empty, look for files in the
+%         % raw directory. Look for what you defined as 'survey_name' in the
+%         % last 10 files and start copying from the first one with that
+%         % survey name.
+% 
+% 
+%         listfile_raw_dir=dir(fullfile(input_struct.raw_dir,'*.modraw'));
+%         count=0;
+%         % quick look in the previous files if survey name exist.
+%         % In case blue matlab was launched few minutes after fctd_epsi
+% 
+%         while count<min([N_files_to_search,length(listfile_raw_dir)]) %Count up to the total number of files in the directory or N_files_to_search, whatever is smaller
+%             path2setup1=fullfile(...
+%                 listfile_raw_dir((length(listfile_raw_dir)-count)).folder,...
+%                 listfile_raw_dir((length(listfile_raw_dir)-count)).name);
+%             fid=fopen(path2setup1,'r');
+%             fseek(fid,0,1);
+%             frewind(fid);
+%             str = fread(fid,'*char')';
+%             fclose(fid);
+%             % If you find 'CTD.survey' in the .mod raw file, get the survey
+%             % name
+%             if ~isempty(strfind(str,'CTD.survey'))
+%                 surveyflag1_str      = str(strfind(str,'CTD.survey')+(0:100));
+%                 surveyflag1_str      = surveyflag1_str(1:find(uint8(surveyflag1_str)==10,1,'first'));
+%                 surveyflag1_name     = strsplit(surveyflag1_str,'=');
+%                 surveylag1_name      = surveyflag1_name{2}(1:end-1);
+%                 survey1_name         = surveylag1_name;
+% 
+%                 if contains(survey1_name,survey_name_setupfile)
+%                     input_struct.str_to_match = ...
+%                         listfile_raw_dir(length(listfile_raw_dir)-count).name;
+%                     count=count+1;
+%                 else
+%                     input_struct.str_to_match = ...
+%                         listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
+%                     % setting count to 10 to break out from while loop
+%                     count=N_files_to_search; % The previous file is the first of the survey
+%                 end % if survey1=survey
+%             else % If you don't find 'CTD.survey', count up.
+%                 count=count+1;
+%             end %end if CTD.survey exists
+%         end % end of while loop.
+%     end
+% else
+%     listfile_raw_dir=dir(fullfile(input_struct.raw_dir,'*.modraw'));
+%     count=0;
+%     % quick look in the previous files if survey name exist.
+%     % In case RUN_Auto_process_data was launched few minutes after ./fctd_epsi
+%     while count<min([N_files_to_search,length(listfile_raw_dir)])
+%         path2setup1=fullfile(...
+%             listfile_raw_dir((length(listfile_raw_dir)-count)).folder,...
+%             listfile_raw_dir((length(listfile_raw_dir)-count)).name);
+% 
+%         fid=fopen(path2setup1,'r');
+%         fseek(fid,0,1);
+%         frewind(fid);
+%         str = fread(fid,'*char')';
+%         fclose(fid);% If you find 'CTD.survey' in the .mod raw file, get the survey
+%         % name
+%         if ~isempty(strfind(str,'CTD.survey'))
+%             surveyflag1_str      = str(strfind(str,'CTD.survey')+(0:100));
+%             surveyflag1_str      = surveyflag1_str(1:find(uint8(surveyflag1_str)==10,1,'first'));
+%             surveyflag1_name     = strsplit(surveyflag1_str,'=');
+%             surveylag1_name      = surveyflag1_name{2}(1:end-1);
+%             survey1_name         = surveylag1_name;
+% 
+%             if contains(survey1_name,survey_name_setupfile)
+%                 input_struct.str_to_match = ...
+%                     listfile_raw_dir(length(listfile_raw_dir)-count).name;
+%                 count=count+1;
+%             else
+%                 if count>0
+%                     input_struct.str_to_match = ...
+%                         listfile_raw_dir(length(listfile_raw_dir)-count+1).name;
+%                     count=N_files_to_search; % The previous file is the first of the survey
+%                 else
+%                     count = N_files_to_search; % If you're on the most recent file and it doesn't match the setup file, get out of the loop and ask explicitly for file name
+%                 end
+%             end % if survey1=survey
+%         else
+%             count=count+1;
+%         end %end if CTD.survey exists
+%     end % end of while loop.
+% end
+% 
+% % If you get to the end of that and haven't found any files that match
+% % CTD.survey (maybe you're using old .modraw files that don't have them),
+% % ask for the name of the first file to process
+% if ~isfield(input_struct,'str_to_match')
+%     input_struct.str_to_match = input('What is the first file in this deployment? [''EPSIyy_mm_dd_HHMMSS.modraw'']');
+% end
 
 
 %% All options have been determined. Now get depth array, create output directory, and get ready to run the processing script
@@ -231,11 +285,6 @@ switch instrument_setupfile
         input_struct.depth_array = epsi_depth_array;
     case {'fctd','FCTD'}
         input_struct.depth_array = fctd_depth_array;
-end
-
-% Make the process directory
-if ~exist(fullfile(input_struct.process_dir,'raw'),'dir')
-    mkdir(input_struct.process_dir);
 end
 
 % Set command window color

@@ -1,9 +1,8 @@
 %% Change these parameters for post-processing data
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:500;
-instrument = 'fctd'; %Select so the code knows which depth array to use. The processing will get the instrument name from .modraw files
 
-survey_name = '24_1107_d4_fctd1_test';
+survey_name = '24_1109_d6_mako4_s1swap';
 
 % List FCTD variables to grid
 vars2grid_list = {'longitude','latitude','pressure','temperature','conductivity','w','bb','chla','fDOM','chi','chi2'};
@@ -16,21 +15,13 @@ raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
 root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process','MDP_motive_2024.txt');
 
-process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed';
+process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
 % Define the name of the process directory based on either what you
 % found in the Setup file or what you input
 process_dir = fullfile( ...
     process_dir_root, ...
     strrep(survey_name,'''','')); %This will create a directory with this name
-
-%%  Get the depth array based on instrument choice
-switch lower(instrument)
-    case 'epsi'
-        depth_array = epsi_depth_array;
-    case 'fctd'
-        depth_array = fctd_depth_array;
-end
 
 %% Begin processing
 fprintf('Processing survey %s\n', survey_name)
@@ -111,14 +102,48 @@ for i=1:length(file_list)
     end
 end
 
+%% Get the fish name from one of the copied files
+% Open file
+fid = fopen(fullfile(dirs.raw_copy,file_list(1).name));
+fseek(fid,0,1);
+frewind(fid);
+str = fread(fid,'*char')';
+fclose(fid);
+
+fish_flag=contains(str,'CTD.fishflag=');
+if fish_flag
+    fishflag_str      = str(strfind(str,'CTD.fishflag=')+(0:100));
+    fishflag_str      = fishflag_str(1:find(uint8(fishflag_str)==10,1,'first'));
+    fishflag_name      = strsplit(fishflag_str,'=');
+    fishflag_name      = fishflag_name{2}(2:end-2);
+    instrument = fishflag_name;
+
+else
+    instrument = input('What fish are we using? [''epsi'',''fctd'']');
+
+end
+
+
+%%  Get the depth array based on instrument choice
+switch lower(instrument)
+    case 'epsi'
+        depth_array = epsi_depth_array;
+    case 'fctd'
+        depth_array = fctd_depth_array;
+end
+
 %% Process and plot the data
 ec = epsi_class(process_dir,Meta_Data_process_file);
 
 switch lower(instrument)
     case 'epsi'
+        fprintf('Reading data...\n')
         ec.f_readData;
+        fprintf('Making new profiles...\n')
         ec.f_makeNewProfiles;
+        fprintf('Computing turbulence...\n')
         ec.f_computeTurbulence
+        fprintf('Gridding profiles...\n')
         ec.f_gridProfiles(depth_array);
         plot_epsi_sections
     case 'fctd'
