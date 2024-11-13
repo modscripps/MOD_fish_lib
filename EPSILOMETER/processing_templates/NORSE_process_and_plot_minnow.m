@@ -77,7 +77,7 @@ ec = epsi_class(process_dir,norse_meta_data);
 
 %%
 ec.f_readData;
-ec.f_processNewProfiles;
+ec.f_makeNewProfiles_and_computeTurbulence;
 
 %% Grid data
 ec.f_gridProfiles(depth_array);

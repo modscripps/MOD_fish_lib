@@ -1,5 +1,5 @@
-function obj = epsiProcess_processNewProfiles(obj,varargin)
-% obj = f_processNewProfiles(obj,varargin)
+function obj = epsiProcess_makeNewProfiles_and_computeTurbulence(obj,varargin)
+% obj = f_makeNewProfiles_and_computeTurbulence(obj,varargin)
 %
 % - Divides data into profiles
 % - Computes turbulence variables
@@ -15,6 +15,9 @@ function obj = epsiProcess_processNewProfiles(obj,varargin)
 %
 % If there are optional arguments they are 'grid' and P, the pressure array
 % to grid onto
+disp('--- epsiProcess_makeNewProfiles_and_computeTurbulence.m ---')
+
+
 if nargin>1
     makeGrid = true;
     z = varargin{1}{2};
@@ -23,7 +26,9 @@ else
 end
 
 % Check that there is dTdV. If not, tell user to run
-% ec.f_calibrateTemperature or process_calibrate_dTdV.m
+if obj.Meta_Data.AFE.t1.cal==0 && obj.Meta_Data.AFE.t2.cal==0
+    obj = f_calibrateTemperature(obj);
+end
 
 % % Pick out profile drops from CTD pressure timeseries
 % obj.f_getProfileIndices;
@@ -99,13 +104,7 @@ for iProf=1:length(PressureTimeseries.startprof)
             obj.f_calibrateTemperature;
             % pause
         end
-        % ALB With the version we need to save the dTdV in a text file and
-        % load the computed from dTdV there.
-        if iProf>1 && Profile.Meta_Data.AFE.t1.cal==0 && Profile.Meta_Data.AFE.t2.cal==0
-            obj.Meta_Data=mod_som_get_temp_probe_calibration(obj.Meta_Data);
-            Profile.Meta_Data.AFE.t1.cal=obj.Meta_Data.AFE.t1.cal;
-            Profile.Meta_Data.AFE.t2.cal=obj.Meta_Data.AFE.t2.cal;
-        end
+
 
         Profile = obj.f_computeTurbulence(Profile);
         % Sort Profile by standard field order
@@ -119,4 +118,4 @@ for iProf=1:length(PressureTimeseries.startprof)
         clear Profile
     end
 end
-end %end f_processNewProfiles
+end %end f_makeNewProfiles_and_computeTurbulence

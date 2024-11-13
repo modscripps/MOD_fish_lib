@@ -34,6 +34,7 @@ function Meta_Data=mod_epsi_temperature_spectra_v4(Meta_Data,Profile,saveData,pl
 % tscan = 50 or if the profile is too short, find the longest profile
 % in the deployment and set tscan to about 0.5-0.8 times the profile
 % length
+disp('--- mod_epsi_temperature_spectra_v4.m ---')
 
 % Options for saving and plotting data
 if nargin<4
@@ -238,17 +239,17 @@ elseif isfield(Meta_Data,'epsi')
 end
 Meta_Data.(field_name).t1.cal=dTdV(1);
 Meta_Data.(field_name).t2.cal=dTdV(2);
-% NC 9/14/21 - Added dTdV_profile and rangeT to try to come up with a
-% better way to compute dTdV for a deployment
-Meta_Data.(field_name).t1.cal_profile=dTdV_profile(1,:);
-try
-    Meta_Data.(field_name).t2.cal_profile=dTdV_profile(2,:);
-catch
-    Meta_Data.(field_name).t2.cal_profile=dTdV_profile(1,:);
-end
-Meta_Data.(field_name).t1.ctd_Tmin = nanmin(data_CTD.');
-Meta_Data.(field_name).t1.ctd_Tmax = nanmax(data_CTD.');
-Meta_Data.(field_name).t1.pr = nanmean(pr_CTD.');
+% % NC 9/14/21 - Added dTdV_profile and rangeT to try to come up with a
+% % better way to compute dTdV for a deployment
+% Meta_Data.(field_name).t1.cal_profile=dTdV_profile(1,:);
+% try
+%     Meta_Data.(field_name).t2.cal_profile=dTdV_profile(2,:);
+% catch
+%     Meta_Data.(field_name).t2.cal_profile=dTdV_profile(1,:);
+% end
+% Meta_Data.(field_name).t1.ctd_Tmin = nanmin(data_CTD.');
+% Meta_Data.(field_name).t1.ctd_Tmax = nanmax(data_CTD.');
+% Meta_Data.(field_name).t1.pr = nanmean(pr_CTD.');
 
 
 % Save dTdV in Meta_Data

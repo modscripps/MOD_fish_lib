@@ -1,9 +1,12 @@
 function Meta_Data=mod_som_get_temp_probe_calibration(Meta_Data)
-
+% Meta_Data=mod_som_get_temp_probe_calibration(Meta_Data)
+%
+% Called by epsiProcess_newProfiles.m
 %
 % Changes to Meta_Data format require a change to this function:
 %   - tempcal_path and temp serial numbers are
 %     now stored in Meta_Data.AFE
+disp('--- mod_som_get_temp_probe_calibration.m ---')
 
 % NC 10/7/21 - Check for 'AFE' or 'epsi' strucutre in Meta_Data. Add
 % calibratation to the appropriate structure.

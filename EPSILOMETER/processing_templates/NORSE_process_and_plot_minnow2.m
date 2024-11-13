@@ -49,7 +49,7 @@ copyfile /Volumes/Epsidrive/EPSILOMETER/config_files/bench_config fullfile(proce
 %% Read and process data
 ec = epsi_class(process_dir,norse_meta_data);
 ec.f_readData;
-ec.f_processNewProfiles;
+ec.f_makeNewProfiles_and_computeTurbulence;
 ec.f_gridProfiles(depth_range);
 
 %% Plot data

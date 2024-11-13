@@ -1,5 +1,5 @@
 function obj = epsiProcess_makeNewProfiles(obj,varargin)
-% obj = f_processNewProfiles(obj,varargin)
+% obj = f_makeNewProfiles(obj,varargin)
 %
 % - Divides data into profiles
 % - Does not compute turbulence data

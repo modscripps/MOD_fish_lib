@@ -40,6 +40,16 @@ if isfield(Profile_or_profNum,'gps') && ~isempty(Profile_or_profNum.gps)
     Profile.longitude = mean(Profile_or_profNum.gps.longitude(1:min([idx,nGPS])),'omitmissing');
 end
 
+%% Check that dTdV calibration has been set for this profile. If it has
+% not, calculated it and save it in Profile.Meta_Data and big Meta_Data as
+% one of the indices in an array
+if max(size(Meta_Data.AFE.t1.cal))==1
+if Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t2.cal==0
+    Meta_Data=mod_epsi_temperature_spectra_v4(Meta_Data,Profile);
+end
+end
+
+
 %% Get epsi sampling frequency
 try
     Fs_epsi = Meta_Data.AFE.FS;
@@ -241,6 +251,7 @@ Profile.th             = nan(nbscan,1);
 Profile.sgth           = nan(nbscan,1);
 Profile.epsilon_final  = nan(nbscan,1);
 Profile.kvis           = nan(nbscan,1);
+Profile.ktemp          = nan(nbscan,1);
 Profile.sumPa.a1       = nan(nbscan,1);
 Profile.sumPa.a2       = nan(nbscan,1);
 Profile.sumPa.a3       = nan(nbscan,1);
@@ -345,7 +356,8 @@ for p = 1:nbscan % p is the scan index.
         Profile.sh_fc(p,2) = scan.fc.s2(2); %only saving the shear_co limit ALB 03/06/2023 the 2nd idx is the shear_co
         Profile.sh_kc(p,1) = scan.kc.s1(2); 
         Profile.sh_kc(p,2) = scan.kc.s2(2); 
-        Profile.kvis(p,1) = scan.kvis;
+        Profile.kvis(p,1)  = scan.kvis;
+        Profile.ktemp(p,1) = scan.ktemp;
         
         if isfield(scan.chi,'t1')
             Profile.chi(p,1)   = scan.chi.t1;
@@ -475,11 +487,20 @@ end
 
 % Save files
 if saveData && isfield(Profile,'profNum')
+    % Save Meta_Data with new t1 and t2 cals in Profile
+    Profile.Meta_Data = Meta_Data;
     save_var_name = 'Profile';
     save_file_name = sprintf('Profile%04i',Profile.profNum);
     save_file = fullfile(Meta_Data.paths.profiles, ...
         [save_file_name '.mat']);
     eval(['save(''' save_file ''', ''' save_var_name ''');']);
+
+    % Save big Meta_Data with t1 and t2 cals in the index for the current
+    % profile
+    Meta_Data.AFE.t1.cal(profNum) = Meta_Data.AFE.t1.cal;
+    Meta_Data.AFE.t2.cal(profNum) = Meta_Data.AFE.t2.cal;
+    save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
+
 end
 
 % Sort Profile by standard field order

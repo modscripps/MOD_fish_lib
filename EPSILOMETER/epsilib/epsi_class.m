@@ -247,18 +247,22 @@ classdef epsi_class < handle
                 dirs.raw_incoming = obj.Meta_Data.paths.raw_data;
                 dirs.mat = obj.Meta_Data.paths.mat_data;
                 if make_FCTD
-                    epsiProcess_convert_new_raw_to_mat(dirs,obj.Meta_Data,...
+                    matData = epsiProcess_convert_new_raw_to_mat(dirs,obj.Meta_Data,...
                         'noSync',...
                         'version',version_number,...
                         'calc_micro',calc_micro,...
                         'doFCTD',fctd_mat_dir);
                 elseif ~make_FCTD
-                    epsiProcess_convert_new_raw_to_mat(dirs,obj.Meta_Data,...
+                    matData = epsiProcess_convert_new_raw_to_mat(dirs,obj.Meta_Data,...
                         'noSync',...
                         'version',version_number,...
                         'calc_micro',calc_micro);
                 end
-            end
+            end %end if list of files is not empty
+
+            % Get the Meta_Data from the most recently processed mat file
+            % and add it to epsi_class object.
+            obj.Meta_Data = matData.Meta_Data;
 
         end
         %%
@@ -600,90 +604,90 @@ classdef epsi_class < handle
             linkaxes(ax,'x')
         end
         %%
-        function obj = f_calibrateTemperature(obj)
-            % USAGE
-            %   obj.Meta_Data = f_calibrateTemperature(obj);
-            %
-            if ~isfield(obj.Meta_Data.PROCESS,'nfft')
-                error('Meta_Data.PROCESS.nfft is not defined. Add Meta_Data_Process info')
-            end
-            %             Meta_Data = obj.Meta_Data;
-            %             save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
-
-            %             try
-            %                 load(fullfile(obj.Meta_Data.paths.profiles,['Profiles_' Meta_Data.deployment]));
-            %             catch err
-            %                 error('You need to create profiles before calibrating temperature for this deployment')
-            %             end
-            %
-            switch lower(obj.Meta_Data.vehicle_name)
-                case 'fish'
-                    obj.Meta_Data.PROCESS.profile_dir = 'down';
-                    datachoice = 'datadown';
-                    idxchoice = 'down';
-                case {'ww','seacycler','apex','sa_apex','wirewalker'}
-                    obj.Meta_Data.PROCESS.profile_dir = 'up';
-                    datachoice = 'dataup';
-                    idxchoice = 'up';
-                otherwise
-                    obj.Meta_Data.PROCESS.profile_dir = 'down';
-                    datachoice = 'datadown';
-                    idxchoice = 'down';
-            end
-
-
-            % NC 10/12/21 - Instead of using the longest profile, wait
-            % until after profiles are created and define dTdV according to
-            % calibrate_dTdV.m
-            dTdV_process = 'old';
-            switch dTdV_process
-                case 'new'
-                    obj.Meta_Data = process_calibrate_dTdV(obj.Meta_Data);
-                case 'old'
-                    % Load the pressure timeseries and find the downcast or upcast with the
-                    % greatest range in pressure.
-                    load(fullfile(obj.Meta_Data.paths.mat_data,'PressureTimeseries.mat'));
-                    %             switch datachoice
-                    %                 case 'dataup'
-                    %                     profLengths = PressureTimeseries.endup-PressureTimeseries.startup;
-                    %                     pRange = PressureTimeseries.P(PressureTimeseries.endup) -...
-                    %                                 PressureTimeseries.P(PressureTimeseries.startup);
-                    %                 case 'datadown'
-                    %                     profLengths = PressureTimeseries.enddown-PressureTimeseries.startdown;
-                    %                     pRange = PressureTimeseries.P(PressureTimeseries.enddown) -...
-                    %                                 PressureTimeseries.P(PressureTimeseries.startdown);
-                    %             end
-                    if contains(lower(obj.Meta_Data.fishflag_name),'fctd') || contains(lower(obj.Meta_Data.fishflag_name),'epsi')
-                        PressureTimeseries.startprof=PressureTimeseries.startdown;
-                        PressureTimeseries.endprof=PressureTimeseries.enddown;
-                    else
-                    end
-                    profLengths = PressureTimeseries.endprof-PressureTimeseries.startprof;
-                    pRange = PressureTimeseries.P(PressureTimeseries.endprof) -...
-                        PressureTimeseries.P(PressureTimeseries.startprof);
-                    % Find the longest profile
-                    [~,idxProf] = max(abs(pRange));
-
-                    % Get (and merge if necessary) .mat data for this profile
-                    tMin = PressureTimeseries.dnum(PressureTimeseries.startprof(idxProf));
-                    tMax = PressureTimeseries.dnum(PressureTimeseries.endprof(idxProf));
-                    Profile = obj.f_cropTimeseries(tMin,tMax);
-
-                    %                 load(fullfile(obj.Meta_Data.paths.profiles,sprintf('Profile%03.0f',idxProf)));
-                    %                 try
-                    %                     Fs=obj.Meta_Data.AFE.FS;
-                    %                 catch
-                    %                     Fs=obj.Meta_Data.PROCESS.Fs; %Check this,  I think it's wrong
-                    %                 end
-                    %                 tscanLongestProfile = floor(0.8*length(Profile.epsi.time_s)/Fs);
-                    %                 tscanDefault = 50;
-                    %                 tscan = min([tscanDefault,tscanLongestProfile]);
-
-                    % This is what actually calculates dTdV!
-                    obj.Meta_Data=mod_epsi_temperature_spectra_v4(obj.Meta_Data,Profile);
-            end
-
-        end
+        % function obj = f_calibrateTemperature(obj)
+        %     % USAGE
+        %     %   obj.Meta_Data = f_calibrateTemperature(obj);
+        %     %
+        %     if ~isfield(obj.Meta_Data.PROCESS,'nfft')
+        %         error('Meta_Data.PROCESS.nfft is not defined. Add Meta_Data_Process info')
+        %     end
+        %     %             Meta_Data = obj.Meta_Data;
+        %     %             save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
+        % 
+        %     %             try
+        %     %                 load(fullfile(obj.Meta_Data.paths.profiles,['Profiles_' Meta_Data.deployment]));
+        %     %             catch err
+        %     %                 error('You need to create profiles before calibrating temperature for this deployment')
+        %     %             end
+        %     %
+        %     switch lower(obj.Meta_Data.vehicle_name)
+        %         case 'fish'
+        %             obj.Meta_Data.PROCESS.profile_dir = 'down';
+        %             datachoice = 'datadown';
+        %             idxchoice = 'down';
+        %         case {'ww','seacycler','apex','sa_apex','wirewalker'}
+        %             obj.Meta_Data.PROCESS.profile_dir = 'up';
+        %             datachoice = 'dataup';
+        %             idxchoice = 'up';
+        %         otherwise
+        %             obj.Meta_Data.PROCESS.profile_dir = 'down';
+        %             datachoice = 'datadown';
+        %             idxchoice = 'down';
+        %     end
+        % 
+        % 
+        %     % NC 10/12/21 - Instead of using the longest profile, wait
+        %     % until after profiles are created and define dTdV according to
+        %     % calibrate_dTdV.m
+        %     dTdV_process = 'old';
+        %     switch dTdV_process
+        %         case 'new'
+        %             obj.Meta_Data = process_calibrate_dTdV(obj.Meta_Data);
+        %         case 'old'
+        %             % Load the pressure timeseries and find the downcast or upcast with the
+        %             % greatest range in pressure.
+        %             load(fullfile(obj.Meta_Data.paths.mat_data,'PressureTimeseries.mat'));
+        %             %             switch datachoice
+        %             %                 case 'dataup'
+        %             %                     profLengths = PressureTimeseries.endup-PressureTimeseries.startup;
+        %             %                     pRange = PressureTimeseries.P(PressureTimeseries.endup) -...
+        %             %                                 PressureTimeseries.P(PressureTimeseries.startup);
+        %             %                 case 'datadown'
+        %             %                     profLengths = PressureTimeseries.enddown-PressureTimeseries.startdown;
+        %             %                     pRange = PressureTimeseries.P(PressureTimeseries.enddown) -...
+        %             %                                 PressureTimeseries.P(PressureTimeseries.startdown);
+        %             %             end
+        %             if contains(lower(obj.Meta_Data.fishflag_name),'fctd') || contains(lower(obj.Meta_Data.fishflag_name),'epsi')
+        %                 PressureTimeseries.startprof=PressureTimeseries.startdown;
+        %                 PressureTimeseries.endprof=PressureTimeseries.enddown;
+        %             else
+        %             end
+        %             profLengths = PressureTimeseries.endprof-PressureTimeseries.startprof;
+        %             pRange = PressureTimeseries.P(PressureTimeseries.endprof) -...
+        %                 PressureTimeseries.P(PressureTimeseries.startprof);
+        %             % Find the longest profile
+        %             [~,idxProf] = max(abs(pRange));
+        % 
+        %             % Get (and merge if necessary) .mat data for this profile
+        %             tMin = PressureTimeseries.dnum(PressureTimeseries.startprof(idxProf));
+        %             tMax = PressureTimeseries.dnum(PressureTimeseries.endprof(idxProf));
+        %             Profile = obj.f_cropTimeseries(tMin,tMax);
+        % 
+        %             %                 load(fullfile(obj.Meta_Data.paths.profiles,sprintf('Profile%03.0f',idxProf)));
+        %             %                 try
+        %             %                     Fs=obj.Meta_Data.AFE.FS;
+        %             %                 catch
+        %             %                     Fs=obj.Meta_Data.PROCESS.Fs; %Check this,  I think it's wrong
+        %             %                 end
+        %             %                 tscanLongestProfile = floor(0.8*length(Profile.epsi.time_s)/Fs);
+        %             %                 tscanDefault = 50;
+        %             %                 tscan = min([tscanDefault,tscanLongestProfile]);
+        % 
+        %             % This is what actually calculates dTdV!
+        %             obj.Meta_Data=mod_epsi_temperature_spectra_v4(obj.Meta_Data,Profile);
+        %     end
+        % 
+        % end
         %%
         function obj = f_computeTurbulence(obj,Profile_or_profNum,saveData)
             % obj = f_computeTurbulence(obj,Profile_or_profNum,saveData)
@@ -721,26 +725,18 @@ classdef epsi_class < handle
             end
         end
         %%
-        function obj = f_processNewProfiles(obj,varargin)
-            % obj = f_processNewProfiles(obj,varargin)
+        function obj = f_makeNewProfiles_and_computeTurbulence(obj,varargin)
+            % obj = f_makeNewProfiles_and_computeTurbulenc(obj,varargin)
             %
             % OPTIONAL ARGUMENTS
             %   'grid',P - 'grid' flag to grid some of the profile variables onto a
             %               standard pressure grid
             %            - P = the pressure array to use
-
-            % If there are not yet any temperature calibration values,
-            % calibrate the temperature probes.
-            % ALB this steps need to be done later. We can not keep dTdv
-            % for a whole section when re-processing. 
-            % if obj.Meta_Data.AFE.t1.cal==0 && obj.Meta_Data.AFE.t2.cal==0
-            %     obj = f_calibrateTemperature(obj);
-            % end
             
             if nargin>1
-                obj = epsiProcess_processNewProfiles(obj,varargin);
+                obj = epsiProcess_makeNewProfiles_and_computeTurbulence(obj,varargin);
             else
-                obj = epsiProcess_processNewProfiles(obj);
+                obj = epsiProcess_makeNewProfiles_and_computeTurbulence(obj);
             end
         end
         %%

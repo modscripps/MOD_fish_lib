@@ -37,9 +37,9 @@ for  d=1:length(deployment_list)
     %% Compute turbulence variables and grid to P array (optional)
     switch gridData
         case 0
-            ec.f_processNewProfiles
+            ec.f_makeNewProfiles_and_computeTurbulence
         case 1
-            ec.f_processNewProfiles('grid',P)
+            ec.f_makeNewProfiles_and_computeTurbulence('grid',P)
     end
 
 end

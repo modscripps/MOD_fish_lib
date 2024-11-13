@@ -1,4 +1,5 @@
 function [repeat,obj]=epsi_class_MetaData_doesnot_exist(data_path,obj)
+disp('--- epsi_class_MetaData_doesnot_exist.m ---')
 
 %fprintf('Initializing epsi_class and creating new Meta_Data \n')
 repeat = 0;
@@ -47,8 +48,7 @@ if isempty(obj.Meta_Data.paths.process_library)
     end
 
 else
-    % ALB Nicole has the following line I do not quite understand it. 
-    % Meta_Data_process_file = Meta_Data_process_file;
+    % If you can't find a MDPfile, use the default one
     Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
 end
 

@@ -43,7 +43,7 @@ ec.f_readData
 %% Process new profiles
 % This step will calculate epsilon and chi all over again (so yeah, this
 % script is slooooow) but this time in the Profile structures.
-ec.f_processNewProfiles;
+ec.f_makeNewProfiles_and_computeTurbulence;
 
 %% Grid the profiles
 ec.f_gridProfiles(depth_range);

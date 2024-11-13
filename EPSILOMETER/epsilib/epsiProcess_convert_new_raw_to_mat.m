@@ -47,6 +47,8 @@ function [matData] = epsiProcess_convert_new_raw_to_mat(dirs,Meta_Data,varargin)
 % Adapted 2021-23 by Nicole Couto for Epsilometer data
 % Adapted 2024-08-08 by aleboyer for ISA500
 
+disp('--- epsiProcess_convert_new_raw_to_mat ---')
+
 % NC - Make matData for output even if there is no new data
 matData.epsi  = [];
 matData.ctd   = [];

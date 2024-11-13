@@ -155,7 +155,7 @@ for i=1:length(file_list_all)
         survey_name_in_file = surveyflag_name{2}(1:end-1);
 
         % Does survey name in file match the survey name we're looking for?
-        if contains(survey_name_in_file,survey_name)
+        if contains(survey_name_in_file,survey_name_setupfile)
             idx_in_survey(i) = true;
         end
     end
