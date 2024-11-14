@@ -136,7 +136,7 @@ if isclassfield(obj,'fluor')
 if ~isempty(obj.fluor)
     
     % Fluorometer
-    plot(ax(3),time_array.fluor,obj.fluor.chla,'Color',cols.chla,'LineWidth',obj.plot_properties.LineWidth);
+    plot(ax(3),time_array.fluor,obj.fluor.chla,'.','Color',cols.chla,'LineWidth',obj.plot_properties.LineWidth);
 
 end
 

@@ -27,6 +27,7 @@ classdef epsi_class < handle
         vnav
         gps
         ttv
+        fluor
     end
     %%
     methods

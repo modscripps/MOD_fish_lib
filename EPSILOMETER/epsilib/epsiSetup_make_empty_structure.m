@@ -14,6 +14,7 @@ emptyAlt  = nan(nSec,1); % alt samples around 1 Hz
 emptyVnav = nan(nSec*40,1); %vnav samples around 40 Hz
 emptyGps  = nan(nSec,1); % alt samples around 1 Hz
 emptyTtv  = nan(nSec*20,1); %Ti ttv samples around 20 Hz
+emptyFluor= nan(nSec*30,1); %tridente samples around 30 Hz
 
 obj.epsi.time_s = emptyEpsi;
 obj.epsi.dnum = emptyEpsi;
@@ -72,3 +73,8 @@ obj.gps.dnum      = emptyGps;
 obj.gps.latitude  = emptyGps;
 obj.gps.longitude = emptyGps;
 
+obj.fluor.dnum = emptyFluor;
+obj.fluor.bb = emptyFluor;
+obj.fluor.chla = emptyFluor;
+obj.fluor.fDOM = emptyFluor;
+obj.fluor.time_s = emptyFluor;

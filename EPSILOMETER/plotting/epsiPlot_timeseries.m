@@ -1,4 +1,4 @@
-function [ax] = epsiPlot_timeseries(obj,saveFig,ax)
+ function [ax] = epsiPlot_timeseries(obj,saveFig,ax)
 % Plot timeseries of epsi, ctd, and altimeter data.
 %
 % INPUTS

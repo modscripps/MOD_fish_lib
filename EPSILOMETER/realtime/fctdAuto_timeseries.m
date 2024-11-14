@@ -85,7 +85,7 @@ end
 obj = epsi_class(raw_dir,Meta_Data_process_file);
 obj = epsiSetup_make_empty_structure(obj,sec_to_store);
 
-field_list = {'epsi','ctd','alt','vnav','gps'};
+field_list = {'epsi','ctd','alt','vnav','gps','fluor'};
 for iField=1:length(field_list)
     tMax.(field_list{iField}) = starting_dnum;
 end
