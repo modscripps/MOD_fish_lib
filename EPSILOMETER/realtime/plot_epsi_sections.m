@@ -1,23 +1,39 @@
 %% Plot temperature, epsilon, and chi with density contours
 data=load(fullfile(ec.Meta_Data.paths.profiles,'griddedProfiles'));
 
-% ALB 2024/08/20 load last Profile to plot it
-last_profileID=data.GRID.profNum(end);
-last_profile_name=sprintf('Profile%04i.mat',last_profileID);
-lastProfile=load(fullfile(ec.Meta_Data.paths.profiles,last_profile_name));
+%% Plot profiles if you haven't yet
+profile_plot_list = dir(fullfile(ec.Meta_Data.paths.figures,'Profile*.png'));
 
-data.GRID.bottom_depth=filloutliers(data.GRID.bottom_depth,'linear');
-close all
+% Find the number of the last profile with a profile figure
+profnum_cells = cellfun(@(x) x(8:11), {profile_plot_list(:).name}, 'UniformOutput',false);
+profnum_list = str2num(cell2mat(profnum_cells.'));
 
-%% ALB 2024/08/20 Plot last Profile. 
-% Thanks MHA for the plotting function.
-fig1=figure('units','inches','position',[10         0   18 13]);
-QuickEpsiProfilePlotMHA_accel(lastProfile.Profile);
-fig1.PaperPosition=[0 0 18 13];
-print('-dpng2',fullfile(ec.Meta_Data.paths.figures,[last_profile_name(1:end-4) '.png']))
+% Make a figure for all the profiles that haven't been plotted yet, and the
+% most recent one, in case it wasn't complete when the figure was made.
+for profID = max(profnum_list):length(data.GRID.dnum)
+
+    curr_profile_name=sprintf('Profile%04i.mat',profID);
+    lastProfile=load(fullfile(ec.Meta_Data.paths.profiles,curr_profile_name));
+
+    data.GRID.bottom_depth=filloutliers(data.GRID.bottom_depth,'linear');
+    close all
+
+    fig1=figure('units','inches','position',[10         0   18 13]);
+    QuickEpsiProfilePlotMHA_accel(lastProfile.Profile);
+    fig1.PaperPosition=[0 0 18 13];
+    print('-dpng2',fullfile(ec.Meta_Data.paths.figures,[curr_profile_name(1:end-4) '.png']))
+    eval(['savefig ' fullfile(ec.Meta_Data.paths.figures,curr_profile_name(1:end-4))])
+
+end
 
 %% Plot section
-figure('units','inches','position',[10         0   18 13])
+nProf = length(data.GRID.dnum);
+if 5+nProf*0.1<18
+    figWidth = 5+nProf*0.1;
+else
+    figWidth = 18;
+end
+figure('units','inches','position',[10         0   figWidth 13])
 
 dnummask=find(~isnan(data.GRID.dnum));
 [~,iun]=unique(data.GRID.dnum(dnummask)); dnummask=dnummask(iun); %size(dnummask)
@@ -42,7 +58,7 @@ hold on
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:30],'color',.5*[1 1 1]);
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'k','linewidth',2);
-caxis([34.9 36.5]) %TODO make it a param in RUN_Auto_process
+caxis(clims.salinty) %TODO make it a param in RUN_Auto_process
 ylim(ax(1),zlim)
 cax1=colorbar;
 grid(ax(1),'on');
@@ -60,7 +76,7 @@ hold on
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:30],'color',.5*[1 1 1]);
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'k','linewidth',2);
-caxis([12 30.7]) 
+caxis(clims.temperature) 
 cax2=colorbar;
 grid(ax(2),'on');
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
@@ -80,7 +96,7 @@ ylabel('Depth','fontname','Times New Roman','fontsize',20);
 hold on
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:25],'color',.5*[1 1 1]);
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'c','linewidth',2);
-caxis([-10 -7.5])
+caxis(clims.epsilon)
 ylim(ax(3),zlim)
 grid(ax(3),'on');
 
@@ -97,7 +113,7 @@ title('Epsilon 2')
 ylabel('Depth','fontname','Times New Roman','fontsize',20);
 hold on
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask)),'k','levellist',-10:0.5:-6);
-caxis([-10 -7.5])
+caxis(clims.epsilon)
 ylim(ax(4),zlim)
 grid(ax(4),'on');
 
@@ -117,7 +133,7 @@ cax5=colorbar;
 grid(ax(5),'on');
 ylim(ax(5),zlim)
 
-caxis([-9 -6  ])
+caxis(clims.chi)
 ylabel('Depth','fontname','Times New Roman','fontsize',20)
 % xlabel(datestr(nanmin(data.GRID.dnum(:)),"dd-mm"),'fontname','Times New Roman','fontsize',20)
 
@@ -137,7 +153,7 @@ title('Chi 2')
 cax6=colorbar;
 grid(ax(6),'on');
 ylim(ax(6),zlim)
-caxis([-9 -6])
+caxis(clims.chi)
 ylabel('Depth','fontname','Times New Roman','fontsize',20)
 ylabel(cax6,'K^2 s^{-1}','fontname','Times New Roman','fontsize',20)
 set(ax(6),'ydir','reverse');
@@ -154,9 +170,9 @@ title('N^2')
 cax7=colorbar;
 grid(ax(7),'on');
 ylim(ax(7),zlim)
-caxis([-6 -2.7])
+caxis(clims.n2)
 ylabel('Depth','fontname','Times New Roman','fontsize',20)
-xlabel(datestr(nanmin(data.GRID.dnum(:)),"dd-mm"),'fontname','Times New Roman','fontsize',20)
+xlabel(datestr(nanmin(data.GRID.dnum(:)),"dd-mmm"),'fontname','Times New Roman','fontsize',20)
 [ax(:).YDir] = deal('reverse');
 ylabel(cax7,'N^2 s^{-2}','fontname','Times New Roman','fontsize',20)
 set(ax(7),'ydir','reverse');
@@ -179,3 +195,5 @@ end
 save_name = fullfile(ec.Meta_Data.paths.figures,'deployment_sections');
 % eval(['export_fig ' save_name ' -png -r150 -nocrop']);
 print('-dpng',save_name)
+eval(['savefig ' save_name])
+
