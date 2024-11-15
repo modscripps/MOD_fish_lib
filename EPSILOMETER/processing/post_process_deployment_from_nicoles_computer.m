@@ -9,13 +9,13 @@ vars2grid_list = {'longitude','latitude','pressure','temperature','conductivity'
 
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
-raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
+raw_dir = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
 
 % Path to setup file
 root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process','MDP_motive_2024.txt');
 
-process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
+process_dir_root = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
 % Define the name of the process directory based on either what you
 % found in the Setup file or what you input
@@ -98,9 +98,10 @@ raw_files_to_copy = strjoin(strcat(dirs.raw_incoming, file_list), ' '); % Create
 com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, fullfile(dirs.raw_copy,'raw/'));
 unix(com);
 
+
 %% Get the fish name from one of the copied files
 % Open file
-fid = fopen(fullfile(dirs.raw_copy,file_list(1).name));
+fid = fopen(fullfile(dirs.raw_copy,file_list(end).name));
 fseek(fid,0,1);
 frewind(fid);
 str = fread(fid,'*char')';

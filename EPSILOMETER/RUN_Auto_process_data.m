@@ -13,7 +13,6 @@
 %  .Meta_Data_process_file = path to Meta_Data_Process text file
 %
 % Optional:
-%  .str_to_match = (default '*'), Name (or partial name) of first file in raw_dir to copy
 %  .refresh_time_sec = (default 5*60), refresh period in seconds
 %  .version       = (default 4), version of mod_som_read_epsi_files.m to use
 % -------------------------------------------------------------------------
@@ -24,8 +23,8 @@ clear input_struct
 input_struct.Meta_Data_process_file = '/Volumes/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2024.txt';
 input_struct.refresh_time_sec =  2*60;
 % input_struct.cruise_specifics = 'tfo_2024';
-epsi_depth_array = 0:200;
-fctd_depth_array = 0:500;
+epsi_depth_array = 0:1000;
+fctd_depth_array = 0:800;
 
 % List FCTD variables to grid
 vars2grid_list = {'pressure','temperature','conductivity','longitude','latitude','bb','chla','fDOM','chi','chi2'};
@@ -162,17 +161,12 @@ for i=1:length(file_list_all)
 end %End loop through all files
 
 % Keep only files in survey
-file_list = file_list_all(idx_in_survey);
-already_copied_list = dir(fullfile(input_struct.process_dir,'raw','*.modraw'));
-already_copied_list = {already_copied_list(:).name};
-
-for i=1:length(file_list)
-    % Copy each file unless it has already been copied
-    if ~any(contains(already_copied_list,file_list(i).name))
-        eval(['!cp ' fullfile(file_list(i).folder,file_list(i).name) ' ' fullfile(input_struct.process_dir,'raw/')]);
-    end
-end
-
+file_list_struct = file_list_all(idx_in_survey);
+file_list = {file_list_struct(:).name};
+% Rsync the files in file_list
+raw_files_to_copy = strjoin(strcat(input_struct.raw_dir, file_list), ' '); % Create a space-separated list of full paths
+com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, fullfile(input_struct.process_dir,'raw/'));
+unix(com);
 
 % N_files_to_search = 10; %Maximum number of files to search for CTD.survey
 % if exist(fullfile(input_struct.process_dir,'raw'),'dir')

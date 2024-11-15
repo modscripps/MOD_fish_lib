@@ -9,15 +9,15 @@ lastProfile=load(fullfile(ec.Meta_Data.paths.profiles,last_profile_name));
 data.GRID.bottom_depth=filloutliers(data.GRID.bottom_depth,'linear');
 close all
 
-% ALB 2024/08/20 Plot last Profile. 
+%% ALB 2024/08/20 Plot last Profile. 
 % Thanks MHA for the plotting function.
-fig1=figure('units','inches','position',[10         0   10.3194   13.1111]);
+fig1=figure('units','inches','position',[10         0   18 13]);
 QuickEpsiProfilePlotMHA_accel(lastProfile.Profile);
-fig1.PaperPosition=[0 0 10 15];
+fig1.PaperPosition=[0 0 18 13];
 print('-dpng2',fullfile(ec.Meta_Data.paths.figures,[last_profile_name(1:end-4) '.png']))
 
-
-figure('units','inches','position',[10         0   15.3194   13.1111])
+%% Plot section
+figure('units','inches','position',[10         0   18 13])
 
 dnummask=find(~isnan(data.GRID.dnum));
 [~,iun]=unique(data.GRID.dnum(dnummask)); dnummask=dnummask(iun); %size(dnummask)
@@ -33,6 +33,8 @@ dnummask=dnummask(irecent);
 % depth limits for plotting
 zlim=[depth_array(1),depth_array(end)];
 sgf=19.9; % front we are tracking 27 may
+
+clear ax
 
 ax(1) =subtightplot(nr,nc,1);
 pcolorjw(data.GRID.dnum(dnummask),data.GRID.z,data.GRID.s(:,dnummask));

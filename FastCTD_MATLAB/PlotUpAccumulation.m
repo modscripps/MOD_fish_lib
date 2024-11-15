@@ -275,6 +275,7 @@ str_legend={'Rot by acc [dn]','Rot by acc [up]','Rot by gyro [dn]','Rot by gyro 
 hl = legend('Location','NorthWest');
 set(hl,'Fontsize',20);
 set(gca,'Fontsize',20);
+set(gca,'XLim',datetime([tot_time(end)-12/24 tot_time(end)],'ConvertFrom','datenum'))
 ax(1) = gca;
 
 %SN_setTextInterpreter('latex');

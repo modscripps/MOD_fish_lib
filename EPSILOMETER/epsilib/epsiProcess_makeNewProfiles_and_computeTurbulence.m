@@ -25,11 +25,6 @@ else
     makeGrid = false;
 end
 
-% Check that there is dTdV. If not, tell user to run
-if obj.Meta_Data.AFE.t1.cal==0 && obj.Meta_Data.AFE.t2.cal==0
-    obj = f_calibrateTemperature(obj);
-end
-
 % % Pick out profile drops from CTD pressure timeseries
 % obj.f_getProfileIndices;
 % if Profile.Meta_Data.AFE.t1.cal==0 && Profile.Meta_Data.AFE.t2.cal==0
@@ -91,19 +86,26 @@ for iProf=1:length(PressureTimeseries.startprof)
         Profile.profNum = iProf;
 
         %ALB I do not know yet how to deal with dTdV with the new design. 
-        if iProf==1 && Profile.Meta_Data.AFE.t1.cal==0 && Profile.Meta_Data.AFE.t2.cal==0
+        if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0
             % warning(sprintf(['\n !!!!!!!!! \n'...
             %     'The calibration value (dTdV) for both temperature probes is 0.\n',...
             %     'Run ec.f_calibrateTemperature or process_calibrate_dTdV.m before continuing.\n'...
             %     ' !!!!!!!!! \n',...
             %     'Hit any key to continue or ctrl-C to stop processing.']))
-            warning(sprintf(['\n !!!!!!!!! \n'...
-                'The calibration value (dTdV) for both temperature probes is 0.\n',...
-                'Running ec.f_calibrateTemperature before continuing.\n'...
-                ' !!!!!!!!! \n']))
-            obj.f_calibrateTemperature;
+            % warning(sprintf(['\n !!!!!!!!! \n'...
+            %     'The calibration value (dTdV) for one or both temperature probes is 0.\n',...
+            %     'Running ec.f_calibrateTemperature before continuing.\n'...
+            %     ' !!!!!!!!! \n']))
+
+
+            Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
+
+
             % pause
         end
+
+
+
 
 
         Profile = obj.f_computeTurbulence(Profile);

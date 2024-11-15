@@ -1,9 +1,10 @@
 % plot_fctd_sections
 
 %% Decide what to plot in ax(4)
-ax4data = 'chi';
+% ax4data = 'chi';
 %ax4data = 'chi2';
-%ax4data = 'N2';
+ax4data = 'N2';
+ax3data = 'chi';
 
 %%
 fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
@@ -19,11 +20,12 @@ else
         %%ax = [];
         fig = figure(1);
         fig.Units = 'normalized';
-        fig.Position = [0 0 0.6 0.9];
-        zlim = [depth_array(1),depth_array(end)];
-        clim_temp = [4 30.2];
-        clim_sal = [34.5 37.1];
+        fig.Position = [0.2848    0.0370    0.4840    0.8667];
+        zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
+        clim_temp = [18 27];
+        clim_sal = [34.5 35];
         % clim_chi = [0.2 1];
+        clim_chla = [0 100];
         clim_chi = [-10 -6];
         levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
 
@@ -57,17 +59,22 @@ else
         colormap(ax(3),cmocean('amp'))
         cb(3).Label.String = '\chi';
 
-        if isfield(FCTDgrid,'chla')
-            pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
-            %pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot));
-            %ax(3).CLim = [clim_chi(1) clim_chi(2)];
-            cb(3) = colorbar;
-            cb(3).Label.String = 'Chla';
-        else
-            pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.fluor(:,iplot));
-            %ax(3).CLim = [clim_chi(1) clim_chi(2)];
-            cb(3) = colorbar;
-            cb(3).Label.String = 'fluor';
+        switch ax3data
+            case 'chla'
+                if isfield(FCTDgrid,'chla')
+                    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
+                    %pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot));
+                    ax(3).CLim = [0 3];
+                    cb(3) = colorbar;
+                    cb(3).Label.String = 'Chla';
+                end
+            case 'fluor'
+                if isfield(FCTDgrid,'fluor')
+                    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.fluor(:,iplot));
+                    ax(3).CLim = [3.25e4 3.33e4];
+                    cb(3) = colorbar;
+                    cb(3).Label.String = 'fluor';
+                end
         end
 
         ax(4) = subtightplot(4,1,4);
@@ -76,7 +83,7 @@ else
                 pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
                 colormap(ax(4),cmocean('matter'))
                 cb(4) = colorbar;
-                ax(4).CLim = [-10 -6];
+                ax(4).CLim = [-9 -6];
                 cb(4).Label.String = 'chi';
             case 'chi2'
                 pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
@@ -105,10 +112,11 @@ else
                     OT(:,p)=abs(delta_dens)>.002;
                 end
                 [bfrq,vort,p_ave] = sw_bfrq(FCTDgrid.salinity,FCTDgrid.temperature,FCTDgrid.pressure,mean(FCTDgrid.latitude,'omitmissing'));
+                Ndepth=FCTDgrid.depth(1:end-1)+diff(FCTDgrid.depth);
                 % [bfrq,vort,p_ave] = sw_bfrq(sort_S,sort_T,FCTDgrid.pressure,mean(FCTDgrid.latitude,'omitmissing'));
-                pcolorjw(FCTDgrid.time(iplot),p_ave(:,1),real(log10(bfrq(:,iplot))));
+                pcolorjw(FCTDgrid.time(iplot),Ndepth,real(log10(bfrq(:,iplot))));
                 colormap(ax(4),cmocean('speed'))
-                ax(4).CLim = ([-5.5 -2.5]);
+                ax(4).CLim = ([-7 -0.6]);
                 cb(4) = colorbar;
                 cb(4).Label.String = 'N^2';
 
@@ -138,4 +146,4 @@ else
         disp('No FCTDgrid to plot')
     end %end of ~isempty(FCTDgrid)
 end
-
+0
