@@ -6,7 +6,11 @@ profile_plot_list = dir(fullfile(ec.Meta_Data.paths.figures,'Profile*.png'));
 
 % Find the number of the last profile with a profile figure
 profnum_cells = cellfun(@(x) x(8:11), {profile_plot_list(:).name}, 'UniformOutput',false);
-profnum_list = str2num(cell2mat(profnum_cells.'));
+if ~isempty(profnum_cells)
+    profnum_list = str2num(cell2mat(profnum_cells.'));
+else
+    profnum_list=1;
+end
 
 % Make a figure for all the profiles that haven't been plotted yet, and the
 % most recent one, in case it wasn't complete when the figure was made.
@@ -58,7 +62,7 @@ hold on
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:30],'color',.5*[1 1 1]);
 [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'k','linewidth',2);
-caxis(clims.salinty) %TODO make it a param in RUN_Auto_process
+caxis(clims.salinity) %TODO make it a param in RUN_Auto_process
 ylim(ax(1),zlim)
 cax1=colorbar;
 grid(ax(1),'on');

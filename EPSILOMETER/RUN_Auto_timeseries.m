@@ -24,7 +24,7 @@
 % --- USER CHOICES --------------------------------------------------------
 
 % Also plot spectra?
-include_spectra = 0;
+include_spectra = 1;
 
 % Meta_Data process file (make sure this file has the correct serial
 % numbers for CTD, s1, s2, t1, t2. If you're running fctd, you can leave
@@ -37,9 +37,9 @@ input_struct.refresh_time_sec = 2;
 % -------------------------------------------------------------------------
 
 % Set directories and grab Meta_Data_process_file
-root_software='/Volumes/Software_current_cruise/MOD_fish_lib/';
+root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 
-input_struct.raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/';
+input_struct.raw_dir = '/Volumes/DEV3_HD//Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/';
 Meta_Data_process_dir = fullfile(root_software,['EPSILOMETER/Meta_Data_Process/']);
 input_struct.Meta_Data_process_file = fullfile(Meta_Data_process_dir,Meta_Data_process_file);
 

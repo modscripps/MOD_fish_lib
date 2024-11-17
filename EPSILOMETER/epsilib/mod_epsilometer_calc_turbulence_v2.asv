@@ -28,6 +28,11 @@ else
     error('Need epsi, ctd, and Meta_Data to calculate turbulence parameters!');
 end
 
+%ALB 11/17/2024 grabbing Profile meta data now that we calibrate linearly
+%all profiles.
+Profile.Meta_Data.PROCESS.display=0;
+Meta_Data=Profile.Meta_Data;
+
 % Add latitude and longitude - take the mean of the first 10 seconds of the profile
 % gps_sec_int = mode(seconds(days(diff(Profile_or_profNum.gps.dnum))));
 %ALB I had an issue here I think this should be Profile instead of Profile_or_profNum
@@ -39,16 +44,6 @@ if isfield(Profile_or_profNum,'gps') && ~isempty(Profile_or_profNum.gps)
     Profile.latitude  = mean(Profile_or_profNum.gps.latitude(1:min([idx,nGPS])),'omitmissing');
     Profile.longitude = mean(Profile_or_profNum.gps.longitude(1:min([idx,nGPS])),'omitmissing');
 end
-
-%% Check that dTdV calibration has been set for this profile. If it has
-% not, calculated it and save it in Profile.Meta_Data and big Meta_Data as
-% one of the indices in an array
-if max(size(Meta_Data.AFE.t1.cal))==1
-if Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t2.cal==0
-    Meta_Data=mod_epsi_temperature_spectra_v4(Meta_Data,Profile);
-end
-end
-
 
 %% Get epsi sampling frequency
 try
@@ -271,15 +266,20 @@ Profile.qc.roll        = nan(nbscan,1);
 
 Profile.ind_range_ctd   = nan(nbscan,2);
 Profile.ind_range_epsi  = nan(nbscan,2);
-Profile.fom             = nan(nbscan,2);
+Profile.epsi_fom        = nan(nbscan,2);
+Profile.chi_fom         = nan(nbscan,2);
+Profile.epsi_fom_mle    = nan(nbscan,2);
+Profile.chi_fom_mle     = nan(nbscan,2);
 Profile.calib_volt      = nan(nbscan,2);
 Profile.calib_vel       = nan(nbscan,2);
 Profile.epsilon         = nan(nbscan,2);
 Profile.epsilon_co      = nan(nbscan,2);
+Profile.epsilon_mle     = nan(nbscan,2);
 Profile.epsilon_method  = nan(nbscan,2);
 Profile.sh_fc           = nan(nbscan,2);
 Profile.sh_kc           = nan(nbscan,2);
 Profile.chi             = nan(nbscan,2);
+Profile.chi_mle         = nan(nbscan,2);
 Profile.tg_fc           = nan(nbscan,2);
 Profile.tg_kc           = nan(nbscan,2);
 Profile.flag_tg_fc      = nan(nbscan,2);
@@ -338,8 +338,16 @@ for p = 1:nbscan % p is the scan index.
         
         %figure of merit: QC to check how the shear spectra fit panchev.
         %fom<=1 great match, fom>> 1 bad match.
-        Profile.fom(p,1) = scan.fom.s1;
-        Profile.fom(p,2) = scan.fom.s2;
+        Profile.epsi_fom(p,1) = scan.fom.s1;
+        Profile.epsi_fom(p,2) = scan.fom.s2;
+
+        Profile.chi_fom(p,1) = scan.fom.t1;
+        Profile.chi_fom(p,2) = scan.fom.t2;
+
+        Profile.epsi_fom_mle(p,1) = scan.fom_mle.s1;
+        Profile.epsifom_mle(p,2) = scan.fom_mle.s2;
+        Profile.chi_fom_mle(p,1) = scan.fom_mle.t1;
+        Profile.chi_fom_mle(p,2) = scan.fom_mle.t2;
 
         Profile.calib_volt(p,1) = scan.calib_volt.s1;
         Profile.calib_volt(p,2) = scan.calib_volt.s2;
@@ -350,6 +358,8 @@ for p = 1:nbscan % p is the scan index.
         Profile.epsilon(p,2) = scan.epsilon.s2;
         Profile.epsilon_co(p,1) = scan.epsilon_co.s1;
         Profile.epsilon_co(p,2) = scan.epsilon_co.s2;
+        Profile.epsilon_mle(p,1) = scan.epsilon_mle.s1;
+        Profile.epsilon_mle(p,2) = scan.epsilon_mle.s2;
         Profile.epsilon_method(p,1) = scan.method.s1(2);
         Profile.epsilon_method(p,2) = scan.method.s2(2);
         Profile.sh_fc(p,1) = scan.fc.s1(2); %only saving the shear_co limit NC-changed to 1st index instead of 2nd. Arnaud must have changed how cutoff number is stored
@@ -360,16 +370,18 @@ for p = 1:nbscan % p is the scan index.
         Profile.ktemp(p,1) = scan.ktemp;
         
         if isfield(scan.chi,'t1')
-            Profile.chi(p,1)   = scan.chi.t1;
-            Profile.tg_fc(p,1) = scan.fc.t1;
-            Profile.tg_kc(p,1) = scan.kc.t1;
+            Profile.chi(p,1)     = scan.chi.t1;
+            Profile.chi_mle(p,1) = scan.chi_mle.t1;
+            Profile.tg_fc(p,1)   = scan.fc.t1;
+            Profile.tg_kc(p,1)   = scan.kc.t1;
             Profile.flag_tg_fc(p,1) = scan.flag_tg_fc.t1;
         end
         
         if isfield(scan.chi,'t2')
-            Profile.chi(p,2)   = scan.chi.t2;
-            Profile.tg_fc(p,2) = scan.fc.t2;
-            Profile.tg_kc(p,2) = scan.kc.t2;
+            Profile.chi(p,2)     = scan.chi.t2;
+            Profile.chi_mle(p,2) = scan.chi_mle.t2;
+            Profile.tg_fc(p,2)   = scan.fc.t2;
+            Profile.tg_kc(p,2)   = scan.kc.t2;
             Profile.flag_tg_fc(p,2) = scan.flag_tg_fc.t2;
         end
         
@@ -436,7 +448,7 @@ qc.a2=log10(Profile.sumPa.a2)>(-rmsa2+2.*stda2);
 qc.a3=log10(Profile.sumPa.a3)>(-rmsa3+2.*stda3);
 
 % figure of merit
-qc.fom=Profile.fom>2;
+qc.fom=Profile.epsi_fom>2;
 
 %pitch
 qc.pitch = (Profile.pitch-mean(Profile.pitch,'omitnan'))>5;
@@ -487,20 +499,11 @@ end
 
 % Save files
 if saveData && isfield(Profile,'profNum')
-    % Save Meta_Data with new t1 and t2 cals in Profile
-    Profile.Meta_Data = Meta_Data;
     save_var_name = 'Profile';
     save_file_name = sprintf('Profile%04i',Profile.profNum);
     save_file = fullfile(Meta_Data.paths.profiles, ...
         [save_file_name '.mat']);
     eval(['save(''' save_file ''', ''' save_var_name ''');']);
-
-    % Save big Meta_Data with t1 and t2 cals in the index for the current
-    % profile
-    Meta_Data.AFE.t1.cal(profNum) = Meta_Data.AFE.t1.cal;
-    Meta_Data.AFE.t2.cal(profNum) = Meta_Data.AFE.t2.cal;
-    save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
-
 end
 
 % Sort Profile by standard field order

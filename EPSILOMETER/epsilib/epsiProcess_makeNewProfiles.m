@@ -36,6 +36,7 @@ profList = dir(fullfile(obj.Meta_Data.paths.profiles,'Profile*.mat'));
 profNumChar = cell2mat(cellfun(@(C) C(8:11),{profList(:).name},'uniformoutput',0).');
 if ~isempty(profNumChar)
     lastProfNum = str2double(profNumChar(end,:));
+    % lastProfNum = length(PressureTimeseries.endprof);
     % Load the last profile
     lastProf = load(fullfile(obj.Meta_Data.paths.profiles,sprintf('Profile%04.f',lastProfNum)));
     

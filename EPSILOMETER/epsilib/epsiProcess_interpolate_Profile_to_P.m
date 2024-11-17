@@ -50,8 +50,10 @@ if ~isempty(Profile.w)
 
     % Add varList2
     for iVar=1:length(varList2)
+        if isfield(Profile,varList2{iVar})
         eval(['GRID.',varList2{iVar},'1 = interp1(Profile.pr(notNan),Profile.(varList2{iVar})(notNan,1),GRID.pr);']);
         eval(['GRID.',varList2{iVar},'2 = interp1(Profile.pr(notNan),Profile.(varList2{iVar})(notNan,2),GRID.pr);']);
+        end
     end
 
     % Acceleration - find average power spectral density of verical

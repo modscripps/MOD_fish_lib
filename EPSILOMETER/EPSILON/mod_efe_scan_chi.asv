@@ -98,7 +98,7 @@ SpecObs.dof=dof;
 [chi_mle,~]=get_chi_mle(SpecObs,fitBatchelor,dof,chiSearch);
 
 
-if (isnan(chi_mle) || isnan(SpecObs.epsilon_final))
+if isnan(chi_mle)
     fom     = nan;
     fom_mle = nan;
 else

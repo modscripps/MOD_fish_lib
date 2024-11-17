@@ -87,7 +87,6 @@ if isclassfield(obj,'ctd')
         plot(ax(7),time_array.ctd(going_down),obj.ctd.z(going_down),'.','Color',[0.2157 0.4941 0.7216],'LineWidth',obj.plot_properties.LineWidth);
         plot(ax(7),time_array.ctd(coming_up),obj.ctd.z(coming_up),'.','Color',[0.9686 0.5059 0.7490],'LineWidth',obj.plot_properties.LineWidth);
         axis(ax(7),'ij')
-s=1
 
         % Add arrows showing up and down
         annotation(gcf,'arrow',[0.94 0.94], [0.29 0.25],'Color',[0.2157 0.4941 0.7216]);
@@ -126,7 +125,10 @@ if isclassfield(obj,'epsi')
 
     % Microconductivity
     plot(ax(4),time_array.epsi,obj.epsi.s2_volt,'.','Color',cols.ucond,'LineWidth',obj.plot_properties.LineWidth);
-    
+    hold on
+    bad = obj.epsi.s2_volt>2.49 | obj.epsi.s2_volt<-2.49;
+    plot(ax(4),time_array.epsi(bad),obj.epsi.s2_volt(bad),'xr');
+
     end
 end
 
@@ -138,7 +140,7 @@ if ~isempty(obj.fluor)
     
     % Fluorometer
     plot(ax(3),time_array.fluor,obj.fluor.chla,'.','Color',cols.chla,'LineWidth',obj.plot_properties.LineWidth);
-ax(3).YLim = [3.25e4 3.35e4];
+    ax(3).YLim = [3.25e4 3.35e4];
 
 end
 

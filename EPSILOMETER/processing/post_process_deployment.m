@@ -1,28 +1,21 @@
 %% Change these parameters for post-processing data
-epsi_depth_array = 0:1000;
-fctd_depth_array = 0:500;
+epsi_depth_array = 0:200;
+fctd_depth_array = 0:900;
 
-survey_name = '24_1115_d8_mako1_WWupfront';
+survey_name = '24_1114_d7_fctd1_WWupfront';
 
 % List FCTD variables to grid
 vars2grid_list = {'longitude','latitude','pressure','temperature','conductivity','w','bb','chla','fDOM','chi','chi2'};
 
-% Set clims
-clims.temperature = [5 28];
-clims.salinty = [34.3 35.5];
-clims.epsilon = [-10 -7.5];
-clims.chi = [-9 -6];
-clims.n2 = [-6 -2.7];
-
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
-raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
+raw_dir = '/Volumes/MOTIVE24/MOD/09_reprocessed_data/';
 
 % Path to setup file
-root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
+root_software='~/ARNAUD/SCRIPPS/MOD_fish_lib/';
 Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process','MDP_motive_2024.txt');
 
-process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
+process_dir_root = '/Volumes/MOTIVE24/MOD/09_reprocessed_data/';
 
 % Define the name of the process directory based on either what you
 % found in the Setup file or what you input
@@ -41,7 +34,10 @@ if ~exist(fullfile(process_dir,'raw'),'dir')
 end
 
 % Define the directories for epsiProcess_convert_new_raw_to_mat
-dirs.raw_incoming = raw_dir;
+dirs.raw_incoming = fullfile( ...
+                    raw_dir, ...
+                    strrep(survey_name,'''','')); %This will create a directory with this name
+
 dirs.raw_copy  = fullfile(process_dir,'raw');
 dirs.mat       = fullfile(process_dir,'mat');
 dirs.fctd_deployment = fullfile(process_dir,'fctd_mat');
@@ -68,7 +64,7 @@ end
 % Copy the first file that matches str_to_match from raw_incoming into
 % raw_copy - you need to have one file there for epsi_class to read the
 % configuration information
-file_list_all = dir(fullfile(dirs.raw_incoming,'*.modraw'));
+file_list_all = dir(fullfile(dirs.raw_incoming,'raw','*.modraw'));
 
 % Loop through files and find the ones with survey_name
 idx_in_survey = false(length(file_list_all),1);
@@ -98,16 +94,20 @@ for i=1:length(file_list_all)
 end %End loop through all files
 
 % Keep only files in survey
-file_list_struct = file_list_all(idx_in_survey);
-file_list = {file_list_struct(:).name};
-% Rsync the files in file_list
-raw_files_to_copy = strjoin(strcat(dirs.raw_incoming, file_list), ' '); % Create a space-separated list of full paths
-com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, fullfile(dirs.raw_copy,'raw/'));
-unix(com);
+file_list = file_list_all(idx_in_survey);
+already_copied_list = dir(fullfile(dirs.raw_copy,'*.modraw'));
+already_copied_list = {already_copied_list(:).name};
+
+for i=1:length(file_list)
+    % Copy each file unless it has already been copied
+    if ~any(contains(already_copied_list,file_list(i).name))
+        eval(['!cp ' fullfile(file_list(i).folder,file_list(i).name) ' ' dirs.raw_copy]);
+    end
+end
 
 %% Get the fish name from one of the copied files
 % Open file
-fid = fopen(fullfile(dirs.raw_copy,file_list(end).name));
+fid = fopen(fullfile(dirs.raw_copy,file_list(1).name));
 fseek(fid,0,1);
 frewind(fid);
 str = fread(fid,'*char')';
@@ -134,6 +134,7 @@ switch lower(instrument)
     case 'fctd'
         depth_array = fctd_depth_array;
 end
+input_struct.depth_array=depth_array;
 
 %% Process and plot the data
 ec = epsi_class(process_dir,Meta_Data_process_file);
@@ -142,8 +143,10 @@ switch lower(instrument)
     case 'epsi'
         fprintf('Reading data...\n')
         ec.f_readData;
-        fprintf('Making new profiles and compute turbulence...\n')
-        ec.f_makeNewProfiles_and_computeTurbulence;
+        fprintf('Making new profiles...\n')
+        ec.f_makeNewProfiles;
+        fprintf('Computing turbulence...\n')
+        ec.f_computeTurbulence
         fprintf('Gridding profiles...\n')
         ec.f_gridProfiles(depth_array);
         plot_epsi_sections

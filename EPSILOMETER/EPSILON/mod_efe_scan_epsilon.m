@@ -98,7 +98,7 @@ if isfinite(scan.(shear_channel))
 
     % Compute epsilon using eps1_mmp.m with kmax
     try
-        [epsilon,kmin(1),kc(1),method(1)]=eps1_mmp(k,Ps_shear_k,scan.kvis,kmax);
+        [epsilon,~,kmin(1),kc(1),method(1)]=eps1_mmp(k,Ps_shear_k,scan.kvis,kmax);
         fc(1)=kc(1).*w;
         if isinf(epsilon)
             epsilon=nan;
@@ -127,13 +127,26 @@ if isfinite(scan.(shear_channel))
 
         % Compute epsilon using eps1_mmp.m with kmax
         try
-            [epsilon_co,kmin(2),kc(2),method(2)]=eps1_mmp(k,Ps_shear_co_k,scan.kvis,kmax);
+            [epsilon_co,~,kmin(2),kc(2),method(2)]=eps1_mmp(k,Ps_shear_co_k,scan.kvis,kmax);
+            % maximun likelihood
+            fitNasmyth = @(epsi,kvis,k)(nasmyth(epsi, kvis, k)); %cpm
+            epsiSearch = epsilon_co.*[1e-1 1e1];
+            % get the correct FULL wavenumber range
+            SpecObs.k=k;
+            % get the cleaned spectrum corresponding to seg and the shear channel you want to look at.
+            SpecObs.P=Ps_shear_co_k;
+            SpecObs.kli=[kmin(2) kc(2)];
+            SpecObs.kvis=scan.kvis;
+            [epsilon_mle,~]=get_epsilon_mle(SpecObs,fitNasmyth,dof,epsiSearch);
+
             if isinf(epsilon_co)
                 epsilon_co=nan;
+                epsilon_mle=nan;
             end
             fc(2)=kc(2).*w;
         catch
             epsilon_co=nan;
+            epsilon_mle=nan;
             kc(2)=nan;
             fc(2)=nan;
             kmin(2)=nan;
@@ -143,13 +156,17 @@ if isfinite(scan.(shear_channel))
     else
         Ps_shear_co_k = nan;
         epsilon_co = nan;
+        epsilon_mle = nan;
         kc(2) = nan;
         fc(2) = nan;
         kmin(2)=nan;
         method(2)=nan;
     end
+    
 
-    % Get Panchev spectrum
+
+
+    %% Get Panchev spectrum
     if ~isempty(epsilon) && ~isnan(epsilon)
 
         % [kpan,Ppan] = panchev(epsilon,scan.kvis);
@@ -161,16 +178,32 @@ if isfinite(scan.(shear_channel))
         sig_lnS=sqrt(5/4*(dof-1)^(-7/9));
         Ns=2*length(k);
         Tm=0.8+sqrt(1.56/Ns);
-        [kpan,Ppan_co] = panchev(epsilon_co,scan.kvis);
-        interp_Ppan=interp1(kpan(~isnan(Ppan_co)),Ppan_co(~isnan(Ppan_co)),kin);
+        [Pnasmyth_co,knasmyth] = nasmyth(epsilon_co,scan.kvis);
+        if sum(~isnan(Pnasmyth_co))>0
+        [Pnasmyth_mle,knasmyth_mle] = nasmyth(epsilon_mle,scan.kvis);
+        interp_Pnasmyth=interp1(knasmyth(~isnan(Pnasmyth_co)),...
+                                Pnasmyth_co(~isnan(Pnasmyth_co)),...
+                                kin);
+        interp_Pnasmyth_mle=interp1(knasmyth_mle(~isnan(Pnasmyth_mle)),...
+                                Pnasmyth_co(~isnan(Pnasmyth_mle)),...
+                                kin);
         % Ppan_co=interp1(kpan(~isnan(Ppan_co)),Ppan_co(~isnan(Ppan_co)),k);
         
-        fom=log10(Pxx(:)./interp_Ppan(:));
-        mad_spec=mad(fom);
-        fom=mad_spec./sig_lnS./Tm;
+        fom=log10(Pxx(:)./interp_Pnasmyth(:));
+        mad_spec_co=mad(fom);
+        fom=mad_spec_co./sig_lnS./Tm;
+
+        fom_mle=log10(Pxx(:)./interp_Pnasmyth_mle(:));
+        mad_spec_mle=mad(fom_mle);
+        fom_mle=mad_spec_mle./sig_lnS./Tm;
+        else
+            fom_mle=nan;
+            fom=nan;            
+        end
 
     else
         fom=NaN;
+        fom_mle=NaN;
         % Ppan_co=NaN;
         % Ppan=NaN;
     end
@@ -184,11 +217,13 @@ else
 
     epsilon = nan;
     epsilon_co = nan;
+    epsilon_mle = nan;
     method = nan;
     fc = nan(nfft/2 + 1,1);
     kc = nan;
     kmin = nan;
     fom=NaN;
+    fom_mle=NaN;
     % Ppan_co=NaN;
     % Ppan=NaN;
     calib_volt=nan;
@@ -209,11 +244,48 @@ scan.Ps_shear_k.(shear_channel(1:2))    = Ps_shear_k;
 scan.Ps_shear_co_k.(shear_channel(1:2)) = Ps_shear_co_k;
 scan.epsilon.(shear_channel(1:2))       = epsilon;
 scan.epsilon_co.(shear_channel(1:2))    = epsilon_co;
+scan.epsilon_mle.(shear_channel(1:2))   = epsilon_mle;
 scan.method.(shear_channel(1:2))        = method;
 scan.fc.(shear_channel(1:2))            = fc;
 scan.kc.(shear_channel(1:2))            = kc;
 scan.kmin.(shear_channel(1:2))          = kmin;
 scan.fom.(shear_channel(1:2))           = fom;
+scan.fom_mle.(shear_channel(1:2))           = fom_mle;
 scan.calib_volt.(shear_channel(1:2))    = calib_volt;
 scan.calib_vel.(shear_channel(1:2))     = calib_vel;
+end
 
+function [epsi,misfit]=get_epsilon_mle(SpecObs,fitmyModel,dof,TDRSearch)
+% find the healthy wavenumber range KMOIN and KMAX
+ind=find(SpecObs.k>=SpecObs.kli(1) & SpecObs.k<=SpecObs.kli(2) & SpecObs.k>0);
+% select only the Data you want to fit, i.e. on the healthy wavenumber
+% range
+SpecObs.k=SpecObs.k(ind);
+SpecObs.P=SpecObs.P(ind);
+
+%
+% another anomymous function to fit nasmyth on the healthy wavenumber range
+% feed tmpModel in mle_any_model
+% TDR turbulence dissipation
+%fitmyModel fitNasmyth = @(epsi,k)(nasmyth(epsi, kvis, k)); %cpm
+
+tmpModel=@(TDR)(fitmyModel(TDR,SpecObs.kvis,SpecObs.k));
+% the magic happens here.
+% SpecObs are the data, DOF is the degree of freedom, TDRSearch is the
+% epsilon range to find a "solution", tmp model is the model we are trying
+% to fit.
+[epsi,misfit.err]=mle_any_model(SpecObs,dof,TDRSearch, tmpModel, 0);
+
+if isnan(epsi)
+    misfit.var=NaN;
+    misfit.MAD=NaN;
+else
+    Pt=fitmyModel(epsi,SpecObs.kvis,SpecObs.k);
+    [misfit.var, misfit.MAD]=ruddick_misfit(SpecObs.P,Pt);
+end
+if isempty(misfit.MAD)
+    misfit.var=nan;
+    misfit.MAD=nan;
+end
+
+end

@@ -56,8 +56,13 @@ if ~isempty(gps) && isfield(gps,'dnum')
     % Sometimes there's a weirdness here with non-unique gps.dnum
     [~,iU] = unique(gps.dnum);
     if ~isempty(iU)
-        FCTD.longitude=interp1(gps.dnum(iU),gps.longitude(iU),ctd.dnum);
-        FCTD.latitude=interp1(gps.dnum(iU),gps.latitude(iU),ctd.dnum);
+        if isscalar(iU)
+            FCTD.longitude=gps.longitude+(ctd.dnum.*0);
+            FCTD.latitude=gps.latitude+(ctd.dnum.*0);
+        else
+            FCTD.longitude=interp1(gps.dnum(iU),gps.longitude(iU),ctd.dnum);
+            FCTD.latitude=interp1(gps.dnum(iU),gps.latitude(iU),ctd.dnum);
+        end
     else
         FCTD.longitude=nan(length(ctd.dnum),1);
         FCTD.latitude=nan(length(ctd.dnum),1);

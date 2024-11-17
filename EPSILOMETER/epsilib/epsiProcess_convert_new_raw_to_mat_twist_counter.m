@@ -187,30 +187,31 @@ if rSync
   
     % Loop through files and find the ones with survey_name
     idx_in_survey = false(length(file_list_all),1);
-    for i=1:length(file_list_all)
-
-        % Open file
-        fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
-        fseek(fid,0,1);
-        frewind(fid);
-        str = fread(fid,'*char')';
-        fclose(fid);
-
-        % Find line that has survey name
-        survey_flag=contains(str,'CTD.survey');
-
-        if survey_flag
-            surveyflag_str      = str(strfind(str,'CTD.survey')+(0:100));
-            surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
-            surveyflag_name     = strsplit(surveyflag_str,'=');
-            survey_name_in_file = surveyflag_name{2}(1:end-1);
-
-            % Does survey name in file match the survey name we're looking for?
-            if contains(survey_name_in_file,strrep(Meta_Data.deployment_name,'''',''))
-                idx_in_survey(i) = true;
-            end
-        end
-    end %End loop through all files
+    idx_in_survey(69:end) = true; %NC 11/16/24 hack for MOTIVE
+    % for i=1:length(file_list_all)
+    % 
+    %     % Open file
+    %     fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
+    %     fseek(fid,0,1);
+    %     frewind(fid);
+    %     str = fread(fid,'*char')';
+    %     fclose(fid);
+    % 
+    %     % Find line that has survey name
+    %     survey_flag=contains(str,'CTD.survey');
+    % 
+    %     if survey_flag
+    %         surveyflag_str      = str(strfind(str,'CTD.survey')+(0:100));
+    %         surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
+    %         surveyflag_name     = strsplit(surveyflag_str,'=');
+    %         survey_name_in_file = surveyflag_name{2}(1:end-1);
+    % 
+    %         % Does survey name in file match the survey name we're looking for?
+    %         if contains(survey_name_in_file,strrep(Meta_Data.deployment_name,'''',''))
+    %             idx_in_survey(i) = true;
+    %         end
+    %     end
+    % end %End loop through all files
     
 
     % Keep only files in survey

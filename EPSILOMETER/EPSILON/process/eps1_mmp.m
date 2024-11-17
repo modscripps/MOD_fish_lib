@@ -1,4 +1,4 @@
-function [epsilon,kmin,kc,method]=eps1_mmp(k,Psheark,kvis,kmax)
+function [epsilon,epsilon_non_adjust,kmin,kc,method]=eps1_mmp(k,Psheark,kvis,kmax)
 % eps1_mmp
 %   Usage: epsilon=eps1_mmp(k,Psheark,kvis,w);
 %      k is a vector array with wavenumber in cpm
@@ -78,6 +78,7 @@ krange=find(k>=kmin & k<10);
 % P_interpolated=interp1(k(krange),Psheark(krange),KI);
 % ALB change to nansum since coherence correction can introduces nansclear 
 % shear10=nansum(P_interpolated)*0.2;
+if numel(krange)>2
 shear10=trapz(k(krange),Psheark(krange));
 %
 % estimate epsilon using poly fits to log10(shear10)
@@ -93,7 +94,7 @@ end
 
 % second estimate: we use the first estimate of epsilon to find the
 % kolmogrov scale and re-do the integration.
-kc2 = 0.0816*( eps1  / kvis^3 )^(1/4);  % k for 90% variance of Panchev spectrum
+kc2 = 2*0.0816*( eps1  / kvis^3 )^(1/4);  % k for 90% variance of Panchev spectrum
 if kc2>kmax
 	kc2=kmax; % limit set by noise spectrum
 end
@@ -107,6 +108,7 @@ end
 
 % third estimate: same as before.
 kc=0.0816*( eps2 / kvis^3 )^(1/4);
+
 if kc > kmax
 	kc=kmax;
 end
@@ -126,23 +128,27 @@ else
     idx_kmax2=find(k>=kc,1,'first');
     idx_kmax1=find(k>=kmin,1,'first');
     idx_range=idx_kmax1:idx_kmax2;
-    Pnasm_var=trapz(k(idx_range),Ppan3(idx_range));
-    obs_var=trapz(k(idx_range),Psheark(idx_range));
+    % Pnasm_var=trapz(k(idx_range),Ppan3(idx_range));
+    % obs_var=trapz(k(idx_range),Psheark(idx_range));
+    adjust=median(Psheark(idx_range),'omitmissing')./ ...
+           median(Ppan3(idx_range),'omitmissing');
     % ALB revisit this everytime you have doubt 
-    eps4=eps3*obs_var./Pnasm_var;
-    eps5=eps3*Pnasm_var./obs_var;
-    epsilon_option=[eps3 eps4 eps5];
-    [Ppan4,~]=nasmyth(eps4,kvis,k);
-    [Ppan5,~]=nasmyth(eps5,kvis,k);
-    best_fit=...
-        [log10(Psheark(idx_range)./Ppan3(idx_range)) ...
-         log10(Psheark(idx_range)./Ppan4(idx_range))  ...
-         log10(Psheark(idx_range)./Ppan5(idx_range))];
-     epsilon_best=epsilon_option(mad(best_fit)==min(mad(best_fit)));
-    
-    mf=epsilon2_correct(epsilon_best, ...
+    % eps4=eps3*obs_var./Pnasm_var;
+    % eps4=eps3*obs_var./Pnasm_var;
+    eps4=eps3*adjust;
+    % epsilon_option=[eps3 eps4 eps5];
+    % [Ppan4,~]=nasmyth(eps4,kvis,k);
+    % [Ppan5,~]=nasmyth(eps5,kvis,k);
+    % best_fit=...
+    %     [log10(Psheark(idx_range)./Ppan3(idx_range)) ...
+    %      log10(Psheark(idx_range)./Ppan4(idx_range))  ...
+    %      log10(Psheark(idx_range)./Ppan5(idx_range))];
+    %  epsilon_best=epsilon_option(mad(best_fit)==min(mad(best_fit)));
+    % 
+    mf=epsilon2_correct(eps4, ...
                         kvis,kmin,kc);
-	epsilon=mf*epsilon_best;
+	epsilon=mf*eps4;
+	epsilon_non_adjust=mf*eps3;
     check_epsi=0;
     if check_epsi
         [Ppan6,~]=nasmyth(epsilon_best,kvis,k);
@@ -152,18 +158,26 @@ else
         loglog(k,Psheark)
         hold on
         loglog(k,Ppan3,'r')
+        scatter(k(find(k>kc,1,'first')),Psheark(find(k>kc,1,'first')),50,'pr','filled');
+        grid on
         loglog(k,Ppan4,'k')
         loglog(k,Ppan5,'m')
         loglog(k,Ppan6,'c')
         loglog(k,Ppan,'k.-')
         legend('obs','eps3','eps4','eps5','epsi-good','epsi-final')
 
-        pause
+        pause(.5)
     end
 end
 
 %selecting the closest k for gc;
 kc=k(find(k>kc,1,'first'));
+else
+    epsilon = nan;
+    kmin    = nan;
+    kc      = nan;
+    method  = nan;
+end
 
 end
 

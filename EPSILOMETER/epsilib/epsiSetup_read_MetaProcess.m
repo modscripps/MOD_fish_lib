@@ -17,6 +17,8 @@ for f=1:length(str_meta_data_process)
     elseif f>30 %After the first 30 line, start looking for data from Setup
         if strncmp(str_meta_data_process{f},'CTD.experiment',14)
             Meta_Data.experiment_name = str_meta_data_process{f}(16:end);
+        elseif strncmp(str_meta_data_process{f},'CTD.survey',10)
+            Meta_Data.deployment_name = str_meta_data_process{f}(12:end);
         elseif strncmp(str_meta_data_process{f},'CTD.cruise',10)
             Meta_Data.cruise_name = str_meta_data_process{f}(12:end);
         elseif strncmp(str_meta_data_process{f},'CTD.vehicle',11)

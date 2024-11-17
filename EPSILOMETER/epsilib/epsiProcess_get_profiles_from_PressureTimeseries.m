@@ -90,7 +90,8 @@ Fc=lowpass_cutoff_Hz./(sampling_rate_Hz/2);
 
 % Lowpass filter the pressure, and get dpdt
 % p_lowpass = lowpass(fillgaps(p),lowpass_cutoff_Hz,sampling_rate_Hz);
-p_lowpass = filtfilt(b,a,fillgaps(p));
+% p_lowpass = filtfilt(b,a,fillgaps(p));
+p_lowpass = filtfilt(b,a,fillmissing(p,'linear'));
 dpdt_mid = diff(p_lowpass)./dt;
 dpdt = interp1(linspace(0,1,length(dpdt_mid)),dpdt_mid,linspace(0,1,length(p)));
 

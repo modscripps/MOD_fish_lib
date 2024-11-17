@@ -73,7 +73,7 @@ if isclassfield(obj,'epsi') && ~isempty(obj.epsi)
     hold(ax(1),'on')
     plot(ax(1),time_array.epsi,obj.epsi.t2_volt-nanmean(obj.epsi.t2_volt),'.','Color',cols.t2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('t2 - %1.1f',nanmean(obj.epsi.t2_volt)));
     hold(ax(1),'off')
-    
+
 %     % t1 and t2
 %     plot(ax(1),time_array.epsi,obj.epsi.t1_volt,'.','Color',cols.t1,'LineWidth',obj.plot_properties.LineWidth,'displayname','t1');
 %     hold(ax(1),'on')
@@ -81,9 +81,9 @@ if isclassfield(obj,'epsi') && ~isempty(obj.epsi)
 %    
     
     % s1 and s2
-    plot(ax(2),time_array.epsi,obj.epsi.s1_volt,'.','Color',cols.s1,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s1 -rms %1.1f',rms(obj.epsi.s1_volt)))
+    plot(ax(2),time_array.epsi,detrend(obj.epsi.s1_volt,'constant'),'.','Color',cols.s1,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s1 -rms %1.1f',rms(obj.epsi.s1_volt)))
     hold(ax(2),'on')
-    plot(ax(2),time_array.epsi,obj.epsi.s2_volt,'.','Color',cols.s2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s2 - rms%1.1f',rms(obj.epsi.s2_volt)))
+    plot(ax(2),time_array.epsi,detrend(obj.epsi.s2_volt,'constant'),'.','Color',cols.s2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s2 - rms%1.1f',rms(obj.epsi.s2_volt)))
 
     % a1
     plot(ax(3),time_array.epsi,obj.epsi.a1_g,'.','Color',cols.a1,'LineWidth',obj.plot_properties.LineWidth,'displayname','a1')
@@ -94,10 +94,22 @@ if isclassfield(obj,'epsi') && ~isempty(obj.epsi)
     plot(ax(4),time_array.epsi,obj.epsi.a3_g,'.','Color',cols.a3,'LineWidth',obj.plot_properties.LineWidth,'displayname','a3')
 
     % Add legends
-    legend(ax(1),'location','northwest')
-    legend(ax(2),'location','northwest')
+    legend(ax(1),'location','northwest','autoupdate','off')
+    legend(ax(2),'location','northwest','autoupdate','off')
     legend(ax(3),'location','northwest')
     legend(ax(4),'location','northwest')
+
+    % Add flags for railing 
+    bad1 = obj.epsi.t1_volt>2.49 | obj.epsi.t1_volt<-2.49;
+    bad2 = obj.epsi.t2_volt>2.49 | obj.epsi.t2_volt<-2.49;
+    plot(ax(1),time_array.epsi(bad1),obj.epsi.t1_volt(bad1)-nanmean(obj.epsi.t1_volt(bad1)),'xr');
+    plot(ax(1),time_array.epsi(bad2),obj.epsi.t2_volt(bad2)-nanmean(obj.epsi.t2_volt(bad2)),'xr');
+    
+    bad1 = obj.epsi.s1_volt>2.49 | obj.epsi.s1_volt<-2.49;
+    bad2 = obj.epsi.s2_volt>2.49 | obj.epsi.s2_volt<-2.49;
+    plot(ax(2),time_array.epsi(bad1),detrend(obj.epsi.s1_volt(bad1),'constant'),'xr');
+    plot(ax(2),time_array.epsi(bad2),detrend(obj.epsi.s2_volt(bad2),'constant'),'xr');
+
 end
 
 %% CTD PLOTS

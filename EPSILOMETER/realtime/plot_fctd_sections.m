@@ -22,11 +22,11 @@ else
         fig.Units = 'normalized';
         fig.Position = [0.2848    0.0370    0.4840    0.8667];
         zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
-        clim_temp = [18 27];
-        clim_sal = [34.5 35];
-        % clim_chi = [0.2 1];
-        clim_chla = [0 100];
-        clim_chi = [-10 -6];
+        % clim_temp = [18 27];
+        % clim_sal = [34.5 35];
+        % % clim_chi = [0.2 1];
+        % clim_chla = [0 100];
+        % clim_chi = [-10 -6];
         levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
 
         % which data to plot? How about the most recent 1 day
@@ -37,7 +37,7 @@ else
         % Temperature
         ax(1) = subtightplot(4,1,1);
         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
-        ax(1).CLim = [clim_temp(1) clim_temp(2)];
+        ax(1).CLim = clims.temperature;
         cb(1) = colorbar;
         colormap(ax(1),lansey)
         cb(1).Label.String = 'Temperature';
@@ -45,7 +45,7 @@ else
         % Salinity
         ax(2) = subtightplot(4,1,2);
         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,real(FCTDgrid.salinity(:,iplot)));
-        ax(2).CLim = [clim_sal(1) clim_sal(2)];
+        ax(2).CLim = clims.salinity;
         cb(2) = colorbar;
         colormap(ax(2),cmocean('delta'))
         cb(2).Label.String = 'Salinity';
@@ -54,7 +54,7 @@ else
         % chi
         ax(3) = subtightplot(4,1,3);
         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
-        ax(3).CLim = [clim_chi(1) clim_chi(2)];
+        ax(3).CLim = clims.chi;
         cb(3) = colorbar;
         colormap(ax(3),cmocean('amp'))
         cb(3).Label.String = '\chi';
@@ -83,13 +83,13 @@ else
                 pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
                 colormap(ax(4),cmocean('matter'))
                 cb(4) = colorbar;
-                ax(4).CLim = [-9 -6];
+                ax(4).CLim = clims.chi;
                 cb(4).Label.String = 'chi';
             case 'chi2'
                 pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
                 colormap(ax(4),cmocean('matter'))
                 cb(4) = colorbar;
-                ax(4).CLim = [-10 -6];
+                ax(4).CLim = clims.chi;
                 cb(4).Label.String = 'chi2';
             case 'N2'
                 % N^2
@@ -116,7 +116,7 @@ else
                 % [bfrq,vort,p_ave] = sw_bfrq(sort_S,sort_T,FCTDgrid.pressure,mean(FCTDgrid.latitude,'omitmissing'));
                 pcolorjw(FCTDgrid.time(iplot),Ndepth,real(log10(bfrq(:,iplot))));
                 colormap(ax(4),cmocean('speed'))
-                ax(4).CLim = ([-7 -0.6]);
+                ax(4).CLim = (clims.n2);
                 cb(4) = colorbar;
                 cb(4).Label.String = 'N^2';
 

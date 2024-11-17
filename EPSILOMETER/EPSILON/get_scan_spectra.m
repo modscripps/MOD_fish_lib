@@ -121,7 +121,8 @@ if ind_ctdscan(1)>0 && ...
     for iVar=1:numel(varList)
         scan.(varList{iVar}) = eval(varList{iVar});
     end
-
+   
+    scan.idscan = id_scan;
     scan.pr     = mean(Profile.ctd.P(ind_ctdscan),'omitmissing');
     scan.z      = mean(Profile.ctd.z(ind_ctdscan),'omitmissing');
     scan.t      = mean(Profile.ctd.T(ind_ctdscan),'omitmissing');
@@ -171,57 +172,12 @@ if ind_ctdscan(1)>0 && ...
             case {'s1_volt','s2_volt'}
                 scan.(currChannel)=Profile.epsi.(currChannel)(ind_scan); % time series in m.s^{-2}
 
-                % % THIS DESPIKING MADE THINGS WORSE ON ASTRAL 2024 -
-                % % COMMENTING OUT UNTIL WE FIND A BETTER SOLUTION
-                % ---------------------------------------------------------
-                % % despike
-                % Profile.Meta_Data.PROCESS.movmean_window_time=.5;
-                % Fc=.1/Fs_epsi/2; % cutoff freq at .1 Hz (high pass of the charga amp)
-                % [B,A]=cheby2(1,20,Fc,'high');
-                % data1=diff(scan.(currChannel));
-                % data1=filtfilt(B,A,data1);
-                % data1=abs(data1);
-                % 
-                % 
-                % Fs=320;
-                % Fc=50/Fs/2; % cutoff freq at 20 Hz
-                % [B,A]=cheby2(3,20,Fc,'low');
-                % data2=filtfilt(B,A,data1);
-                % 
-                % scan2=abs(data1./data2);
-                % rms_scan2=rms(scan2);
-                % idx_outlier=find(scan2>5);
-                % %                 idx_outlier=find(scan2>rms_scan2);
-                % scan3=scan2;
-                % 
-                % N=10;%samples or 120 ms (40/Fs)
-                % for i=1:length(idx_outlier)
-                %     idx_win=idx_outlier(i)+(-N/2:N);
-                %     idx_win=idx_win(idx_win>0);
-                %     idx_win=idx_win(idx_win<length(data1));
-                %     scan3(idx_win)= nan;
-                % end
-                % 
-                % scan.(currChannel)(isnan(scan3))=nan;
-                % scan.(currChannel)=...
-                %     fillmissing(scan.(currChannel),'linear');
-                % 
-                % if 1==0
-                %     close all
-                %     ax(1)=subplot(311);
-                %     plot(Profile.epsi.(currChannel)(ind_scan));
-                %     hold on;
-                %     plot(scan.(currChannel))
-                %     ax(2)=subplot(312);
-                %     plot(data1);
-                %     hold on;
-                %     plot(data2)
-                %     title(currChannel)
-                %     ax(3)=subplot(313);plot(scan2);hold on;plot(scan2.*0+5,'k--')
-                %     linkaxes(ax,'x')
-                %     pause
-                % end
-                % --------------------------------------------------------
+                % % ALB for Apex (and other ?)
+                % % I need to identify spikes in a segment.
+                % % using isoutliers and if there is more than 10 
+                % % I am going to set figure of merit to 10. 
+                scan.idx_outlier.(currChannel)=sum(isoutlier(scan.(currChannel),'movmedian',Fs_epsi,'ThresholdFactor',5)); %5second
+
                 
         end
     end
@@ -283,6 +239,18 @@ if ind_ctdscan(1)>0 && ...
         % end
 
     end
+
+    % get a first epsilon final to compute the Batchelor spectrum and
+    final_epsi=[scan.epsilon_co.s1 scan.epsilon_co.s2];
+    scan.ratio(1) = (scan.epsilon_co.s1./scan.epsilon_co.s2)>3;
+    scan.ratio(2) = (scan.epsilon_co.s2./scan.epsilon_co.s1)>3;
+
+    scan.epsilon_final=mean(final_epsi,'omitnan');
+    if(~isnan(scan.ratio(1)) && scan.ratio(1) && scan.ratio(2))
+        scan.epsilon_final(qc.ratio(:,1))=final_epsi(scan.ratio(:,1),2);
+        scan.epsilon_final(qc.ratio(:,2))=final_epsi(scan.ratio(:,2),1);
+    end
+
 
 
     %% Compute temperature spectra and chi

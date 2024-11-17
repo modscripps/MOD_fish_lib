@@ -8,8 +8,8 @@
 %
 %%
 
-matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise/'; %Directory where FCTD*.mat are stored
-rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise/'; %Directory where rotation data for each FCTD*.mat file will be stored
+matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/'; %Directory where FCTD*.mat are stored
+rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/'; %Directory where rotation data for each FCTD*.mat file will be stored
 %matFiles = dir([matDataDir 'FCTD*.mat']);
 matFiles = dir([matDataDir 'EPSI*.mat']);
 rotFiles = dir([rotDataDir 'EPSI*.mat']);
@@ -24,7 +24,7 @@ rotFiles = dir([rotDataDir 'EPSI*.mat']);
 
 
 % matDataFilesLoaded{end+1:numel(matFiles)} = cell(1,numel(matFiles)-numel(matDataFilesLoaded));
-for i = 1+numel(rotFiles):numel(matFiles)
+for i = numel(rotFiles)-1:numel(matFiles)  %Redo the most recent rotFile in case it wasn't complete, and continue through the end of the matFiles
     %find out what files are new
     % ind = find(strcmpi(matFiles(i).name,{matDataFilesLoaded.filename}));
     % if ~isempty(ind)
@@ -36,6 +36,9 @@ for i = 1+numel(rotFiles):numel(matFiles)
 
     %load FCTD data
     %disp(matFiles(i).name);
+    if i<1
+        i=1;
+    end
     load([matDataDir '/' matFiles(i).name]);
 
     % %if the index file is empty, create new index
@@ -250,10 +253,10 @@ clf;
 % if sum(fall_rate<0.001)>10
 %     h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k','legend','Rot by acc [up]');
 % end
-last_value = -tot_rot_acc/pi/2;
+last_value = -tot_rot_gyro/pi/2;
 last_value=last_value(~isnan(last_value));
 
-disp(['Most recent turn count: ' datestr(now),'   ' num2str(round(last_value(end)))])
+disp(['Most recent turn count: ' datestr(now),'   ' num2str(round(last_value(end)))]) 
 
 h(3) = plot(datetime(tot_time,'ConvertFrom','datenum'), tot_rot_gyro/pi/2,'o','linewidth',2,'color','b','DisplayName','Rot by gyro [dn]');
 hold on
@@ -268,7 +271,7 @@ xlabel('time');
 ylabel('Number of rotations');
 %title('FCTD: Rotation count on current line');
 
-title(['MODfish: Rotation count = ' num2str(round(last_value(end))) '  _ _ _ ']);
+title(['MODfish: Rotation count = ' num2str(-round(last_value(end-1))) '  _ _ _ ']); %NC 11/16/24 last value is always wrong
 
 str_legend={'Rot by acc [dn]','Rot by acc [up]','Rot by gyro [dn]','Rot by gyro [up]'};
 %hl = legend(h(h>0),str_legend(h>0),'Location','NorthWest');
@@ -300,4 +303,4 @@ ax(1) = gca;
 % linkaxes(ax,'x')
 end
 
-fprintf("Last rotation count %i\r\n",round(last_value(end)))
+fprintf("Last rotation count %i\r\n",-round(last_value(end)))

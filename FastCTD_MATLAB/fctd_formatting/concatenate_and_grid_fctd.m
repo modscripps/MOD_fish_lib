@@ -74,7 +74,11 @@ end
 % Get field list
 field_names = fields(FCTDall);
 for f=1:length(field_names)
-    FCTDall.(field_names{f}) = FCTDall.(field_names{f})(iU,:);
+    try
+        FCTDall.(field_names{f}) = FCTDall.(field_names{f})(iU,:);
+    catch
+        disp('problem')
+    end
 end
 
 % Save concatenated file

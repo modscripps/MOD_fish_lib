@@ -52,8 +52,11 @@ function ax=QuickEpsiProfilePlotMHA_accel(Profile,params)
     xlim([0 1])
     xlim(params.wlims)
     grid
-    % title([Profile.deployment ', #' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
+    %title([Profile.deployment ', #' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
+    if ~isnan(nanmin(Profile.dnum))
     title(['#' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
+    end
+    
     %title([Profile.deployment ', #' num2str(Profile.profNum)],'Interpreter', 'none')
     ax(3).YTickLabel='';
     xlabel('w (m/s)')
