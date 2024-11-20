@@ -15,7 +15,15 @@ function [Timeseries] = epsiProcess_crop_timeseries(Meta_Data,tRange)
 %% Find the mat file(s) within the time range
 load(fullfile(Meta_Data.paths.mat_data,'TimeIndex'))
 
-% To do: First, decide if the input was in datenum or seconds since power up.
+% NC 11/19/24 -  Epsi Minnow puts out files called modsom_1, modsom_2,
+% modsom_10, etc so they look out of order when reading the list of files
+% in a directory alphabetically (1, 10, 100, 101, 102, 103). TimeIndex gets out of order. Before
+% cropping the time series, sort TimeIndex by dnumStart.
+[~,iS] = sort(TimeIndex.dnumStart);
+field_list = fields(TimeIndex);
+for iF=1:length(field_list)
+    TimeIndex.(field_list{iF}) = TimeIndex.(field_list{iF})(iS); 
+end
 
 % Determine if tRange is given in seconds or dnum and define startFile and
 % endFile accordingly

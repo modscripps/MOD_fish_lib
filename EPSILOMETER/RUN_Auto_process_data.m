@@ -27,7 +27,7 @@ epsi_depth_array = 0:1000;
 fctd_depth_array = 0:1100;
 
 % Set clims
-clims.temperature = [5 28];
+clims.temperature = [20 27];
 clims.salinity = [34.3 35.5];
 clims.epsilon = [-10 -7.5];
 clims.chi = [-9 -6];

@@ -9,7 +9,7 @@ profnum_cells = cellfun(@(x) x(8:11), {profile_plot_list(:).name}, 'UniformOutpu
 if ~isempty(profnum_cells)
     profnum_list = str2num(cell2mat(profnum_cells.'));
 else
-    profnum_list=1;
+    profnum_list = 1;
 end
 
 % Make a figure for all the profiles that haven't been plotted yet, and the
