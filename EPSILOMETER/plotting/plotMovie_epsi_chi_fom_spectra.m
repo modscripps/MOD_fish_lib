@@ -1,6 +1,6 @@
 %% Choose deployment and profile
-depl        = '24_1105_MAKO4_DIVE_Test';
-profile_id  = 2;
+depl        = '24_1122_d13_MAKO_WWdownfront';
+profile_id  = 15;
 
 %% Load data from chosen deployment and profile
 cd(fullfile('/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/',depl))
@@ -33,9 +33,9 @@ semilogx(ax(a),Profile.epsilon_co(:,1),Profile.pr,'k.','linewidth',1)
 hold(ax(a),'on')
 semilogx(ax(a),Profile.epsilon_co(:,2),Profile.pr,'.','color',[0.5 0.5 0.5],'linewidth',1)
 % Highlight fom < 1.15 for 1 and 2
-id_good=Profile.fom(:,1)<1.15;
+id_good=Profile.epsi_fom(:,1)<1.15;
 semilogx(ax(a),Profile.epsilon_co(~id_good,1),Profile.pr(~id_good),'r.','linewidth',1)
-id_good=Profile.fom(:,2)<1.15;
+id_good=Profile.epsi_fom(:,2)<1.15;
 semilogx(ax(a),Profile.epsilon_co(~id_good,2),Profile.pr(~id_good),'.','linewidth',1)
 hold(ax(a),'off')
 grid(ax(a),'on')
@@ -49,9 +49,9 @@ semilogx(ax(a),Profile.chi(:,1),Profile.pr,'k.','linewidth',1)
 hold(ax(a),'on')
 semilogx(ax(a),Profile.chi(:,2),Profile.pr,'.','color',[0.5 0.5 0.5],'linewidth',1)
 % Highlight fom < 10 for 1 and 2
-id_good=Profile.fom(:,1)<10; %hacking for now - all chi are good
+id_good=Profile.chi_fom(:,1)<10; %hacking for now - all chi are good
 semilogx(ax(a),Profile.chi(~id_good,1),Profile.pr(~id_good),'r.','linewidth',1)
-id_good=Profile.fom(:,2)<10; %hacking for now - all chi are good
+id_good=Profile.chi_fom(:,2)<10; %hacking for now - all chi are good
 semilogx(ax(a),Profile.chi(~id_good,2),Profile.pr(~id_good),'r.','linewidth',1)
 hold(ax(a),'off')
 grid(ax(a),'on')
@@ -85,10 +85,10 @@ for i=1:Profile.nbscan
     local_epsi_2     = Profile.epsilon_co(i,2);
     local_chi_1      = Profile.chi(i,1);
     local_chi_2      = Profile.chi(i,2);
-    local_epsi_fom_1 = Profile.fom(i,1);
-    local_epsi_fom_2 = Profile.fom(i,2);
-    local_chi_fom_1  = Profile.fom(i,1);
-    local_chi_fom_2  = Profile.fom(i,2);
+    local_epsi_fom_1 = Profile.epsi_fom(i,1);
+    local_epsi_fom_2 = Profile.epsi_fom(i,2);
+    local_chi_fom_1  = Profile.chi_fom(i,1);
+    local_chi_fom_2  = Profile.chi_fom(i,2);
     local_kvis       = Profile.kvis(i);
     local_ktemp      = Profile.ktemp(i);
     local_kc_epsi_1  = Profile.sh_kc(i,1);
@@ -231,6 +231,7 @@ for i=1:Profile.nbscan
             
 
             set(ax(3:4),'XScale','log','YScale','log')
+            ax(1).XLim = [1e-10 1e-6];
             set(ax(3),'XLim',[1 1e3],'YLim',[1e-8 1e-3])
             set(ax(4),'XLim',[1 1e3],'YLim',[1e-6 1e-1])
             

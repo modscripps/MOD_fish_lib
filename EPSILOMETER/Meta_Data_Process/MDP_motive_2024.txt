@@ -1,4 +1,4 @@
-latitude     = 38.4;
+latitude     = 2;
 dof          = 3;
 dof_coh      = 10;
 nfft         = 1024;

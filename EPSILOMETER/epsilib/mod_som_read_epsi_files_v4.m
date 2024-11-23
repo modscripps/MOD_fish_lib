@@ -299,6 +299,9 @@ else
 
 
 end
+
+% If you find the DCAL line in the .modraw header, use that calibration
+% info
 if ~isempty(ind_dcal_start)
     % Read SBE tcal from
     str_dcal=str(ind_dcal_start:ind_dcal_stop-5);

@@ -22,14 +22,11 @@ disp('--- mod_epsi_linear_calibration_FP07.m ---')
 Meta_Data=Profile.Meta_Data;
 
 % Options for saving and plotting data
-if nargin<4
-    plotData = 1;
-    if nargin<3
-        saveData = 1;
-    end
+if nargin<2
+    saveData = 1;
 end
-    
 
+   
 T=filloutliers(Profile.ctd.T,'linear','movmean',100);
 % check if t1 and t2 channels exist.
 indt1=find(cellfun(@(x) strcmp(x,'t1'),Meta_Data.PROCESS.channels));
@@ -72,7 +69,7 @@ Meta_Data.(field_name).t2.cal=dTdV(2);
 
 % Save dTdV in Meta_Data
 if saveData
-    save(fullfile(Meta_Data.paths.data,'Meta_data.mat'),'Meta_Data');
+    save(fullfile(Meta_Data.paths.data,'Meta_Data.mat'),'Meta_Data');
     % TODO change this so we append the new dVdT.
     % Right now I am doing a quick an dirty open write save.
     %t1
