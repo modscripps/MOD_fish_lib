@@ -54,7 +54,11 @@ function ax=QuickEpsiProfilePlotMHA_accel(Profile,params)
     grid
     %title([Profile.deployment ', #' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
     if ~isnan(nanmin(Profile.dnum))
-    title(['#' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
+        try
+            title(['#' num2str(Profile.profNum) ', ' datestr(nanmin(Profile.dnum))],'Interpreter', 'none')
+        catch
+            title(['#' num2str(Profile.profNum) ', ' datestr(min(Profile.dnum))],'Interpreter', 'none')
+        end
     end
     
     %title([Profile.deployment ', #' num2str(Profile.profNum)],'Interpreter', 'none')
@@ -70,7 +74,7 @@ function ax=QuickEpsiProfilePlotMHA_accel(Profile,params)
     a1m=nanmean(a1);
     a2m=nanmean(a2);
     a3m=nanmean(a3);
-    
+
     plt.acc = plot(a1-a1m,Profile.z,a2-a2m,Profile.z,a3-a3m,Profile.z);axis ij
     plt.acc(1).Color = cols.a1;
     plt.acc(2).Color = cols.a2;

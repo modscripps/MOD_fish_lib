@@ -28,7 +28,10 @@ elseif exist(fullfile(dirname, 'PressureTimeseries.mat'),'file')
     load(fullfile(dirname, 'PressureTimeseries.mat'));
     idxLast = find(~isnan(PressureTimeseries.dnum),1,'last');
     maxValue = nanmax(PressureTimeseries.dnum(1:idxLast));
-
+    % NC 11/22/24 - Suddenly nanmax doesnt work anymore, try max
+    if length(maxValue)>1
+        maxValue = max(PressureTimeseries.dnum(1:idxLast));
+    end
 
     % If all of the previous values were nan, add all new data to the end
     % (this can happen with epsi on Wirewalker or moorings where the CTD

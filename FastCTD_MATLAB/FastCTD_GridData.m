@@ -371,7 +371,7 @@ else
         Pct=Pct(2:length(Pct)); %delete f=0; normalization is already correct.
         %Maybe this is the best way to compute alpha...
         if1=find(f < 1);
-        alpha=sqrt(nanmean(Pt(if1)) ./ nanmean(Pc(if1)));
+        alpha=sqrt(mean(Pt(if1),'omitmissing') ./ mean(Pc(if1),'omitmissing'));
 
         %Next I'll try a polyfit
         x=f;
@@ -560,7 +560,7 @@ C=myFCTD.cCorrMHA;
 
 end
         num = num+1;
-        DataGrid.time(num) = nanmean(FCTD.time(ind));
+        DataGrid.time(num) = mean(FCTD.time(ind),'omitmissing');
         for j=1:length(vars2Grid);
             DataGrid.(vars2Grid{j})(:,num) = bindata1d(DataGrid.depth,...
                 myFCTD.depth, ...
@@ -579,10 +579,10 @@ DataGrid.salinity = sw_salt(DataGrid.conductivity*10/sw_c3515,DataGrid.temperatu
 DataGrid.density = sw_pden(DataGrid.salinity,DataGrid.temperature,DataGrid.pressure,0);
 
 % gridding in time
-mintime = nanmin(DataGrid.time);
-maxtime = nanmax(DataGrid.time);
+mintime = min(DataGrid.time,[],'omitmissing');
+maxtime = max(DataGrid.time,[],'omitmissing');
 
-DataGrid.tGrid.time = mintime:2*nanmedian(diff(DataGrid.time)):maxtime; % every minute
+DataGrid.tGrid.time = mintime:2*median(diff(DataGrid.time),'omitmissing'):maxtime; % every minute
 DataGrid.tGrid.depth = DataGrid.depth;
 
 

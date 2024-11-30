@@ -82,7 +82,7 @@ for f=1:length(field_names)
 end
 
 % Save concatenated file
-save(fullfile(fctd_mat_dir,'FCTDall'),'FCTDall')
+save(fullfile(fctd_mat_dir,'FCTDall'),'FCTDall','-v7.3')
 
 %% Grid data and save
 % NC May 2023 - grid both up and downcast data

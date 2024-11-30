@@ -5,11 +5,23 @@ listeners = cmdWinDoc.getDocumentListeners;
 %find text area part
 jTextArea=listeners(5); %or listeners(3) or listeners (4) depending on matlab
 %set colour of command window
-jTextArea.setBackground(java.awt.Color(0.5,0.2,0.2));
+jTextArea.setBackground(java.awt.Color(1,0.4,0.4));
 
 %% input structure
-rot_strut.modraw_full_cruise=
-rot_strut.mat_full_cruise=
+rot_strut.raw_incoming = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise/';
+rot_strut.mat    = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/';
+rot_strut.rot    = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/';
+rot_strut.raw_copy   = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
+
+root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
+Meta_Data_process_file = 'MDP_motive_2024.txt';
+input_struct.raw_dir   = rot_strut.raw_incoming;
+Meta_Data_process_dir = fullfile(root_software,'/EPSILOMETER/Meta_Data_Process/');
+input_struct.Meta_Data_process_file = fullfile(Meta_Data_process_dir,Meta_Data_process_file);
+
+Meta_Data_process_file = input_struct.Meta_Data_process_file;
+obj = epsi_class(input_struct.raw_dir,Meta_Data_process_file);
+
 %%
 
 f = figure(1);
@@ -27,7 +39,7 @@ ROT_timer.TimerFcn = [...
     'delete(ROT_timer); '...
     'else, '...
     'try,'...
-    'update_MAT_full_cruise;'...
+    '[matData] = epsiProcess_convert_new_raw_to_mat_twist_counter(rot_strut,obj.Meta_Data);'...
     'catch err,'...
     'display_error_stack(err); '...
     'end;'...
@@ -38,7 +50,7 @@ ROT_timer.TimerFcn = [...
     'end;'...
     'disp([''Done at '' datestr(now)]);'...
     'end;'];
-ROT_timer.Period = 60*5;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ROT_timer.Period = 60; %6 hours                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 ROT_timer.BusyMode = 'drop';
 ROT_timer.Name = 'ROT_timer';
 ROT_timer.Tag = 'ROT_timer';

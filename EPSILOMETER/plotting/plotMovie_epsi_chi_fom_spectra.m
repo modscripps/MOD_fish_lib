@@ -1,12 +1,15 @@
 %% Choose deployment and profile
-depl        = '24_1105_MAKO4_DIVE_Test';
-profile_id  = 2;
+datapath='/Volumes/MOTIVE24/MOD/03_raw_mod_data/Wirewalker_Deployment1/WW1/EPSI-WW2/';
+profile_id  = 55;
 
 %% Load data from chosen deployment and profile
-cd(fullfile('/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/',depl))
+cd(datapath)
 profile_name=sprintf("Profile%04i",profile_id);
-load(fullfile('profiles',profile_name),'Profile');
+load(fullfile(datapath,'profiles',profile_name),'Profile');
 
+%%
+Profile.Meta_Data.cruise_name='MOTIVE24';
+Profile.Meta_Data.deployment='Wirewalker_Deployment1';
 %%
 %
 cruise = strrep(Profile.Meta_Data.cruise_name(:)','''','');
@@ -17,6 +20,7 @@ v = VideoWriter(name_video,'MPEG-4');
 v.FrameRate=60;
 open(v)
 
+%%
 figure('units','inches','position',[0         0  21.1667   11.5556]);
 ax(1)=subplot('Position',[.10 .08 .20 .65]);
 ax(2)=subplot('Position',[.32 .08 .20 .65]);
@@ -33,9 +37,9 @@ semilogx(ax(a),Profile.epsilon_co(:,1),Profile.pr,'k.','linewidth',1)
 hold(ax(a),'on')
 semilogx(ax(a),Profile.epsilon_co(:,2),Profile.pr,'.','color',[0.5 0.5 0.5],'linewidth',1)
 % Highlight fom < 1.15 for 1 and 2
-id_good=Profile.fom(:,1)<1.15;
+id_good=Profile.epsi_fom(:,1)<1.15;
 semilogx(ax(a),Profile.epsilon_co(~id_good,1),Profile.pr(~id_good),'r.','linewidth',1)
-id_good=Profile.fom(:,2)<1.15;
+id_good=Profile.epsi_fom(:,2)<1.15;
 semilogx(ax(a),Profile.epsilon_co(~id_good,2),Profile.pr(~id_good),'.','linewidth',1)
 hold(ax(a),'off')
 grid(ax(a),'on')
@@ -49,9 +53,9 @@ semilogx(ax(a),Profile.chi(:,1),Profile.pr,'k.','linewidth',1)
 hold(ax(a),'on')
 semilogx(ax(a),Profile.chi(:,2),Profile.pr,'.','color',[0.5 0.5 0.5],'linewidth',1)
 % Highlight fom < 10 for 1 and 2
-id_good=Profile.fom(:,1)<10; %hacking for now - all chi are good
+id_good=Profile.chi_fom(:,1)<10; %hacking for now - all chi are good
 semilogx(ax(a),Profile.chi(~id_good,1),Profile.pr(~id_good),'r.','linewidth',1)
-id_good=Profile.fom(:,2)<10; %hacking for now - all chi are good
+id_good=Profile.chi_fom(:,2)<10; %hacking for now - all chi are good
 semilogx(ax(a),Profile.chi(~id_good,2),Profile.pr(~id_good),'r.','linewidth',1)
 hold(ax(a),'off')
 grid(ax(a),'on')
@@ -85,10 +89,10 @@ for i=1:Profile.nbscan
     local_epsi_2     = Profile.epsilon_co(i,2);
     local_chi_1      = Profile.chi(i,1);
     local_chi_2      = Profile.chi(i,2);
-    local_epsi_fom_1 = Profile.fom(i,1);
-    local_epsi_fom_2 = Profile.fom(i,2);
-    local_chi_fom_1  = Profile.fom(i,1);
-    local_chi_fom_2  = Profile.fom(i,2);
+    local_epsi_fom_1 = Profile.epsi_fom(i,1);
+    local_epsi_fom_2 = Profile.epsi_fom(i,2);
+    local_chi_fom_1  = Profile.chi_fom(i,1);
+    local_chi_fom_2  = Profile.chi_fom(i,2);
     local_kvis       = Profile.kvis(i);
     local_ktemp      = Profile.ktemp(i);
     local_kc_epsi_1  = Profile.sh_kc(i,1);
@@ -231,7 +235,7 @@ for i=1:Profile.nbscan
             
 
             set(ax(3:4),'XScale','log','YScale','log')
-            set(ax(3),'XLim',[1 1e3],'YLim',[1e-8 1e-3])
+            set(ax(3),'XLim',[1 1e3],'YLim',[1e-8 1e0])
             set(ax(4),'XLim',[1 1e3],'YLim',[1e-6 1e-1])
             
 
@@ -245,7 +249,7 @@ for i=1:Profile.nbscan
 
             a=6;
             ax(a).NextPlot = 'add';
-            plot(ax(a),local_time,local_t,'color',color_data);
+            plot(ax(a),local_time,detrend(local_t,'constant'),'color',color_data);
             grid(ax(a),'on')
            
             % set(ax(5),'YLim',[-1e-8 1e-3])

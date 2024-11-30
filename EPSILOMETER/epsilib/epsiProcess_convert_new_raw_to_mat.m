@@ -187,7 +187,8 @@ if rSync
   
     % Loop through files and find the ones with survey_name
     idx_in_survey = false(length(file_list_all),1);
-    for i=1:length(file_list_all)
+    tic
+    for i=length(file_list_all)-30:length(file_list_all) %NC edit on 11/22/24. Looping through all takes a long time!
 
         % Open file
         fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
@@ -211,7 +212,7 @@ if rSync
             end
         end
     end %End loop through all files
-    
+    toc
 
     % Keep only files in survey
     file_list_struct = file_list_all(idx_in_survey);

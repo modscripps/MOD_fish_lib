@@ -66,7 +66,7 @@ end
 for iProf=1:length(PressureTimeseries.startprof)
     if iProf>lastProfNum
         profIdx = PressureTimeseries.startprof(iProf):PressureTimeseries.endprof(iProf);
-        tMin = PressureTimeseries.dnum(PressureTimeseries.startprof(iProf));
+        tMin = PressureTimeseries.dnum(profIdx(1));
         tMax = PressureTimeseries.dnum(profIdx(end));
         fprintf('Building Profile%04.0f of %04.0f\n',iProf,length(PressureTimeseries.startprof))
 

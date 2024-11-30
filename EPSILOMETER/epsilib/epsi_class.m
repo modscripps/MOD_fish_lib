@@ -741,7 +741,7 @@ classdef epsi_class < handle
             end
         end
         %%
-        function obj = f_makeNewProfiles(obj)
+        function obj = f_makeNewProfiles(obj,direction)
             % obj = f_makeNewProfiles(obj)
             %
             % Makes new profiles but does not compute turbulence variables
@@ -760,6 +760,7 @@ classdef epsi_class < handle
         %%
         function obj = f_gridProfiles(obj,z)
             obj = epsiProcess_gridProfiles(obj,z);
+            disp('Done Gridding')
         end
         %%
         function obj = f_cropTimeseries(obj,tMin,tMax)

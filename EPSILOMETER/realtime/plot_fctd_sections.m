@@ -1,3 +1,6 @@
+
+
+
 % plot_fctd_sections
 
 %% Decide what to plot in ax(4)
@@ -16,7 +19,7 @@ if ~exist('FCTDgrid')
 else
     if ~isempty(FCTDgrid)
         %% Plot some stuff
-        clf
+        %clf
         %%ax = [];
         fig = figure(1);
         fig.Units = 'normalized';
@@ -31,12 +34,13 @@ else
 
         % which data to plot? How about the most recent 1 day
         iplot=find(FCTDgrid.time>FCTDgrid.time-1);
-        iplot=iplot(1:2:end); % just the down-casts till we correct the hysteresis later
+        iplot=iplot(2:2:end); % just the up-casts till we correct the hysteresis later
 
-
+        if length(iplot)>1
         % Temperature
         ax(1) = subtightplot(4,1,1);
-        pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
+        % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
+        imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
         ax(1).CLim = clims.temperature;
         cb(1) = colorbar;
         colormap(ax(1),lansey)
@@ -47,16 +51,18 @@ else
         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,real(FCTDgrid.salinity(:,iplot)));
         ax(2).CLim = clims.salinity;
         cb(2) = colorbar;
-        colormap(ax(2),cmocean('delta'))
+        colormap(ax(2),cmocean('delta'));
         cb(2).Label.String = 'Salinity';
-        set(cb(2),'ydir','reverse');
+        %set(cb(2),'ydir','reverse');
 
         % chi
         ax(3) = subtightplot(4,1,3);
-        pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+        % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+        imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+        % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
         ax(3).CLim = clims.chi;
         cb(3) = colorbar;
-        colormap(ax(3),cmocean('amp'))
+        colormap(ax(3),parula)
         cb(3).Label.String = '\chi';
 
         switch ax3data
@@ -139,11 +145,41 @@ else
         [ax(1:4).YLim] = deal([zlim(1) zlim(2)]);
         [ax(1:4).YDir] = deal('reverse');
 
+        % Link axes
+        lp = linkprop([ax(:)],{'xlim','ylim'});
+
         %MHA hack
         %[ax(1:2).YLim] = deal([zlim(1) 500]);
+        end %end if iplot>1
+
+        %% Plot TS of last few profiles
+        openFigs = findobj('type','figure');
+        iTS = find(contains({openFigs(:).Tag},'ts_plot'));
+        if ~isempty(iTS)
+            close(openFigs(iTS))
+        end
+
+        firstProf = max([length(FCTDgrid.time)-4,1]);
+        profList = firstProf:length(FCTDgrid.time);
+        cols = cmocean('thermal',length(profList));
+        figTS = figure(2);
+        figTS.Tag = 'ts_plot';
+        for pp=1:length(profList)
+            p = profList(pp);
+            if mod(p,2)==0
+                plot(FCTDgrid.salinity(:,p),FCTDgrid.temperature(:,p),'.','MarkerSize',12,'Color',cols(pp,:),'displayname',sprintf('Down %i',p/2));
+            else
+                plot(FCTDgrid.salinity(:,p),FCTDgrid.temperature(:,p),'.','MarkerSize',12,'Color',cols(pp,:),'displayname',sprintf('Up %i',floor(p/2)));
+            end
+            hold on
+        end
+        grid on
+        xlim([34.4 35.5]);
+        xlabel('S [psu]','FontName','times new roman','FontSize',13);
+        ylabel('T [˚C]','FontName','times new roman','FontSize',13);
+        legend
 
     else
         disp('No FCTDgrid to plot')
     end %end of ~isempty(FCTDgrid)
 end
-0

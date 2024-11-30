@@ -2,20 +2,20 @@
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:900;
 
-survey_name = '24_1114_d7_fctd1_WWupfront';
+survey_name = '24_1123_d14_fctd_WWdownfront';
 
 % List FCTD variables to grid
 vars2grid_list = {'longitude','latitude','pressure','temperature','conductivity','w','bb','chla','fDOM','chi','chi2'};
 
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
-raw_dir = '/Volumes/MOTIVE24/MOD/09_reprocessed_data/';
+raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed/';
 
 % Path to setup file
-root_software='~/ARNAUD/SCRIPPS/MOD_fish_lib/';
+root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process','MDP_motive_2024.txt');
 
-process_dir_root = '/Volumes/MOTIVE24/MOD/09_reprocessed_data/';
+process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
 % Define the name of the process directory based on either what you
 % found in the Setup file or what you input

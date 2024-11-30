@@ -55,32 +55,36 @@ while (n_items > 0)
             if n_items == 1
                 error('MATLAB:FastCTD_GridData:missingArgs','Missing input arguments');
             end
-            vars2Grid = varargin{index+1};
-            if iscellstr(vars2Grid)
-                for i = 1:length(vars2Grid)
-                    if ~isfield(FCTD,vars2Grid{i})
-                        error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
-                    else
-                        switch lower(vars2Grid{i})
-                            case vars2Grid_default
-                                vars2Grid{i} = lower(vars2Grid{i});
-                                continue;
-                            otherwise
-                                error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
-                        end
-                    end
-                end
-            elseif ischar(vars2Grid)
-                switch lower(vars2Grid)
-                    case vars2Grid_default
-                        vars2Grid = {lower(vars2Grid)};
-                        continue;
-                    otherwise
-                        error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid);
-                end
-            else
-                error('MATLAB:FastCTD_GridData:wrongVar2Grid','Variable to grid must be specified as a cell strings of variables: pressure, temperature, conductivity');
-            end
+             vars2Grid = varargin{index+1};
+
+             % NC 11/9/24 - Commenting this out because it makes my
+             % vars2Grid list error out.
+             %
+            % if iscellstr(vars2Grid)
+            %     for i = 1:length(vars2Grid)
+            %         if ~isfield(FCTD,vars2Grid{i})
+            %             error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
+            %         else
+            %             switch lower(vars2Grid{i})
+            %                 case vars2Grid_default
+            %                     vars2Grid{i} = lower(vars2Grid{i});
+            %                     continue;
+            %                 otherwise
+            %                     error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid{i});
+            %             end
+            %         end
+            %     end
+            % elseif ischar(vars2Grid)
+            %     switch lower(vars2Grid)
+            %         case vars2Grid_default
+            %             vars2Grid = {lower(vars2Grid)};
+            %             continue;
+            %         otherwise
+            %             error('MATLAB:FastCTD_GridData:wrongVar2Grid','Wrong variable to grid: %s', vars2Grid);
+            %     end
+            % else
+            %     error('MATLAB:FastCTD_GridData:wrongVar2Grid','Variable to grid must be specified as a cell strings of variables: pressure, temperature, conductivity');
+            % end
             
             index = index +2;
             n_items = n_items-2;
@@ -238,7 +242,7 @@ for i=1:length(drops)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %BEGIN MHA EDITS OF THIS FUNCTION 8/26/2024
-use_old_code=0; %Use 1 here to use San's legacy response matching code. It must provide the corrected variables myFCTD.pressure, temperature, conductivity and depth.
+use_old_code=1; %Use 1 here to use San's legacy response matching code. It must provide the corrected variables myFCTD.pressure, temperature, conductivity and depth.
 if use_old_code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin legacy code
@@ -302,8 +306,8 @@ else
         compute_spectra=0;
 
         %Set to zero to ignore thermal mass correction; 1 to perform it.
+        do_thermal_mass_correction = 0;
         % do_thermal_mass_correction = 0;
-        do_thermal_mass_correction = 1;
 
         % Defaults from Lueck and Picklo are alpha = 0.02 and beta = 0.1.
         %These are the parameters from Lueck and Picklo. 
@@ -367,7 +371,7 @@ else
         Pct=Pct(2:length(Pct)); %delete f=0; normalization is already correct.
         %Maybe this is the best way to compute alpha...
         if1=find(f < 1);
-        alpha=sqrt(nanmean(Pt(if1)) ./ nanmean(Pc(if1)));
+        alpha=sqrt(mean(Pt(if1),'omitmissing') ./ mean(Pc(if1),'omitmissing'));
 
         %Next I'll try a polyfit
         x=f;
@@ -470,7 +474,13 @@ else
 
         %ALB 09/02/2024 When running real time n_extra is bothering the
         %last bit of the "running profile"
-        % I think it is fine to set it to 0 when ind(end)+n_
+        % I think it is fine to set it to 0 when
+        % ind(end)+n_extra>length(FCTD timeseries)
+        % It will fix itself when start a new cast. 
+        % 
+        if (ind(end)+n_extra)>length(FCTD.temperature)
+            n_extra=0;
+        end
         t_tmp=FCTD.temperature((ind(1)-n_extra):(ind(end)+n_extra));
         c_tmp=FCTD.conductivity((ind(1)-n_extra):(ind(end)+n_extra));
         p_tmp=FCTD.pressure((ind(1)-n_extra):(ind(end)+n_extra));
@@ -550,8 +560,8 @@ C=myFCTD.cCorrMHA;
 
 end
         num = num+1;
-        DataGrid.time(num) = nanmean(FCTD.time(ind));
-        for j=1:length(vars2Grid);
+        DataGrid.time(num) = mean(FCTD.time(ind),'omitmissing');
+        for j=1:length(vars2Grid);2
             DataGrid.(vars2Grid{j})(:,num) = bindata1d(DataGrid.depth,...
                 myFCTD.depth, ...
                 myFCTD.(vars2Grid{j}));
@@ -569,10 +579,10 @@ DataGrid.salinity = sw_salt(DataGrid.conductivity*10/sw_c3515,DataGrid.temperatu
 DataGrid.density = sw_pden(DataGrid.salinity,DataGrid.temperature,DataGrid.pressure,0);
 
 % gridding in time
-mintime = nanmin(DataGrid.time);
-maxtime = nanmax(DataGrid.time);
+mintime = min(DataGrid.time,[],'omitmissing');
+maxtime = max(DataGrid.time,[],'omitmissing');
 
-DataGrid.tGrid.time = mintime:2*nanmedian(diff(DataGrid.time)):maxtime; % every minute
+DataGrid.tGrid.time = mintime:2*median(diff(DataGrid.time),'omitmissing'):maxtime; % every minute
 DataGrid.tGrid.depth = DataGrid.depth;
 
 

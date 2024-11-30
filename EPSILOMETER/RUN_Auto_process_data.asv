@@ -21,16 +21,19 @@
 % These will probably be the same for the whole cruise
 clear input_struct
 input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2024.txt';
-input_struct.refresh_time_sec =  30*60;
+input_struct.refresh_time_sec =  10*60;
 % input_struct.cruise_specifics = 'tfo_2024';
+
+
 epsi_depth_array = 0:1000;
-fctd_depth_array = 0:1100;
+fctd_depth_array = 0:1105
+
 
 % Set clims
-clims.temperature = [5 28];
+clims.temperature = [5 25];
 clims.salinity = [34.3 35.5];
 clims.epsilon = [-10 -7.5];
-clims.chi = [-9 -6];
+clims.chi = [-10 -8];
 clims.n2 = [-6 -2.7];
 
 % Set xlims
@@ -84,7 +87,7 @@ switch data_mode
         root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
         path2setup=fullfile(root_software,'Acquisition/fctd_epsi_acq/build/fctd_epsi/Build/Products/Debug/Setup');
 
-        process_dir_root = '/Volumes/DEV3_HD/ShUsers/EPSI_PROCESSING/Current_Cruise/Processed';
+        process_dir_root = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed';
 end
 
 %% Read the Setup file

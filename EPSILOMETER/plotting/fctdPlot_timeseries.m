@@ -152,8 +152,13 @@ end
 if isfield(obj.epsi,'dnum') && ~all(isnan(obj.epsi.dnum)) && replaceData
     sec10 = 10/(3600*24);
     % If plotting in realtime, limit view
+    try
     [ax(:).XTick] = deal(fliplr(nanmax(obj.epsi.dnum):-sec10:nanmax(obj.epsi.dnum)-nDay));
     [ax(:).XLim] = deal([nanmax(obj.epsi.dnum)-nDay,nanmax(obj.epsi.dnum)]);
+    catch 
+        [ax(:).XTick] = deal(fliplr(max(obj.epsi.dnum):-sec10:max(obj.epsi.dnum)-nDay));
+    [ax(:).XLim] = deal([max(obj.epsi.dnum)-nDay,max(obj.epsi.dnum)]);
+    end
     try
         datetick(ax(10),'x','HH:MM:SS','keepticks')
         ax(10).XLabel.String = 'HH:MM:SS';

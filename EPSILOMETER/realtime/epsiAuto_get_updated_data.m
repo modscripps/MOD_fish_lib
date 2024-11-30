@@ -32,7 +32,7 @@ else
             % Get length of array (this should always stay the same)
             nArray.(periph) = numel(obj.(periph).(timestamp));
             % Get last timestamp
-            tMaxNow.(periph) = nanmax(data.(periph).(timestamp));
+            tMaxNow.(periph) = max(data.(periph).(timestamp));
             % Get indices of old data (everything up until tMaxPrevious)
             idxOld.(periph) = obj.(periph).(timestamp)<=tMaxPrevious.(periph);
             % Get length of old data

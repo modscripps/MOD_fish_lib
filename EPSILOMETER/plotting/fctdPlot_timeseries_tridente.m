@@ -19,7 +19,7 @@ elseif nargin<3
 end
 
 %% If you're running in realtime, view the most recent nSec
-nSec = 1*60;
+nSec = 1*20;
 nDay = nSec/(3600*24);
 
 %% Set plot properties if you don't have them
@@ -179,15 +179,19 @@ end
 if isfield(obj.epsi,'dnum') && ~all(isnan(obj.epsi.dnum)) && replaceData
     sec10 = 10/(3600*24);
     % If plotting in realtime, limit view
-    [ax(:).XTick] = deal(fliplr(nanmax(obj.epsi.dnum):-sec10:nanmax(obj.epsi.dnum)-nDay));
-    [ax(:).XLim] = deal([nanmax(obj.epsi.dnum)-nDay,nanmax(obj.epsi.dnum)]);
+    [ax(:).XTick] = deal(fliplr(max(obj.epsi.dnum):-sec10:max(obj.epsi.dnum)-nDay));
+    [ax(:).XLim] = deal([max(obj.epsi.dnum)-nDay,max(obj.epsi.dnum)]);
     try
         datetick(ax(8),'x','HH:MM:SS','keepticks')
         ax(8).XLabel.String = 'HH:MM:SS';
     catch
     end
 elseif ~replaceData
+    try
     [ax(:).XLim] = deal([nanmin(obj.epsi.dnum),nanmax(obj.epsi.dnum)]);
+    catch
+        [ax(:).XLim] = deal([min(obj.epsi.dnum),max(obj.epsi.dnum)]);
+    end
     try
         datetick(ax(8),'x','MM:SS','keepticks')
         ax(8).XLabel.String = 'MM:SS';

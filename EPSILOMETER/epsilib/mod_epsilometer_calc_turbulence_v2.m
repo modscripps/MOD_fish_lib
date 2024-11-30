@@ -31,7 +31,9 @@ end
 %ALB 11/17/2024 grabbing Profile meta data now that we calibrate linearly
 %all profiles.
 Profile.Meta_Data.PROCESS.display=0;
+local_Meta_Datapath=Meta_Data.paths;
 Meta_Data=Profile.Meta_Data;
+Meta_Data.paths=local_Meta_Datapath;
 
 % Add latitude and longitude - take the mean of the first 10 seconds of the profile
 % gps_sec_int = mode(seconds(days(diff(Profile_or_profNum.gps.dnum))));

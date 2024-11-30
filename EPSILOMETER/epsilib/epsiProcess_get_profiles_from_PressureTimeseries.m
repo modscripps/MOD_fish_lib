@@ -29,7 +29,7 @@ minLength_m = 10;
 plotFig = 0;
 % All speed limits should be positive values in m/s (technically db/s)
 fish_flag = strrep(lower(Meta_Data.fishflag_name(:)'),'''','');
-switch fish_flag(1:4)
+switch fish_flag
     case 'fctd'
         speedLim_down_start_m_s = 0.3;
         speedLim_down_end_m_s = 0.1;
@@ -40,11 +40,6 @@ switch fish_flag(1:4)
         speedLim_down_end_m_s = 0.1;
         speedLim_up_start_m_s = 0.1;
         speedLim_up_end_m_s = 0.05;
-end
-
-% Check for epsi on wirewalker - set speed limits differently if it's on a
-% wirewalker
-switch strrep(lower(Meta_Data.vehicle_name(:)'),'''','')
     case {'wirewalker','ww'}
         % For wirewalker
         speedLim_down_start_m_s = 0.5;
@@ -52,6 +47,7 @@ switch strrep(lower(Meta_Data.vehicle_name(:)'),'''','')
         speedLim_up_start_m_s = 0.5;
         speedLim_up_end_m_s = 0.05;
 end
+
 
 % If Meta_Data has any of the profile processing fields specified, switch
 % default values to those.
@@ -170,6 +166,9 @@ for downCast=[1,0]
 
     % Iterate through each start point to find the corresponding end point
     for i = 1:length(profiling_start)
+        if i==20
+            
+        end
         % Find the first end point that occurs after the start point
         end_idx = find(profiling_end > profiling_start(i), 1);
 
