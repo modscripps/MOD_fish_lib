@@ -16,6 +16,8 @@ end
 % most recent one, in case it wasn't complete when the figure was made.
 for profID = max(profnum_list):length(data.GRID.dnum)
 
+    if profID~=20
+
     curr_profile_name=sprintf('Profile%04i.mat',profID);
     lastProfile=load(fullfile(ec.Meta_Data.paths.profiles,curr_profile_name));
 
@@ -27,7 +29,7 @@ for profID = max(profnum_list):length(data.GRID.dnum)
     fig1.PaperPosition=[0 0 18 13];
     print('-dpng2',fullfile(ec.Meta_Data.paths.figures,[curr_profile_name(1:end-4) '.png']))
     eval(['savefig ' fullfile(ec.Meta_Data.paths.figures,curr_profile_name(1:end-4))])
-
+    end
 end
 
 %% Plot section

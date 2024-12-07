@@ -741,7 +741,7 @@ classdef epsi_class < handle
             end
         end
         %%
-        function obj = f_makeNewProfiles(obj)
+        function obj = f_makeNewProfiles(obj,direction)
             % obj = f_makeNewProfiles(obj)
             %
             % Makes new profiles but does not compute turbulence variables
@@ -778,8 +778,7 @@ classdef epsi_class < handle
             %   Timeseries - structure of epsi and ctd data to process turbulence
             %   variables
             tRange = [tMin,tMax];
-            Meta_Data = obj.Meta_Data;
-            Timeseries = epsiProcess_crop_timeseries(Meta_Data,tRange);
+            Timeseries = epsiProcess_crop_timeseries(obj.Meta_Data,tRange);
             obj = Timeseries;
         end
         %%

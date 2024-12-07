@@ -20,6 +20,9 @@ function Meta_Data=mod_epsi_linear_calibration_FP07(Profile,saveData)
 % length
 disp('--- mod_epsi_linear_calibration_FP07.m ---')
 Meta_Data=Profile.Meta_Data;
+if ~isfield(Meta_Data.CTD,'cal')
+    Meta_Data.CTD.cal.SN=000; 
+end
 
 % Options for saving and plotting data
 if nargin<2

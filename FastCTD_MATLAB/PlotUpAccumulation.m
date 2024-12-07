@@ -151,8 +151,8 @@ load([rotDataDir 'Latest_rot_acc_count.mat'], ...
      'tot_pressure',...
      'last_file_idx');
     file_index_ofset=last_file_idx;
-    nonan_tot_rot_acc=tot_rot_acc(~isnan(tot_rot_acc));
-    rot_count_offset=-nonan_tot_rot_acc(end)/pi/2;
+    nonan_tot_rot_gyro=tot_rot_gyro(~isnan(tot_rot_gyro));
+    rot_count_offset=-nonan_tot_rot_gyro(end)/pi/2;
 
 else
     tot_rot_gyro     = [];
@@ -253,7 +253,7 @@ clf;
 % if sum(fall_rate<0.001)>10
 %     h(2) = plot(datetime(tot_time(fall_rate<0.01),'ConvertFrom','datenum'), -tot_rot_acc(fall_rate<0.01)/pi/2,'.','linewidth',2,'color','k','legend','Rot by acc [up]');
 % end
-last_value = -tot_rot_gyro/pi/2;
+last_value = tot_rot_gyro/pi/2;
 last_value=last_value(~isnan(last_value));
 
 disp(['Most recent turn count: ' datestr(now),'   ' num2str(round(last_value(end)))]) 
@@ -271,7 +271,7 @@ xlabel('time');
 ylabel('Number of rotations');
 %title('FCTD: Rotation count on current line');
 
-title(['MODfish: Rotation count = ' num2str(-round(last_value(end-1))) '  _ _ _ ']); %NC 11/16/24 last value is always wrong
+title(['MODfish: Rotation count = ' num2str(round(last_value(end-1))) '  _ _ _ ']); %NC 11/16/24 last value is always wrong
 
 str_legend={'Rot by acc [dn]','Rot by acc [up]','Rot by gyro [dn]','Rot by gyro [up]'};
 %hl = legend(h(h>0),str_legend(h>0),'Location','NorthWest');
@@ -303,4 +303,4 @@ ax(1) = gca;
 % linkaxes(ax,'x')
 end
 
-fprintf("Last rotation count %i\r\n",-round(last_value(end)))
+fprintf("Last rotation count %i\r\n",round(last_value(end)))

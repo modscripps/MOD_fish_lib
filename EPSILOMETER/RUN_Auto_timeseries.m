@@ -24,7 +24,7 @@
 % --- USER CHOICES --------------------------------------------------------
 
 % Also plot spectra?
-include_spectra = 1;
+include_spectra = 0;
 
 % Meta_Data process file (make sure this file has the correct serial
 % numbers for CTD, s1, s2, t1, t2. If you're running fctd, you can leave

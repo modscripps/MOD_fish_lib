@@ -1,3 +1,6 @@
+
+
+
 % plot_fctd_sections
 
 %% Decide what to plot in ax(4)
@@ -146,4 +149,3 @@ else
         disp('No FCTDgrid to plot')
     end %end of ~isempty(FCTDgrid)
 end
-0

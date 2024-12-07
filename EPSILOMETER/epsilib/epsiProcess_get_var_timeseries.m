@@ -17,6 +17,9 @@ function [var_timeseries] = epsiProcess_get_var_timeseries(obj,var_name)
 %   first level to find it. Once you do, grab the data for the whole
 %   deployment and grab the dnum from the same structure.
 
+% Load TimeIndex
+load(fullfile(obj.Meta_Data.paths.mat_data,'TimeIndex'),'TimeIndex');
+
 % NC 11/19/24 -  Epsi Minnow puts out files called modsom_1, modsom_2,
 % modsom_10, etc so they look out of order when reading the list of files
 % in a directory alphabetically (1, 10, 100, 101, 102, 103). TimeIndex gets out of order. Before
@@ -27,10 +30,7 @@ for iF=1:length(field_list)
     TimeIndex.(field_list{iF}) = TimeIndex.(field_list{iF})(iS); 
 end
 
-
-
 % Load the first file
-load(fullfile(obj.Meta_Data.paths.mat_data,'TimeIndex'));
 file_data = load(fullfile(obj.Meta_Data.paths.mat_data,TimeIndex.filenames{1}));
 
 % Find the requested variable
