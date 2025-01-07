@@ -22,7 +22,7 @@ if length(dof)>1
 end
     %% search limits
 
-epst=linspace(epslim(1),epslim(2),2000); % very large at first...initial search space
+epst=linspace(epslim(1),epslim(2),500); % very large at first...initial search space
  
 %% MLE Computations for first initial search
 Pt= modelSpec(epst); %alp*f.^(-5/3)*(epst.*U).^(2/3);% theoretical spectrum in rad/s. Matrix,
@@ -35,7 +35,7 @@ cc=1;
 while and(ind==1,cc<10)
     
     epslim(1)=epslim(1)/10;
-    epst=linspace(epslim(1),epslim(2),2000); % very large at first...initial search space
+    epst=linspace(epslim(1),epslim(2),500); % very large at first...initial search space
     Pt= modelSpec(epst); %alp*f.^(-5/3)*(epst.*U).^(2/3);% theoretical spectrum in rad/s. Matrix,
     [~, ind, ~]=logLikelihood(epst,specObs.P,Pt,dof);
     cc=cc+1;
@@ -46,7 +46,7 @@ cc=1;
 le=length(epst);
 while and(ind==le,cc<10)
     epslim(2)=epslim(2)*10;
-    epst=linspace(epslim(1),epslim(2),2000); % very large at first...initial search space
+    epst=linspace(epslim(1),epslim(2),500); % very large at first...initial search space
     Pt= modelSpec(epst); %alp*f.^(-5/3)*(epst.*U).^(2/3);% theoretical spectrum in rad/s. Matrix,
     [~, ind, ~]=logLikelihood(epst,specObs.P,Pt,dof);
     cc=cc+1;

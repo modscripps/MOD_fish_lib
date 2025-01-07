@@ -104,7 +104,9 @@ for kk=1:nG
             [nVar,varids]=getvarName(VarName.(gName{kk}),varids,group_list);
         end
     end
-      
+    %ALB if dash in string next step will choke
+    nVar=cellfun(@(x) strrep(x, '-', '_'),nVar,'un',0);
+        
     for ii=1:length(varids)
         if strcmp(gName{kk},'Global')==0
             tmp = netcdf.getVar(gid(kk),varids(ii));

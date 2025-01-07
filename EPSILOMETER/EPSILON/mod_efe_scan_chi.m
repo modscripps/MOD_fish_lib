@@ -51,8 +51,7 @@ if nargin<5
     end
 end
 
-% h_freq.magsq=@(speed)(1./(1+((2*pi*(0.005*speed^(-0.32))).*f(:)).^2));
-h_freq.magsq=@(speed)(1./(1+((2*pi*(0.001*speed^(-0.32))).*f(:)).^2));
+h_freq.magsq=@(speed)(1./(1+((2*pi*(0.005*speed^(-0.32))).*f(:)).^2));
 filter_TF=h_freq.FPO7(w);
 dof=Meta_Data.PROCESS.dof;
 % ---------------------------------------------------------------------

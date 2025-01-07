@@ -32,7 +32,11 @@ end
 %all profiles.
 Profile.Meta_Data.PROCESS.display=0;
 local_Meta_Datapath=Meta_Data.paths;
+local_Meta_PROCESS=Meta_Data.PROCESS;
+local_Meta_Datapath=Meta_Data.paths;
 Meta_Data=Profile.Meta_Data;
+Meta_Data.paths=local_Meta_Datapath;
+Meta_Data.PROCESS=local_Meta_PROCESS;
 Meta_Data.paths=local_Meta_Datapath;
 
 % Add latitude and longitude - take the mean of the first 10 seconds of the profile

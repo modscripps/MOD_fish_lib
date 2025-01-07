@@ -21,7 +21,7 @@
 % These will probably be the same for the whole cruise
 clear input_struct
 input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2024.txt';
-input_struct.refresh_time_sec =  10*60;
+input_struct.refresh_time_sec =  2*60;
 % input_struct.cruise_specifics = 'tfo_2024';
 
 
@@ -33,6 +33,7 @@ fctd_depth_array = 0:1105
 clims.temperature = [5 25];
 clims.salinity = [34.3 35.5];
 clims.epsilon = [-10 -7.5];
+clims.chi = [-10 -6];
 clims.chi = [-10 -6];
 clims.n2 = [-6 -2.7];
 

@@ -14,7 +14,7 @@ w=diff(smdepth)./diff(PressureTimeseries.dnum)/86400;
 % get rid of spikes
  w=filloutliers(w,'linear');
 % smooth speed just in case we still have high frequency features
-smw=smoothdata(w,'movmean',ceil(PressureTimeseries.meta.smfilt/3));
+smw=smoothdata(w,'movmedian',ceil(100*PressureTimeseries.meta.smfilt/3));
 % define upcast  and dowcast as section of speed above and below a threshold
 % here .1 m/s The Threshold should be a parameter
 downcast(smw>PressureTimeseries.meta.cutspeed)=1; % down

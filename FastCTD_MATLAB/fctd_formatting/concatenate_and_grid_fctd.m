@@ -34,11 +34,12 @@ if exist(fullfile(fctd_mat_dir,'FCTDall.mat'),'file')==2 %If FCTDall already exi
     
 else % If FCTDall doesn't already exist
     % Load the first file and add microconductivity data
-    load(fullfile(fctd_mat_dir,file_list{1}),'FCTD');
+    load(fullfile(fctd_mat_dir,file_list{1}),'FCTD');    
+    disp(file_list{1})
 
-    % %ALB hack TFO2024 to remove chi field and reprocess
-    % FCTD=rmfield(FCTD,'chi');
-    % FCTD=rmfield(FCTD,'chi2');
+    %ALB hack TFO2024 to remove chi field and reprocess
+    FCTD=rmfield(FCTD,'chi');
+    FCTD=rmfield(FCTD,'chi2');
 
     FCTD = add_microconductivity(FCTD);
     
@@ -51,12 +52,14 @@ end
 % Load the rest of the files and merge into FCTD all
 for iF=2:length(file_list)
     fprintf(sprintf('Adding file %3.0f of %3.0f to FCTDall \n',iF,length(file_list)));
-    
+    disp(file_list{iF})
+ 
     % Load file and add microconductivity data
     load(fullfile(fctd_mat_dir,file_list{iF}),'FCTD');
+    
     % %ALB hack TFO2024 to remove chi field and reprocess
-    % FCTD=rmfield(FCTD,'chi');
-    % FCTD=rmfield(FCTD,'chi2');
+    FCTD=rmfield(FCTD,'chi');
+    FCTD=rmfield(FCTD,'chi2');
 
     FCTD = add_microconductivity(FCTD);
     

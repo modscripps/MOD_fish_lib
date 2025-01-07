@@ -719,7 +719,7 @@ classdef epsi_class < handle
                 obj = mod_epsilometer_calc_turbulence_v2(obj.Meta_Data,Profile_or_profNum,saveData);
             elseif process_all_profiles
                 profile_list = dir(fullfile(obj.Meta_Data.paths.profiles,'Profile*.mat'));
-                for p=1:length(profile_list)
+                for p=18:length(profile_list)
                     fprintf('Building Profile%04.0f of %04.0f\n',p,length(profile_list))
                     obj = mod_epsilometer_calc_turbulence_v2(obj.Meta_Data,p,saveData);
                 end
@@ -760,7 +760,6 @@ classdef epsi_class < handle
         %%
         function obj = f_gridProfiles(obj,z)
             obj = epsiProcess_gridProfiles(obj,z);
-            disp('Done Gridding')
         end
         %%
         function obj = f_cropTimeseries(obj,tMin,tMax)

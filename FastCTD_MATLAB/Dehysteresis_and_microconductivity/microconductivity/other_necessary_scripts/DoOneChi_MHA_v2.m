@@ -25,14 +25,15 @@ fs=chi_param.fs;
 fslow=chi_param.fslow;
 nsec=chi_param.nsec;
 D=chi_param.D;
-kmax=chi_param.kmax;
-kmin=chi_param.kmin;
 min_spd=chi_param.min_spd;
-dt_sec=chi_param.dt_sec;
-dTdC=chi_param.dTdC;
-gain=chi_param.gain;
-offset=chi_param.offset;
-plotit=chi_param.plotit;
+
+% kmax=chi_param.kmax;
+% kmin=chi_param.kmin;
+% dt_sec=chi_param.dt_sec;
+% dTdC=chi_param.dTdC;
+% gain=chi_param.gain;
+% offset=chi_param.offset;
+% plotit=chi_param.plotit;
 
 %Get indices
 i1=find(FCTD.microtime>tlim(1)& FCTD.microtime<tlim(2));
@@ -46,19 +47,23 @@ datac=FCTD.conductivity(i2); %This is SBE C in S/m, sampled at 16 Hz
 datat=FCTD.temperature(i2); %This is SBE T in deg C
 
 %MHA change 8/2024: let's compute dCdT from the SBE formula
-dCdT_SBE=0.1*(1+0.006*(nanmean(datat) - 20));
+dCdT_SBE=0.1*(1+0.006*(mean(datat,"omitmissing") - 20));
 dTdC=1./ dCdT_SBE;
 
 %Mean fall rate
-w=nanmean(FCTD.dPdt(i2));
+w=mean(FCTD.dPdt(i2),'omitmissing');
 spd=abs(w); %speed
 
 %mean P
-p=nanmean(FCTD.pressure(i2));
+p=mean(FCTD.pressure(i2),'omitmissing');
 
 %set new kmax lims to avoid noise at high wavenumber
 fn=fs/2; %Nyquist
-fmax=fn/2; %integrate to half the Nyquist based on observed noise spectra.  
+% fmax=fn/2; %integrate to half the Nyquist based on observed noise spectra.  
+% ALB the sinc2 has a first dip at 50Hz Should we force the integration to stop
+% at 50Hz
+% fmax=fn/2; %integrate to half the Nyquist based on observed noise spectra.  
+fmax=50; %integrate to half the Nyquist based on observed noise spectra.  
 % This also avoids the need to correct for the difference versus derivative operator.
 
 kmin=1;
@@ -74,10 +79,10 @@ dz=spd*dt;
 
 %low-freq quantities
 
-kslow=fslow/spd;
-dtlow=1/fslow;
-dzlow=spd*dtlow;
-WINDOW_low=fslow*nsec;
+% dtlow=1/fslow;
+% kslow=fslow/spd;
+% dzlow=spd*dtlow;
+% WINDOW_low=fslow*nsec;
 
 
 %escape if the data is not long enough
@@ -91,21 +96,35 @@ else
 
     %Compute chi from the standard formula as 6*D*(RMS dTdz)^2
     chi1=nan;
-    chi_stupid=6*D*dTdC^2*nanstd(diff(data)*fs/w).^2;
+    chi_stupid=6*D*dTdC^2*std(diff(data)*fs/w,[],'omitmissing').^2;
 
     %Compute the wavenumber spectrum of dCdz from microconductivity.
-    [P,k] = pwelch(diff(NANinterp(data))/dz,WINDOW,[],WINDOW,ks,'psd'); %Set NFFT equal to the window length
+    [P,k] = pwelch(detrend(diff(NANinterp(data))/dz),WINDOW,[],WINDOW,ks,'psd'); %Set NFFT equal to the window length
 
     %Antialias filter of microconductivity electronics in SBE7 per AP00
     sinc2=sinc(pi*k./max(k)).^2;
 
     %Corrected spectrum
-    pcorr=P./sinc2.';
+    pcorr=P(:)./sinc2(:);
+    
+    % if FCTD.time>datenum('11/26/2024 05:08:22')
+    %     loglog(k,sinc2)
+    %     hold on
+    %     loglog(k,P)
+    %     loglog(k,pcorr)
+    %     loglog([kmax kmax],[1e-10 1e-2],'k--')
+    %     loglog([1/spd 1/spd],[1e-10 1e-2],'k--')
+    %     hold off
+    %     grid on
+    %     ylim([1e-10 1e2])
+    %     pause
+    % end
+    
 
     if spd > min_spd
         ichi=find(k > kmin & k < kmax);
         dk=k(2)-k(1); %freq res
-        chi1=6*D*dTdC^2*nansum(pcorr(ichi))*dk;
+        chi1=6*D*dTdC^2*sum(pcorr(ichi),'omitmissing')*dk;
     end
 
     %Compute the wavenumber spectrum of dCdz from sbe conductivity.
@@ -121,5 +140,6 @@ else
     out.chi1=chi1;
     out.w=w;
     out.pres=p;
-
+    out.k=k;
+    out.P=pcorr;
 end

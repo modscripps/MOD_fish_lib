@@ -13,7 +13,7 @@ function [Timeseries] = epsiProcess_crop_timeseries(Meta_Data,tRange)
 %   variables
 
 %% Find the mat file(s) within the time range
-load(fullfile(Meta_Data.paths.mat_data,'TimeIndex'))
+load(fullfile(Meta_Data.paths.mat_data,'TimeIndex'),'TimeIndex')
 
 % NC 11/19/24 -  Epsi Minnow puts out files called modsom_1, modsom_2,
 % modsom_10, etc so they look out of order when reading the list of files
@@ -21,8 +21,10 @@ load(fullfile(Meta_Data.paths.mat_data,'TimeIndex'))
 % cropping the time series, sort TimeIndex by dnumStart.
 [~,iS] = sort(TimeIndex.dnumStart);
 old_TimeIndex=TimeIndex;
+old_TimeIndex=TimeIndex;
 field_list = fields(TimeIndex);
 for iF=1:length(field_list)
+    TimeIndex.(field_list{iF}) = old_TimeIndex.(field_list{iF})(iS); 
     TimeIndex.(field_list{iF}) = old_TimeIndex.(field_list{iF})(iS); 
 end
 
@@ -34,6 +36,10 @@ if tRange(1)>1e9 || tRange(1)<7e5
     endFile = find(tRange(end)>=TimeIndex.timeStart & tRange(end)<=TimeIndex.timeEnd);
 else
     tRangeChoice = 'dnum';
+    % startFile = find(tRange(1)>=TimeIndex.dnumStart & tRange(1)<=TimeIndex.dnumEnd);
+    % endFile = find(tRange(end)>=TimeIndex.dnumStart & tRange(end)<=TimeIndex.dnumEnd);
+    startFile = find(tRange(1)>=TimeIndex.dnumStart,1,"last");
+    endFile = find(tRange(end)<=TimeIndex.dnumEnd,1,"first");
     % startFile = find(tRange(1)>=TimeIndex.dnumStart & tRange(1)<=TimeIndex.dnumEnd);
     % endFile = find(tRange(end)>=TimeIndex.dnumStart & tRange(end)<=TimeIndex.dnumEnd);
     startFile = find(tRange(1)>=TimeIndex.dnumStart,1,"last");
@@ -56,7 +62,9 @@ if ~isempty(myFileIdx)
     if length(myFileIdx)==1
         try
             MatData=load([Meta_Data.paths.mat_data '/' TimeIndex.filenames{myFileIdx} '.mat']);
-            if (MatData.Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t1.cal~=0)
+            % if (MatData.Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t1.cal~=0)
+            if (sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0 && ...
+                sum(str2double(Meta_Data.AFE.t1.SN))~=0)    
                 MatData.Meta_Data.AFE=Meta_Data.AFE;
             end
             use MatData;
@@ -108,9 +116,10 @@ if ~isempty(myFileIdx)
         for iF=2:length(myFileIdx)
             try
                 MatData=load([Meta_Data.paths.mat_data '/' TimeIndex.filenames{myFileIdx(iF)} '.mat']);
-                if (MatData.Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t1.cal~=0)
-                    MatData.Meta_Data.AFE=Meta_Data.AFE;
-                end
+            if (sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0 && ...
+                sum(str2double(Meta_Data.AFE.t1.SN))~=0)    
+                MatData.Meta_Data.AFE=Meta_Data.AFE;
+            end
 
             catch
                 error(['Can''t load ' TimeIndex.filenames{myFileIdx(iF)}])
