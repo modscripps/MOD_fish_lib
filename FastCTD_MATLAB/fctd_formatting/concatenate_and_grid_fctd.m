@@ -38,8 +38,12 @@ else % If FCTDall doesn't already exist
     disp(file_list{1})
 
     %ALB hack TFO2024 to remove chi field and reprocess
-    FCTD=rmfield(FCTD,'chi');
-    FCTD=rmfield(FCTD,'chi2');
+    if isfield(FCTD,'chi')
+        FCTD=rmfield(FCTD,'chi');
+    end
+    if isfield(FCTD,'chi2')
+        FCTD=rmfield(FCTD,'chi2');
+    end
 
     FCTD = add_microconductivity(FCTD);
     
@@ -58,8 +62,12 @@ for iF=2:length(file_list)
     load(fullfile(fctd_mat_dir,file_list{iF}),'FCTD');
     
     % %ALB hack TFO2024 to remove chi field and reprocess
-    FCTD=rmfield(FCTD,'chi');
-    FCTD=rmfield(FCTD,'chi2');
+    if isfield(FCTD,'chi')
+        FCTD=rmfield(FCTD,'chi');
+    end
+    if isfield(FCTD,'chi2')
+        FCTD=rmfield(FCTD,'chi2');
+    end
 
     FCTD = add_microconductivity(FCTD);
     
