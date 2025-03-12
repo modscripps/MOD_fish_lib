@@ -970,7 +970,7 @@ else
 end
 
 %% Vector navigation
-
+try
 if isempty(ind_vnav_start)
     no_data_types = [no_data_types,'vnav'];
     vnav=[];
@@ -1053,6 +1053,9 @@ else
     vnav = orderfields(vnav,{'dnum','time_s','compass','acceleration','gyro','yaw','pitch','roll'});
 
 end %end loop if there is vnav data
+catch
+    warning('l.1057 mod_som_read_epai_files_v4.m VNAV chokes')
+end
 
 
 %% Process SEGM data
@@ -2142,15 +2145,18 @@ if isempty(ind_ttv_start)
     no_data_types = [no_data_types,'ttv'];
     ttv=[];
 else
+    % Ti logan TTV format
+    %UUUUUUUU,DDDDDDDD,TTTTTTTT,VVVVVVVV,LL,AA,uuuu,dddd\n\r
+    % 8+1+8+1+8+1+8+1+2+1+2+1+4+1+4+2
 
     ttv.data.sample_freq      = 16;
     ttv.data.sample_period    = 1/ttv.data.sample_freq;
     ttv.data.n_blocks         = numel(ind_ttv_start);
-    ttv.data.recs_per_block   = 1;
+    ttv.data.recs_per_block   = 10;
     ttv.data.n_recs           = ttv.data.n_blocks*ttv.data.recs_per_block;
     ttv.data.timestamp_length = 16;
     % ALB I have to change this
-    ttv.data.length           = 37;
+    ttv.data.length           = 53;
 
     processed_data_types = [processed_data_types,'ttv'];
 
@@ -2167,6 +2173,10 @@ else
     ttv.tof_down = nan(ttv.data.n_recs,1);
     ttv.dtof     = nan(ttv.data.n_recs,1);
     ttv.vfr      = nan(ttv.data.n_recs,1); %(volume flow rate)
+    ttv.lib_err  = nan(ttv.data.n_recs,1); %(volume flow rate)
+    ttv.alg_err  = nan(ttv.data.n_recs,1); %(volume flow rate)
+    ttv.UpADC    = nan(ttv.data.n_recs,1); %(volume flow rate)
+    ttv.DownADC  = nan(ttv.data.n_recs,1); %(volume flow rate)
 
     % Initialize datarecord counter
     n_rec = 0;
@@ -2192,8 +2202,8 @@ else
             ttv_block_data=reshape(ttv_block_data,16+ttv.data.length,ttv.data.recs_per_block).';
 
             % '00000191536bd52000000000,00000000,00000000,C09DBC00'
-            parse_ttv_block_data=sscanf(ttv_block_data.','%016x%08x,%08x,%08x,%08x\r\n');
-            if length(parse_ttv_block_data)==ttv.data.recs_per_block*5 % 5 data: timestamp, tofup, tofdown, dtof, vfr (volume flow rate)
+            parse_ttv_block_data=sscanf(ttv_block_data.','%016x%08x,%08x,%08x,%08x,%02x,%02x,%04x,%04x\r\n');
+            if length(parse_ttv_block_data)==ttv.data.recs_per_block*9 % 9 data: timestamp, tofup, tofdown, dtof, vfr (volume flow rate)
 
                 for iR=1:ttv.data.recs_per_block
 
@@ -2222,6 +2232,10 @@ else
                     ttv.tof_down(n_rec) = double(typecast(uint32(hex2dec(parse_ttv_block_data{2})),'single'));
                     ttv.dtof(n_rec)     = double(typecast(uint32(hex2dec(parse_ttv_block_data{3})),'single'));
                     ttv.vfr(n_rec)      = double(typecast(uint32(hex2dec(parse_ttv_block_data{4})),'single'));
+                    ttv.lib_err(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{5})),'single'));
+                    ttv.alg_err(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{6})),'single'));
+                    ttv.UpADC(n_rec)    = double(typecast(uint32(hex2dec(parse_ttv_block_data{7})),'single'));
+                    ttv.DownADC(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{8})),'single'));
                     % Convert the uint32 to single precision float
                     % ttv.tof_up(n_rec)   = typecast(ttv.tof_up(n_rec),'single');
                     % ttv.tof_down(n_rec) = typecast(ttv.tof_down(n_rec),'single');
@@ -2231,7 +2245,7 @@ else
 
                     % If timestamp has values like 1.6e12, it is in milliseconds since Jan
                     % 1, 1970. Otherwise it's in milliseconds since the start of the record
-                    if nanmedian(ttv_timestamp)>1e9
+                    if median(ttv_timestamp,'omitmissing')>1e9
                         % time_s - seconds since 1970
                         % dnum - matlab datenum
                         [ttv.time_s,ttv.dnum] = convert_timestamp(ttv_timestamp);

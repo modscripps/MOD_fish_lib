@@ -480,8 +480,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1486"
             endingLineNumber = "1486"
-            landmarkName = "GetFishProbeCal(coeffFishProbePtr, calFileName)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -496,8 +496,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1488"
             endingLineNumber = "1488"
-            landmarkName = "GetFishProbeCal(coeffFishProbePtr, calFileName)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -512,8 +512,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1485"
             endingLineNumber = "1485"
-            landmarkName = "GetFishProbeCal(coeffFishProbePtr, calFileName)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -544,7 +544,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1539"
             endingLineNumber = "1539"
-            landmarkName = "InitFishCTD(fishCTDPtr)"
+            landmarkName = "GetFishProbeCal(coeffFishProbePtr, calFileName)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -560,7 +560,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1469"
             endingLineNumber = "1469"
-            landmarkName = "GetFishProbeCal(coeffFishProbePtr, calFileName)"
+            landmarkName = "GetFishCTDCal_fromfish(fishCTDPtr)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -608,7 +608,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "336"
             endingLineNumber = "336"
-            landmarkName = "fctd_read_probe_write_to_file(FastCTDSetup, str, total_line)"
+            landmarkName = "fctd_read_cal_write_to_file(cal_fname, fp_data, str, total_line)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -640,7 +640,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "338"
             endingLineNumber = "338"
-            landmarkName = "fctd_read_probe_write_to_file(FastCTDSetup, str, total_line)"
+            landmarkName = "fctd_read_cal_write_to_file(cal_fname, fp_data, str, total_line)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -688,7 +688,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1244"
             endingLineNumber = "1244"
-            landmarkName = "GetFishCTDCal_fromfish(fishCTDPtr)"
+            landmarkName = "GetFishCTDCal(coeffFishCTDPtr, calFileName)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -768,7 +768,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1866"
             endingLineNumber = "1866"
-            landmarkName = "CheckCksumData(dataStr, packetSize, offset)"
+            landmarkName = "SetOptionSerialPort4FishCTD(FishCTDPtr)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
