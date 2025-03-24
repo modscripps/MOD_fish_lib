@@ -11,6 +11,8 @@
 #include <strings.h>
 #import <sys/time.h>   // random types
 #include <stdio.h>
+#include <_types/_uint8_t.h>
+#include <_types/_uint32_t.h>
 
 double AlphaToFloat(char str[], int len);
 void itoa( int num, char str[]);
