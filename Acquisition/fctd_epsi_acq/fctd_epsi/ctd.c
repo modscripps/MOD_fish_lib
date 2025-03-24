@@ -893,7 +893,9 @@ Boolean FishCTD_AcquireData(fish_ctd_ptr_t fishCTDPtr)
                     case '0FPA': // actual TAG = 'APF0', we have to read '0FPA'
                     case '1FPA': // actual TAG = 'APF1', we have to read '1FPA'
                     case '2FPA': // actual TAG = 'APF2', we have to read '2FPA'
-                    case '1VTT': // actual TAG = 'TTVP', we have to read 'PVTT'
+                    case '1VTT': // actual TAG = 'TTV1', we have to read '1VTT'
+                    case '2VTT': // actual TAG = 'TTV2', we have to read '2VTT'
+                    case '3VTT': // actual TAG = 'TTV3', we have to read '3VTT'
                     case 'PVTT': // actual TAG = 'TTVP', we have to read 'PVTT'
                     case 'POCE': // actual TAG = 'ECOP', we have to read 'POCE'
                     case 'PASI': // actual TAG = 'APF0', we have to read 'ISAP' for ISA500 altimeter
