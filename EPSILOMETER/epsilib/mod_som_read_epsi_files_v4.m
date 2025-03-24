@@ -538,26 +538,26 @@ else
             epsi.dnum = Meta_Data.start_dnum + days(seconds(epsi.time_s));
         end
 
-        % Sort epsi fields
-        if isfield(Meta_Data,'fishflag_name') && contains(Meta_Data.fishflag_name,'FCTD')
-            try
-                epsi = orderfields(epsi,{'dnum','time_s','t1_count','t2_count','f1_count',...
-                    'c1_count','a1_count','a2_count','a3_count','t1_volt','t2_volt','f1_volt',...
-                    'c1_volt','a1_g','a2_g','a3_g'});
-            catch
-                disp ('No orderfields.')
-            end
-        else
-            try
-                epsi = orderfields(epsi,{'dnum','time_s','t1_count','t2_count','s1_count',...
-                    's2_count','a1_count','a2_count','a3_count','t1_volt','t2_volt','s1_volt',...
-                    's2_volt','a1_g','a2_g','a3_g'});
-            catch
-                epsi = orderfields(epsi,{'dnum','time_s','t1_count','s1_count',...
-                    'a3_count','a2_count','t1_volt','s1_volt',...
-                    'a3_g','a2_g'});
-            end
-        end%end of contains FCTD
+        % % Sort epsi fields
+        % if isfield(Meta_Data,'fishflag_name') && contains(Meta_Data.fishflag_name,'FCTD')
+        %     try
+        %         epsi = orderfields(epsi,{'dnum','time_s','t1_count','t2_count','f1_count',...
+        %             'c1_count','a1_count','a2_count','a3_count','t1_volt','t2_volt','f1_volt',...
+        %             'c1_volt','a1_g','a2_g','a3_g'});
+        %     catch
+        %         disp ('No orderfields.')
+        %     end
+        % else
+        %     try
+        %         epsi = orderfields(epsi,{'dnum','time_s','t1_count','t2_count','s1_count',...
+        %             's2_count','a1_count','a2_count','a3_count','t1_volt','t2_volt','s1_volt',...
+        %             's2_volt','a1_g','a2_g','a3_g'});
+        %     catch
+        %         epsi = orderfields(epsi,{'dnum','time_s','t1_count','s1_count',...
+        %             'a3_count','a2_count','t1_volt','s1_volt',...
+        %             'a3_g','a2_g'});
+        %     end
+        % end%end of contains FCTD
     end %end if isfield(efe.data,'raw_bytes')
 end %end if there is epsi data
 
@@ -1039,7 +1039,7 @@ else
 
     % If timestamp has values like 1.6e12, it is in milliseconds since Jan
     % 1, 1970. Otherwise it's in milliseconds since the start of the record
-    if nanmedian(vnav_timestamp)>1e9
+    if median(vnav_timestamp)>1e9
         % time_s - seconds since 1970
         % dnum - matlab datenum
         [vnav.time_s,vnav.dnum] = convert_timestamp(vnav_timestamp);

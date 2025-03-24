@@ -32,6 +32,6 @@ chi_param.kmin=2;
 chi_param.kmax=200;
 chi_param.min_spd=0.5;
 chi_param.D=D;
-chi_param.mfile='add_chi_microMHA_v2.m';
+%chi_param.mfile='add_chi_microMHA_v2.m';
 chi_param.version='0.2';
 chi_param.plotit=0;
