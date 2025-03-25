@@ -1,11 +1,11 @@
 #!/bin/sh
 
-rsync -auq --delete /Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ /Volumes/sci/shipside/SKQ202417S/MOD/05_processed_data/
+rsync -auq --delete /Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ /Volumes/sci/shipside/SP2509_SP2510/MOD/03_raw_mod_data/
 
 # Save this script on DEV3
 #
 # To make the file executable
-# chmod a+x copy_raw_to_DEV3
+# chmod a+x rsync_to_sharedrive
 #
 # To add to the crontab
 # crontab -e
