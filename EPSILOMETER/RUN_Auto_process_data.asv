@@ -15,33 +15,33 @@
 % Optional:
 %  .refresh_time_sec = (default 5*60), refresh period in seconds
 %  .version       = (default 4), version of mod_som_read_epsi_files.m to use
+%
+% TODO:
+%   If you're running in simulator mode, use the Setup+MDP data file in the
+%   directory
 % -------------------------------------------------------------------------
 %
 % USER INPUTS
 % These will probably be the same for the whole cruise
 clear input_struct
-input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2024.txt';
-input_struct.refresh_time_sec =  10*60;
+input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_tlc_2023.txt';
+input_struct.refresh_time_sec =  2*60;
 % input_struct.cruise_specifics = 'tfo_2024';
 
-
 epsi_depth_array = 0:1000;
-fctd_depth_array = 0:1105
-
+fctd_depth_array = 0:1105;
 
 % Set clims
 clims.temperature = [5 25];
 clims.salinity = [34.3 35.5];
 clims.epsilon = [-10 -7.5];
-clims.chi = [-10 -8];
+clims.chi = [-10 -6];
+clims.chi = [-10 -6];
 clims.n2 = [-6 -2.7];
 
-% Set xlims
-
-% List FCTD variables to grid
-vars2grid_list = {'pressure','temperature','conductivity','longitude','latitude','bb','chla','fDOM','chi','chi2'};
-
-% Realtime or Simulator mode
+% Realtime or Simulator mode - this will set the appropriate paths
+% depending on whether you're running this will data coming in in realtime
+% or if you're simulating data coming in.
 data_mode = 'realtime'; %'realtime' or 'simulator'
 
 % -------------------------------------------------------------------------
@@ -75,7 +75,8 @@ switch data_mode
 
         % Path to setup
         path2setup = '/Volumes/DEV1_HD/Users/Shared/FCTD_EPSI_DATA/Simulated_Data/Setup';
-
+        
+        % Path the processed data root directory
         process_dir_root = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Simulated_Data/Processed';
 
     case 'realtime'
@@ -86,7 +87,8 @@ switch data_mode
         % Path to setup file
         root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
         path2setup=fullfile(root_software,'Acquisition/fctd_epsi_acq/build/fctd_epsi/Build/Products/Debug/Setup');
-
+        
+        % Path to processed data root directory
         process_dir_root = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed';
 end
 
@@ -194,11 +196,8 @@ end
 set_window_color('cyan')
 
 %% Copy Setup file onto the end of Meta_Data_Process file to make a new file with datetime stamped
-% Make a new file in the process directory called 'MD' with the
-% current datetime
-newfile_name = fullfile(input_struct.process_dir,...
-    sprintf('MD_%04.0f_%02.0f_%02.0f_%02.0f%02.0f%02.0f.txt',...
-    year(now),month(now),day(now),hour(now),minute(now),second(now)));
+% First, get list of existing MD_*.txt files
+existing_files = dir(fullfile(input_struct.process_dir,'MD_*.txt'));
 
 % Open Meta_Data_Process file for reading and get content
 fid1 = fopen(input_struct.Meta_Data_process_file,'r');
@@ -209,6 +208,26 @@ fclose(fid1);
 fid2 = fopen(path2setup,'r');
 content2 = fread(fid2,'*char')';
 fclose(fid2);
+
+% Combine contents
+new_content = [content1, content2];
+
+% Check if the new content is identical to any of the existing files
+is_duplicate = false;
+for i=1:length(existing_files)
+    fid = fopen(fullfile(input_struct.process_dir,existing_files(i).name),'r');
+    existing_content = fread(fid,'*char');
+    fclose(fid)
+
+    if isequal(existing_content,new_content)
+end
+
+% Make a new file in the process directory called 'MD' with the
+% current datetime
+newfile_name = fullfile(input_struct.process_dir,...
+    sprintf('MD_%04.0f_%02.0f_%02.0f_%02.0f%02.0f%02.0f.txt',...
+    year(now),month(now),day(now),hour(now),minute(now),second(now)));
+
 
 % Open the new file for writing amd write content of both files
 fidNew = fopen(newfile_name,'w');

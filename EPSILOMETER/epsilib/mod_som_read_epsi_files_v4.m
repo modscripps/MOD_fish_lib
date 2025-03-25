@@ -134,13 +134,27 @@ end
 
 %% get CTD cal coef
 header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
-str_SBEcalcoef_header=str(strfind(str,'SERIALNO'):header_length);% cal coef from format 1
-idx_head_format2=strfind(str,'SERIAL NO');
+
+% Get CTD calibration data if they are listed in format 1
+str_SBEcalcoef_header = str(strfind(str,'SERIALNO'):header_length);
+
+% Get CTD calibration data if they are listed in format 2 (same format as
+% fish)
+idx_head_format2=strfind(str,'SERIAL NO'); 
 if ~isempty(idx_head_format2)
-    str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);% cal coef from format 2 (same format as the fish)
+    str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
 else
     str_SBEcalcoef_header2=[];
 end
+
+% If there is no CTD calibration info of either format in the header, issue
+% a warning and grab the CTD serial number and calibration path to get
+% calibration info
+if isempty(str_SBEcalcoef_header) && isempty(str_SBEcalcoef_header2)
+    warning(sprintf('There is no CTD calibration data in the header of %s',filename'))
+end
+
+% If you have format 1 and format 2
 if ~isempty(str_SBEcalcoef_header) | ~isempty(str_SBEcalcoef_header2)
     if (~isempty(str_SBEcalcoef_header))
         SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
@@ -173,9 +187,12 @@ else
                 SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
             end
             if count>10
-                error("No SBE data in modraw %s. \n Check the file ",filename)
+                error("No SBE data in modraw %s.",filename)
             end
             count=count+1;
+            if idx_file - count <=0
+                error("No SBE data in modraw %s. \n",filename)
+            end
         end
     end
 

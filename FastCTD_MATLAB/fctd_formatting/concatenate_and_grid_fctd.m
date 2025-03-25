@@ -1,5 +1,5 @@
-function [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir,vars2grid_list)
-% [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir,vars2grid_list)
+function [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir)
+% [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(fctd_mat_dir)
 %
 % Concatenates all .modraw FCTD files in the directory 'fctd_mat_dir' into FCTDall.
 % Grids FCTDall into FCTDgrid.

@@ -188,9 +188,8 @@ if rSync
     % Loop through files and find the ones with survey_name
     idx_in_survey = false(length(file_list_all),1);
     tic
-    N = min([30,numel(file_list_all)]);
-    sprintf('Looping through the last %2.0f files in raw_incoming to check for the same survey name.',N)
-    for i=length(file_list_all)-(N-1):length(file_list_all) %NC edit on 11/22/24. Looping through all takes a long time!
+    disp('')
+    for i=length(file_list_all)-30:length(file_list_all) %NC edit on 11/22/24. Looping through all takes a long time!
 
         % Open file
         fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
