@@ -228,8 +228,7 @@ elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
 
 % If you can't find CTD calibration data in any of the previous or future
 % files, your last chance is to pull calibration values from the
-% calibration directory. This is also what you HAVE to do for files before
-% summer 2024 when CTD data was not printed in file headers.
+% calibration directory.
 if found_data==0
     if ~isempty(SBE_sn)
             cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
