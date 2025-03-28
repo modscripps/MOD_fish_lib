@@ -89,7 +89,7 @@ obj = epsiSetup_make_empty_structure(obj,sec_to_store);
 %obj = find_and_load_meta_data(obj,raw_dir); %NC commented out Aug 2024 - I
 %think we get meta data in the previous line
 
-field_list = {'epsi','ctd','alt','vnav','gps'};
+field_list = {'epsi','ctd','alt','vnav','gps','fluor'};
 for iField=1:length(field_list)
     tMax.(field_list{iField}) = starting_dnum;
 end

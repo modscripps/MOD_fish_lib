@@ -153,6 +153,30 @@ if isclassfield(obj,'ctd')
     end  
 end
 
+%% TRIDENTE Rhodamine PLOTS
+
+if isclassfield(obj,'fluor') 
+    if ~isempty(obj.fluor)
+
+    % Rodh
+    plot(ax(9),time_array.fluor,obj.fluor.fDOM,'.','Color',cols.gyro3,'LineWidth',obj.plot_properties.LineWidth,'displayname','z')
+
+    % % Gyro x
+    % plot(ax(6),time_array.fluor,obj.vnav.gyro(:,1),'.','Color',cols.gyro1,'LineWidth',obj.plot_properties.LineWidth,'displayname','x')
+    % hold(ax(6),'on')
+    % plot(ax(6),time_array.vnav,obj.vnav.gyro(:,2),'.','Color',cols.gyro2,'LineWidth',obj.plot_properties.LineWidth,'displayname','y')
+    % 
+    % % Compass
+    % plot(ax(7),time_array.vnav,obj.vnav.compass(:,1),'.','Color',cols.compass1,'LineWidth',obj.plot_properties.LineWidth);
+
+    % Add legends
+    legend(ax(9),'location','northwest')
+    % legend(ax(6),'location','northwest')
+
+    end
+end
+
+
 % %% VNAV PLOTS
 % 
 % if isclassfield(obj,'vnav') 
@@ -207,22 +231,25 @@ end
 if isfield(obj.epsi,'dnum') && ~all(isnan(obj.epsi.dnum)) && replaceData
     sec10 = 10/(3600*24);
     % If plotting in realtime, limit view
-    [ax(:).XTick] = deal(fliplr(nanmax(obj.epsi.dnum):-sec10:nanmax(obj.epsi.dnum)-nDay));
-    [ax(:).XLim] = deal([nanmax(obj.epsi.dnum)-nDay,nanmax(obj.epsi.dnum)]);
+    % [ax(:).XTick] = deal(fliplr(nanmax(obj.epsi.dnum):-sec10:nanmax(obj.epsi.dnum)-nDay));
+    % [ax(:).XLim] = deal([nanmax(obj.epsi.dnum)-nDay,nanmax(obj.epsi.dnum)]);
+    [ax(:).XTick] = deal(fliplr(max(obj.epsi.dnum):-sec10:max(obj.epsi.dnum)-nDay));
+    [ax(:).XLim] = deal([max(obj.epsi.dnum)-nDay,max(obj.epsi.dnum)]);
     try
-        datetick(ax(8),'x','HH:MM:SS','keepticks')
-        ax(8).XLabel.String = 'HH:MM:SS';
+        datetick(ax(9),'x','HH:MM:SS','keepticks')
+        ax(9).XLabel.String = 'HH:MM:SS';
     catch
     end
 elseif ~replaceData
-    [ax(:).XLim] = deal([nanmin(obj.epsi.dnum),nanmax(obj.epsi.dnum)]);
+    % [ax(:).XLim] = deal([nanmin(obj.epsi.dnum),nanmax(obj.epsi.dnum)]);
+    [ax(:).XLim] = deal([min(obj.epsi.dnum),max(obj.epsi.dnum)]);
     try
-        datetick(ax(8),'x','MM:SS','keepticks')
-        ax(8).XLabel.String = 'MM:SS';
+        datetick(ax(9),'x','MM:SS','keepticks')
+        ax(9).XLabel.String = 'MM:SS';
     catch
     end
 else
-    ax(8).XLabel.String = 'epsitime (s)';
+    ax(9).XLabel.String = 'epsitime (s)';
 end
 
 % Title, ylabels, and font size
@@ -233,7 +260,7 @@ if isfield(obj,'Meta_Data')
 end
 
 % Labels
-[ax(1:7).XTickLabel]=deal('');
+[ax(1:8).XTickLabel]=deal('');
 
 ylabel(ax(1),'FPO7 [Volt]');
 ylabel(ax(2),'Shear [Volt]');
@@ -242,6 +269,7 @@ ylabel(ax(5),'T [°C]');
 ylabel(ax(6),'S');
 ylabel(ax(7),'dz/dt [m/s]'); % ALB TODO add z also 
 ylabel(ax(8),'P [db]');
+ylabel(ax(9),'Rodh [mu-g/L]');
 
 [ax(:).FontSize] = deal(obj.plot_properties.FontSize);
 [ax(:).FontName] = deal(obj.plot_properties.FontName);
@@ -282,6 +310,7 @@ ax(5).Tag = 'T';
 ax(6).Tag = 'S';
 ax(7).Tag = 'P and dzdt';
 ax(8).Tag = 'alt';
+ax(9).Tag = 'fluor';
 
 if saveFig
     img = getframe(gcf);
@@ -300,16 +329,17 @@ figure('units','inches','position',[0 0 10 13])
     margV = [0.045 0.035];
     margH = [0.12 0.08];
 
-    ax(1)=subtightplot(7,1,1,gap,margV,margH); %shear
-    ax(2)=subtightplot(7,1,2,gap,margV,margH); %fpo7
-    accAx=subtightplot(7,1,3,gap,margV,margH); %divide the acc plots in two
+    ax(1)=subtightplot(8,1,1,gap,margV,margH); %shear
+    ax(2)=subtightplot(8,1,2,gap,margV,margH); %fpo7
+    accAx=subtightplot(8,1,3,gap,margV,margH); %divide the acc plots in two
     accPos=accAx.Position;
     ax(3)=axes('position',[accPos(1) accPos(2)+accPos(4)/2 accPos(3) accPos(4)/2]); %a1
     ax(4)=axes('position',[accPos(1) accPos(2) accPos(3) accPos(4)/2]); %a2 and a3
-    ax(5)=subtightplot(7,1,4,gap,margV,margH); %T
-    ax(6)=subtightplot(7,1,5,gap,margV,margH); %S
-    ax(7)=subtightplot(7,1,6,gap,margV,margH); %P and dzdt
-    ax(8)=subtightplot(7,1,7,gap,margV,margH); %alt
+    ax(5)=subtightplot(8,1,4,gap,margV,margH); %T
+    ax(6)=subtightplot(8,1,5,gap,margV,margH); %S
+    ax(7)=subtightplot(8,1,6,gap,margV,margH); %P and dzdt
+    ax(8)=subtightplot(8,1,7,gap,margV,margH); %alt
+    ax(9)=subtightplot(8,1,8,gap,margV,margH); %fluor
     
     delete(accAx)
     %delete(gyroAx)
@@ -335,7 +365,7 @@ figure('units','inches','position',[0 0 10 13])
 
 function [time_array] = make_time_arrays(obj)
 
-field_names = {'epsi','ctd','alt','vnav','gps'};
+field_names = {'epsi','ctd','alt','vnav','gps','fluor'};
 
 for iField = 1:length(field_names)
 
