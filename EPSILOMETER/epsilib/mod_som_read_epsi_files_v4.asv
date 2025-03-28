@@ -222,20 +222,20 @@ elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
                     fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
                 end
             else
-                printf("    - Skipping (no calibration data in header) \n");
+                fprintf("    - Skipping (no calibration data in header) \n");
             end
         end %End loop through surrounding files
 
 % If you can't find CTD calibration data in any of the previous or future
 % files, your last chance is to pull calibration values from the
-% calibration directory. This is also what you HAVE to do for files before
-% summer 2024 when CTD data was not printed in file headers.
+% calibration directory.
 if found_data==0
     if ~isempty(SBE_sn)
-            cal_directory = fullfile(Meta_Data.paths,'CALIBRATION','SBE49');
+            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
             Meta_Data.CTD.name = 'SBE49';
             Meta_Data.CTD.SN = SBE_sn;
-            Meta_Data.CTD.cal=get_CalSBE(Meta_Data.CTD.CALfile(cal_directory,Meta_Data.CTD.SN));
+            Meta_Data.CTD.cal=get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
+            fprintf("   Added calibration data from ")
     else
             error('Failed to find CTD calibration data for %s.', filename)
     end
