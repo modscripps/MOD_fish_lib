@@ -135,11 +135,15 @@ end
 %% get CTD cal coef
 header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
 
-% Get CTD calibration data if they are listed in format 1
-str_SBEcalcoef_header = str(strfind(str,'SERIALNO'):header_length);
+% Check if CTD calibration data are listed in format 1
+idx_head_format1=strfind(str,'SERIALNO'); 
+if ~isempty(idx_head_format1)
+    str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
+else
+    str_SBEcalcoef_header1=[];
+end
 
-% Get CTD calibration data if they are listed in format 2 (same format as
-% fish)
+% Check if CTD calibration data are listed in format 2 (comes directly from fish)
 idx_head_format2=strfind(str,'SERIAL NO'); 
 if ~isempty(idx_head_format2)
     str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
@@ -147,56 +151,100 @@ else
     str_SBEcalcoef_header2=[];
 end
 
-% If there is no CTD calibration info of either format in the header, issue
-% a warning and grab the CTD serial number and calibration path to get
-% calibration info
-if isempty(str_SBEcalcoef_header) && isempty(str_SBEcalcoef_header2)
-    warning(sprintf('There is no CTD calibration data in the header of %s',filename'))
-end
+% Get the CTD serial number listed in the Setup file - you may need it if
+% the current file doesn't have CTD calibration data to look through
+% previous or later files
+SBE_sn = get_setup_SBE_sn(str);
 
-% If you have format 1 and format 2
-if ~isempty(str_SBEcalcoef_header) | ~isempty(str_SBEcalcoef_header2)
-    if (~isempty(str_SBEcalcoef_header))
-        SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
-        Meta_Data.CTD.cal=SBEcal;
-    end
-    if (~isempty(str_SBEcalcoef_header2))
-        SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
-        Meta_Data.CTD.cal=SBEcal;
-    end
-else
-    if ~isempty(ind_sbe_start)
-        fprintf("SBE cal coef are missing in file %s \n",filename)
-        listfile=dir(fullfile(Meta_Data.paths.raw_data,['*',Meta_Data.PROCESS.rawfileSuffix]));
-        list_fullfilename=fullfile({listfile.folder},{listfile.name});
-        idx_file=find(cellfun(@(x) strcmp(x,filename),list_fullfilename));
-        count=0;
+% If you have format 2, use that
+if ~isempty(str_SBEcalcoef_header2)
+    SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
+    Meta_Data.CTD.cal=SBEcal;
+
+% If you don't have format 2, but you have format 1, use that
+elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
+    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
+    Meta_Data.CTD.cal=SBEcal;
+
+% If you don't have format 2 or 1, try looking in a few files before or
+% after the current one
+elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
+    fprintf('There is no CTD calibration data in the header of %s. \n',filename);
         %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
         %files
-        while isempty(str_SBEcalcoef_header)
-            fprintf("  Using Open %s \r\n",list_fullfilename{idx_file-count})
-            fid1 = fopen(list_fullfilename{idx_file-count});
-            fseek(fid1,0,1);
-            frewind(fid1);
-            str1 = fread(fid1,'*char')';
-            fclose(fid1);
-            % get CTD cal coef
-            header_length=strfind(str1,'END_FCTD_HEADER_START_RUN');
-            str_SBEcalcoef_header=str1(strfind(str1,'SERIALNO'):header_length);
-            if ~isempty(str_SBEcalcoef_header)
-                SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
-            end
-            if count>10
-                error("No SBE data in modraw %s.",filename)
-            end
-            count=count+1;
-            if idx_file - count <=0
-                error("No SBE data in modraw %s. \n",filename)
-            end
-        end
-    end
+        % NC edited to search through previous 10 OR next 10 (for
+        % post-processing)
 
+        found_data = 0; %Initialize
+
+        % List files in raw directory
+        listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
+        list_fullfilename = fullfile({listfile.folder}, {listfile.name});
+        idx_file = find(strcmp(list_fullfilename, filename));
+
+        % Determine the range of indices to search
+        num_files = length(list_fullfilename);
+        num_before = min(10, idx_file - 1);  % Max files before the current file
+        num_after = min(10, num_files - idx_file); % Max files after the current file
+        search_indices = [idx_file-num_before : idx_file-1, ...
+                          idx_file+1 : idx_file+num_after];
+
+        % Loop through surrounding files
+        for idx = search_indices
+            fprintf("  Trying file: %s \n", listfile(idx).name);
+
+            fid1 = fopen(list_fullfilename{idx});
+            if fid1 == -1
+                fprintf("    - Skipping (unable to open) \n");
+                continue; % Skip if file cannot be opened
+            end
+            str1 = fread(fid1, '*char')';
+            fclose(fid1);
+
+            % Extract CTD calibration coefficients
+            header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
+            if isempty(header_length)
+                fprintf("    - Skipping (no valid header found) \n");
+                continue; % Skip if header is not found
+            end
+
+            str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
+
+            if ~isempty(str_SBEcalcoef_header1)
+                % Extract serial number from the file
+                extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
+                if extracted_sn == SBE_sn
+                    SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+                    fprintf("    - Found matching SBE calibration data \n");
+                    found_data = 1;
+                    break; % Exit loop once a valid matching file is found
+                else
+                    fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
+                end
+            else
+                fprintf("    - Skipping (no calibration data in header) \n");
+            end
+        end %End loop through surrounding files
+
+% If you can't find CTD calibration data in any of the previous or future
+% files, your last chance is to pull calibration values from the
+% calibration directory. This is also what you HAVE to do for files before
+% summer 2024 when CTD data was not printed in file headers.
+if found_data==0
+    if ~isempty(SBE_sn)
+            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
+            Meta_Data.CTD.name = 'SBE49';
+            Meta_Data.CTD.SN = SBE_sn;
+            Meta_Data.CTD.cal=get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
+    else
+            error('Failed to find CTD calibration data for %s.', filename)
+    end
 end
+
+end %end trying to find CTD calibration data
+
+
+
 %% get Epsi probe Serial Numbers from Header
 str_EPSICHANNEL_start  = strfind(str,'Fish probes serial numbers');
 str_EPSICHANNEL_end    = strfind(str,'end probes serial numbers');
@@ -2461,6 +2509,16 @@ elseif(length(calib_str)==3)
     cha.datecal=calib_str{1};
     cha.cal=str2double(calib_str{2});
     cha.cap=str2double(calib_str{3});
+end
+end
+
+function [SBE_sn] = get_setup_SBE_sn(str)
+idx_SBE_SN = strfind(str,'CTD.SerialNum');
+if ~isempty(idx_SBE_SN)
+    % Get the CTD serial number
+    SBE_sn = str(idx_SBE_SN+15:idx_SBE_SN+18);
+else
+    SBE_sn = [];
 end
 end
 
