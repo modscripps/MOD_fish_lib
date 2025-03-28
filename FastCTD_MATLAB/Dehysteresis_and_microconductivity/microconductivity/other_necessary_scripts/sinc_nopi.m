@@ -1,4 +1,4 @@
-function ans = sinc(x)
+function ans = sinc_nopi(x)
 % sinc(x) = sin(x)/x.  No pi's.
 m=length(x);
 ans=zeros(1,m);

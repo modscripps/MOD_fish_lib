@@ -23,10 +23,15 @@ if isempty(FCTD2)
     return;
 end
 
+% Get list of field names
 fNames = fieldnames(FCTD1);
 if isempty(fNames)
     fNames = fieldnames(FCTD2);
 end
+% Remove chi_param and chi_meta from fNames
+fNames = fNames(~strcmp(fNames,'chi_param'));
+fNames = fNames(~strcmp(fNames,'chi_meta'));
+
 FCTD = struct();
 for i = 1:length(fNames)
     if ~isfield(FCTD1,fNames{i}) || isempty(FCTD1.(fNames{i}))

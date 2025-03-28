@@ -15,193 +15,242 @@ function [FCTD] =  make_FCTD_mat(matData,FCTDdir,base,cruise_specifics)
 %   FCTD - structure formatted to use with San's FCTD gridding scripts
 %
 % -------------------------------------------------------------------------
-
-
-use matData %Empty contents of matData structure
-
-% Get CTD data
-FCTD.time=ctd.dnum;
-FCTD.pressure=ctd.P;
-FCTD.temperature=ctd.T;
-FCTD.conductivity=ctd.C;
-
-% Get altimeter data
-if ~isempty(alt) && isfield(alt,'time_s')
-    try
-        FCTD.altDist=interp1(alt.dnum,alt.dst,ctd.dnum);
-    catch
-        p = [];
-    end
-else
-    FCTD.altTime=nan(length(ctd.dnum),1);
+if nargin<4
+    cruise_specifics = '';
 end
 
-% Add VectorNav data
-if ~isempty(vnav) && isfield(vnav,'time_s')
-    diff_not_neg = [0;diff(vnav.dnum)]>0;
-    keep = ~isnan(vnav.dnum) & ~isinf(vnav.dnum) & diff_not_neg;
-    for ix=1:3
-        FCTD.compass(:,ix)=interp1(vnav.dnum(keep),vnav.compass(keep,ix),ctd.dnum);
-        FCTD.gyro(:,ix)=interp1(vnav.dnum(keep),vnav.gyro(keep,ix),ctd.dnum);
-        FCTD.acceleration(:,ix)=interp1(vnav.dnum(keep),vnav.acceleration(keep,ix),ctd.dnum)./9.81;
-    end
-else
-    FCTD.gyro=nan(length(ctd.dnum),3);
-    FCTD.acceleration=nan(length(ctd.dnum),3);
-    FCTD.compass=nan(length(ctd.dnum),3);
-end
 
-% Add GPS data
-if ~isempty(gps) && isfield(gps,'dnum')
-    % Sometimes there's a weirdness here with non-unique gps.dnum
-    [~,iU] = unique(gps.dnum);
-    if ~isempty(iU)
-        if isscalar(iU)
-            FCTD.longitude=gps.longitude+(ctd.dnum.*0);
-            FCTD.latitude=gps.latitude+(ctd.dnum.*0);
-        else
-            FCTD.longitude=interp1(gps.dnum(iU),gps.longitude(iU),ctd.dnum);
-            FCTD.latitude=interp1(gps.dnum(iU),gps.latitude(iU),ctd.dnum);
+% Make the FCTD data structure
+if ~isempty(matData.ctd)
+    use matData %Empty contents of matData structure
+
+    % If cruise_specifics are specified, apply them here. This should only be
+    % relevant for cruises before TFO2024 when f1_volt and c1_volt were added
+    % as fields
+    if ~isempty(matData.epsi)
+        if strcmp(cruise_specifics,'blt_2021')
+            % On BLT 2021, microconductivity sensor was on shear
+            % channel 2 of epsi and fluorometer was on shear channel 1.
+            epsi.c1_count = epsi.s2_count;
+            epsi.f1_volt = epsi.s1_volt;
+        elseif strcmp(cruise_specifics,'tfo2023')
+            % On TFO Seamounts in 2023, we had microconductivity on shear channel 2
+            % and a tridente fluorometer on (I think) shear channel 1
+            epsi.c1_count = epsi.s2_count;
+            epsi.f1_volt = epsi.s1_volt;
         end
-    else
-        FCTD.longitude=nan(length(ctd.dnum),1);
-        FCTD.latitude=nan(length(ctd.dnum),1);
     end
-else
-    FCTD.longitude=nan(length(ctd.dnum),1);
-    FCTD.latitude=nan(length(ctd.dnum),1);
-end
-
-% Add fluorometer data
-if ~isempty(fluor) && isfield(fluor,'time_s')
-    diff_not_neg = [0; diff(fluor.dnum)]>0;
-    keep = ~isnan(fluor.dnum) & ~isinf(fluor.dnum) & diff_not_neg;
-    FCTD.bb(:,1)=interp1(fluor.dnum(keep),fluor.bb(keep,1),ctd.dnum);
-    FCTD.chla(:,1)=interp1(fluor.dnum(keep),fluor.chla(keep,1),ctd.dnum);
-    FCTD.fDOM(:,1)=interp1(fluor.dnum(keep),fluor.fDOM(keep,1),ctd.dnum);
-else
-    FCTD.bb=nan(length(ctd.dnum),1);
-    FCTD.chla=nan(length(ctd.dnum),1);
-    FCTD.fDOM=nan(length(ctd.dnum),1);
-end
 
 
-%% Process c1 and f1 channels if they exist
+    % Get CTD data
+    FCTD.time=ctd.dnum;
+    FCTD.pressure=ctd.P;
+    FCTD.temperature=ctd.T;
+    FCTD.conductivity=ctd.C;
 
-% c1_count = microconductivity
-% ------------------------------------------
-% This step interpolates the microconductivity data to
-% the same time array as the rest of the data, but since it
-% has a 20x faster sampling rate than the SBE (320 Hz vs 16
-% Hz), it actually becomes and N x 20 array - there are 20
-% uConductivity/fluorometer data points for every 1 SBE data point. We
-% also save time_fast as an N x 20 array.
-if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
+    % Get altimeter data
+    if isfield(matData,'alt')
+        if ~isempty(alt) && isfield(alt,'time_s')
+            try
+                FCTD.altDist=interp1(alt.dnum,alt.dst,ctd.dnum);
+            catch
+                p = [];
+            end
+        else
+            FCTD.altTime=nan(length(ctd.dnum),1);
+        end
+    end
 
-    time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
-    FCTD.time_fast = reshape(time_fast,20,[])';
+    if isfield(matData,'vnav')
+        % Add VectorNav data
+        if ~isempty(vnav) && isfield(vnav,'time_s')
+            diff_not_neg = [0;diff(vnav.dnum)]>0;
+            keep = ~isnan(vnav.dnum) & ~isinf(vnav.dnum) & diff_not_neg;
+            for ix=1:3
+                FCTD.compass(:,ix)=interp1(vnav.dnum(keep),vnav.compass(keep,ix),ctd.dnum);
+                FCTD.gyro(:,ix)=interp1(vnav.dnum(keep),vnav.gyro(keep,ix),ctd.dnum);
+                FCTD.acceleration(:,ix)=interp1(vnav.dnum(keep),vnav.acceleration(keep,ix),ctd.dnum)./9.81;
+            end
+        else
+            FCTD.gyro=nan(length(ctd.dnum),3);
+            FCTD.acceleration=nan(length(ctd.dnum),3);
+            FCTD.compass=nan(length(ctd.dnum),3);
+        end
+    end
 
-    % Interpolate data that is not nan, not inf, and where time
-    % is increasing
-    diff_not_neg = [0;diff(epsi.dnum)]>0;
-    keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg;
+    % Add GPS data
+    if isfield(matData,'gps')
+        if ~isempty(gps) && isfield(gps,'dnum')
+            % Sometimes there's a weirdness here with non-unique gps.dnum
+            [~,iU] = unique(gps.dnum);
+            if ~isempty(iU)
+                if isscalar(iU)
+                    FCTD.longitude=gps.longitude+(ctd.dnum.*0);
+                    FCTD.latitude=gps.latitude+(ctd.dnum.*0);
+                else
+                    FCTD.longitude=interp1(gps.dnum(iU),gps.longitude(iU),ctd.dnum);
+                    FCTD.latitude=interp1(gps.dnum(iU),gps.latitude(iU),ctd.dnum);
+                end
+            else
+                FCTD.longitude=nan(length(ctd.dnum),1);
+                FCTD.latitude=nan(length(ctd.dnum),1);
+            end
+        else
+            FCTD.longitude=nan(length(ctd.dnum),1);
+            FCTD.latitude=nan(length(ctd.dnum),1);
+        end
+    end
 
-    % FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.s2_count(keep)),time_fast),20,[])';
-    FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.c1_count(keep)),time_fast),20,[])';
-else
-    FCTD.uConductivity=nan(length(ctd.dnum),20);
-    fprintf(['   ' matData.raw_file_info.filename ' has no uConductivity data\n' ]);
-end
+    % Add fluorometer data
+    if isfield(matData,'fluor')
+        if ~isempty(fluor) && isfield(fluor,'time_s')
+            diff_not_neg = [0; diff(fluor.dnum)]>0;
+            keep = ~isnan(fluor.dnum) & ~isinf(fluor.dnum) & diff_not_neg;
+            FCTD.bb(:,1)=interp1(fluor.dnum(keep),fluor.bb(keep,1),ctd.dnum);
+            FCTD.chla(:,1)=interp1(fluor.dnum(keep),fluor.chla(keep,1),ctd.dnum);
+            FCTD.fDOM(:,1)=interp1(fluor.dnum(keep),fluor.fDOM(keep,1),ctd.dnum);
+        else
+            FCTD.bb=nan(length(ctd.dnum),1);
+            FCTD.chla=nan(length(ctd.dnum),1);
+            FCTD.fDOM=nan(length(ctd.dnum),1);
+        end
+    end
 
-% f1_volt = fluorometer
-if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)
-    % FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.s1_volt(keep),time_fast),20,[])';
-    FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.f1_volt(keep),time_fast),20,[])';
-else
-    FCTD.fluorometer=nan(length(ctd.dnum),20);
-    fprintf(['   ' matData.raw_file_info.filename ' has no fluorometer data\n' ]);
-end
 
-%% Extra outputs for specific cruise setups
-% if strcmp(cruise_specifics,'blt_2021');
-if strcmp(cruise_specifics,'tfo_2024');
-    % Microconductivity and Fluorometer
-    %
-    % On BLT 2021, microconductivity sensor was on shear
-    % channel 2 of epsi and fluorometer was on shear channel 1.
-    % This step interpolates that data to
+    %% Process c1 and f1 channels if they exist
+
+    % c1_count = microconductivity
+    % ------------------------------------------
+    % This step interpolates the microconductivity data to
     % the same time array as the rest of the data, but since it
     % has a 20x faster sampling rate than the SBE (320 Hz vs 16
     % Hz), it actually becomes and N x 20 array - there are 20
     % uConductivity/fluorometer data points for every 1 SBE data point. We
     % also save time_fast as an N x 20 array.
-    time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
-    FCTD.time_fast = reshape(time_fast,20,[])';
-
-    % Interpolate data that is not nan, not inf, and where time
-    % is increasing
-    diff_not_neg = [0;diff(epsi.dnum)]>0;
-    keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg;
-
-    % if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
-    % ALB 20240901 new version- Now epsi will have a c1)count field for
-    % uconductivity
     if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
-        % FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.s2_count(keep)),time_fast),20,[])';
-        FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.c1_count(keep)),time_fast),20,[])';
+
+        time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
+        FCTD.time_fast = reshape(time_fast,20,[])';
+
+        % Interpolate data that is not nan, not inf, and where time
+        % is increasing
+        diff_not_neg = [0;diff(epsi.dnum)]>0;
+        keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg;
+
+        % NC February 2025 - occasionally there's a bad file where dnum is
+        % corrupt. It works to make sure that the number of unique dnums
+        % is the same as the total number.
+        if numel(unique(epsi.dnum(keep)))==numel(epsi.dnum(keep))
+            FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.c1_count(keep)),time_fast),20,[])';
+        end
     else
         FCTD.uConductivity=nan(length(ctd.dnum),20);
-        disp(['No uConductivity data ' matData.raw_file_info.filename]);
+        fprintf(['   ' base ' has no uConductivity data\n' ]);
     end
 
-    % ALB 20240901 new version- Now epsi will have a f1_count field for
-    % analog fluorometer
+    % f1_volt = fluorometer
     if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)
-        % FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.s1_volt(keep),time_fast),20,[])';
-        FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.f1_volt(keep),time_fast),20,[])';
+        % NC February 2025 - occasionally there's a bad file where dnum is
+        % corrupt. It works to make sure that the number of unique dnums
+        % is the same as the total number.
+        if numel(unique(epsi.dnum(keep)))==numel(epsi.dnum(keep))
+            FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.f1_volt(keep),time_fast),20,[])';
+        end
     else
         FCTD.fluorometer=nan(length(ctd.dnum),20);
-        disp(['No fluorometer data ' matData.raw_file_info.filename]);
-    end
-end
-
-if strcmp(cruise_specifics,'tfo_2023')
-    % On TFO Seamounts in 2023, we had microconductivity on shear channel 2
-    % and a tridente fluorometer on ???
-    % This step interpolates that data to
-    % the same time array as the rest of the data, but since it
-    % has a 20x faster sampling rate than the SBE (320 Hz vs 16
-    % Hz), it actually becomes and N x 20 array - there are 20
-    % uConductivity/fluorometer data points for every 1 SBE data point. We
-    % also save time_fast as an N x 20 array.
-    time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
-    FCTD.time_fast = reshape(time_fast,20,[])';
-
-    % Interpolate data that is not nan, not inf, and where time
-    % is increasing
-    if ~isempty(epsi)
-        diff_not_neg = [0;diff(epsi.dnum)]>0;
-        [~,isunique] = unique(epsi.dnum);
-        keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg & isunique;
-
-        if ~isempty(epsi) && isfield(epsi,'s2_count') && ~isempty(ctd)
-            FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.s2_count(keep)),time_fast),20,[])';
-        else
-            FCTD.uConductivity=nan(length(ctd.dnum),20);
-            disp(['No uConductivity data ' matData.raw_file_info.filename.name]);
-        end
+        fprintf(['   ' base ' has no fluorometer data\n' ]);
     end
 
-end
 
-%% Save FCTD mat files to the new FCTD mat directory FCTDmat
-myFCTDMATfile = fullfile(FCTDdir,base);
-save(myFCTDMATfile,'FCTD');
-%fprintf(1,'%s: Wrote  %s%s\n\n',datestr(now,'YY.mm.dd HH:MM:SS'), FCTDdir,myFCTDMATfile);
+    % NC February 2025 - moved this to the top where I set c1_volt and
+    % f1_volt so that "Process c1 and f1 if they exist" will work.
+    % -------
+    % %% Extra outputs for specific cruise setups
+    % % if strcmp(cruise_specifics,'blt_2021');
+    % if strcmp(cruise_specifics,'tfo_2024')
+    %     % Microconductivity and Fluorometer
+    %     %
+    %     % On BLT 2021, microconductivity sensor was on shear
+    %     % channel 2 of epsi and fluorometer was on shear channel 1.
+    %     % This step interpolates that data to
+    %     % the same time array as the rest of the data, but since it
+    %     % has a 20x faster sampling rate than the SBE (320 Hz vs 16
+    %     % Hz), it actually becomes and N x 20 array - there are 20
+    %     % uConductivity/fluorometer data points for every 1 SBE data point. We
+    %     % also save time_fast as an N x 20 array.
+    %     time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
+    %     FCTD.time_fast = reshape(time_fast,20,[])';
+    %
+    %     % Interpolate data that is not nan, not inf, and where time
+    %     % is increasing
+    %     diff_not_neg = [0;diff(epsi.dnum)]>0;
+    %     keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg;
+    %
+    %     % if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
+    %     % ALB 20240901 new version- Now epsi will have a c1)count field for
+    %     % uconductivity
+    %     if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
+    %         % FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.s2_count(keep)),time_fast),20,[])';
+    %         FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.c1_count(keep)),time_fast),20,[])';
+    %     else
+    %         FCTD.uConductivity=nan(length(ctd.dnum),20);
+    %         disp(['No uConductivity data ' matData.raw_file_info.filename]);
+    %     end
+    %
+    %     % ALB 20240901 new version- Now epsi will have a f1_count field for
+    %     % analog fluorometer
+    %     if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)
+    %         % FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.s1_volt(keep),time_fast),20,[])';
+    %         FCTD.fluorometer=reshape(interp1(epsi.dnum(keep),epsi.f1_volt(keep),time_fast),20,[])';
+    %     else
+    %         FCTD.fluorometer=nan(length(ctd.dnum),20);
+    %         disp(['No fluorometer data ' matData.raw_file_info.filename]);
+    %     end
+    % end
+    %
+    % if strcmp(cruise_specifics,'tfo_2023')
+    %     % On TFO Seamounts in 2023, we had microconductivity on shear channel 2
+    %     % and a tridente fluorometer on ???
+    %     % This step interpolates that data to
+    %     % the same time array as the rest of the data, but since it
+    %     % has a 20x faster sampling rate than the SBE (320 Hz vs 16
+    %     % Hz), it actually becomes and N x 20 array - there are 20
+    %     % uConductivity/fluorometer data points for every 1 SBE data point. We
+    %     % also save time_fast as an N x 20 array.
+    %     time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
+    %     FCTD.time_fast = reshape(time_fast,20,[])';
+    %
+    %     % Interpolate data that is not nan, not inf, and where time
+    %     % is increasing
+    %     if ~isempty(epsi)
+    %         diff_not_neg = [0;diff(epsi.dnum)]>0;
+    %         [~,isunique] = unique(epsi.dnum);
+    %         keep = ~isnan(epsi.dnum) & ~isinf(epsi.dnum) & diff_not_neg & isunique;
+    %
+    %         if ~isempty(epsi) && isfield(epsi,'s2_count') && ~isempty(ctd)
+    %             FCTD.uConductivity=reshape(interp1(epsi.dnum(keep),double(epsi.s2_count(keep)),time_fast),20,[])';
+    %         else
+    %             FCTD.uConductivity=nan(length(ctd.dnum),20);
+    %             disp(['No uConductivity data ' matData.raw_file_info.filename.name]);
+    %         end
+    %     end
+    %
+    % end
 
-% Update FCTD .mat time index
-FastCTD_UpdateMATFileTimeIndex(FCTDdir,base,FCTD);
+    %% Save FCTD mat files to the new FCTD mat directory FCTDmat
+    myFCTDMATfile = fullfile(FCTDdir,base);
+    save(myFCTDMATfile,'FCTD');
 
+    % Update FCTD .mat time index
+    FastCTD_UpdateMATFileTimeIndex(FCTDdir,base,FCTD);
+
+
+else %if there is no ctd data
+    FCTD.time=[];
+    FCTD.pressure=[];
+    FCTD.temperature=[];
+    FCTD.conductivity=[];
+end %end if there is ctd data
 end %end make_FCTD_mat
 % ---------------------------------
 

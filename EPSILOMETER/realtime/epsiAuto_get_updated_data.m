@@ -48,6 +48,7 @@ else
 
     %% ALB if c1 f1 volt exist = FCTD
     if find(cellfun(@(x) contains(x,'c1_volt'),fields(data.epsi)))
+        warning('epsiAuto_get_updated_data.m line 51: Is fluorometer on s1 and conductivity on s2?')
         %ALB TODO figure out a way to keep c1_volt and f1_volt 
         % This does not seem to bother the blue matlab 
         % (after minor changes in make_FCTD_mat .line 107)

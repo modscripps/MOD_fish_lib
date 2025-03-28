@@ -2,10 +2,7 @@
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:900;
 
-survey_name = '24_1123_d14_fctd_WWdownfront';
-
-% List FCTD variables to grid
-vars2grid_list = {'longitude','latitude','pressure','temperature','conductivity','w','bb','chla','fDOM','chi','chi2'};
+survey_name = '25_0212_dye_chase_1';
 
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
@@ -17,8 +14,7 @@ Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process
 
 process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
-% Define the name of the process directory based on either what you
-% found in the Setup file or what you input
+% Define the name of the process directory based on survey_name
 process_dir = fullfile( ...
     process_dir_root, ...
     strrep(survey_name,'''','')); %This will create a directory with this name
@@ -36,7 +32,8 @@ end
 % Define the directories for epsiProcess_convert_new_raw_to_mat
 dirs.raw_incoming = fullfile( ...
                     raw_dir, ...
-                    strrep(survey_name,'''','')); %This will create a directory with this name
+                    strrep(survey_name,'''',''),...
+                    'raw'); %This will create a directory with this name
 
 dirs.raw_copy  = fullfile(process_dir,'raw');
 dirs.mat       = fullfile(process_dir,'mat');
@@ -64,7 +61,7 @@ end
 % Copy the first file that matches str_to_match from raw_incoming into
 % raw_copy - you need to have one file there for epsi_class to read the
 % configuration information
-file_list_all = dir(fullfile(dirs.raw_incoming,'raw','*.modraw'));
+file_list_all = dir(fullfile(dirs.raw_incoming,'*.modraw'));
 
 % Loop through files and find the ones with survey_name
 idx_in_survey = false(length(file_list_all),1);
@@ -151,10 +148,9 @@ switch lower(instrument)
         ec.f_gridProfiles(depth_array);
         plot_epsi_sections
     case 'fctd'
+        fprintf('Reading data...\n')
         epsiProcess_convert_new_raw_to_mat(dirs,ec.Meta_Data,"doFCTD");
-        ec.f_makeNewProfiles;
-        ec.f_gridProfiles(depth_array);
-        [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(dirs.fctd_deployment,vars2grid_list);
+        [FCTDall,FCTDgrid] = concatenate_and_grid_fctd(dirs.fctd_deployment);
         plot_fctd_sections
 end
 
