@@ -2019,8 +2019,8 @@ else
     sensor.bb.cal1= 5.871734e4;
     sensor.chla.cal0=-158.44269e-6;
     sensor.chla.cal1= 504.23178e3;
-    sensor.fDOM.cal0=-49.728096e-3;
-    sensor.fDOM.cal1= 30.125764e3;
+    sensor.fDOM.cal0= 437.20784e-6;
+    sensor.fDOM.cal1= 59.83122e-3;
 
     %     switch Meta_Data.PROCESS
     sensor.data.sample_freq      = 16;
@@ -2097,6 +2097,12 @@ else
                     fluor.bb(n_rec,1)   = hex2dec(rec_fluor(:,1:4));
                     fluor.chla(n_rec,1) = hex2dec(rec_fluor(:,(1:4)+4));
                     fluor.fDOM(n_rec,1) = hex2dec(rec_fluor(:,(1:4)+8));
+
+                    fluor.bb(n_rec,1)   = (fluor.bb(n_rec,1)./hex2dec('FFFF')-.5)./.05;
+                    fluor.chla(n_rec,1) = (fluor.chla(n_rec,1)./hex2dec('FFFF')-.5)./50;
+                    fluor.fDOM(n_rec,1) = (fluor.fDOM(n_rec,1)./hex2dec('FFFF')-.5)./1000;
+
+                    
                 catch
                     fluor.bb(n_rec,1)   = nan;
                     fluor.chla(n_rec,1) = nan;
