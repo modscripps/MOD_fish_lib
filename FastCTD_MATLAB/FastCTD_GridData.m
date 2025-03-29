@@ -291,8 +291,10 @@ for i = 1:length(DataGrid.tGrid.depth)
     end
 end
 
+if length(DataGrid.tGrid.time)>1
 DataGrid.tGrid.salinity = sw_salt(DataGrid.tGrid.conductivity*10/sw_c3515,DataGrid.tGrid.temperature,DataGrid.tGrid.pressure);
 DataGrid.tGrid.density = sw_pden(DataGrid.tGrid.salinity,DataGrid.tGrid.temperature,DataGrid.tGrid.pressure,0);
+end
 
 DataGrid.tGrid.time = midpoints(DataGrid.tGrid.time);
 

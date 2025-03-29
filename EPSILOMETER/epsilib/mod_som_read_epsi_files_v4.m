@@ -163,7 +163,7 @@ if ~isempty(str_SBEcalcoef_header2)
 
 % If you don't have format 2, but you have format 1, use that
 elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
-    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header);
+    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
     Meta_Data.CTD.cal=SBEcal;
 
 % If you don't have format 2 or 1, try looking in a few files before or

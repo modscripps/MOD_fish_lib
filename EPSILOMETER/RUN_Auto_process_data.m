@@ -38,6 +38,7 @@ clims.epsilon = [-10 -7.5];
 clims.chi = [-10 -6];
 clims.chi = [-10 -6];
 clims.n2 = [-6 -2.7];
+clims.fluor = [];
 
 % Realtime or Simulator mode - this will set the appropriate paths
 % depending on whether you're running this will data coming in in realtime

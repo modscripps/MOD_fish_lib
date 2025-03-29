@@ -2,7 +2,17 @@
 epsi_depth_array = 0:200;
 fctd_depth_array = 0:900;
 
-survey_name = '25_0212_dye_chase_1';
+survey_name = '25_0212_dye_release';
+MDP_file = 'MD_2025_02_12_180960.txt';
+
+% Colorbar limits for section plots
+clims.temperature = [5 25];
+clims.salinity = [34.3 35.5];
+clims.epsilon = [-10 -7.5];
+clims.chi = [-10 -6];
+clims.chi = [-10 -6];
+clims.n2 = [-6 -2.7];
+clims.fluor = [];
 
 %% ----------------------------------------------------------------------
 % Define raw directory for realtime data
@@ -10,7 +20,7 @@ raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed/';
 
 % Path to setup file
 root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
-Meta_Data_process_file = fullfile(root_software,'EPSILOMETER','Meta_Data_Process','MDP_motive_2024.txt');
+Meta_Data_process_file = fullfile(raw_dir,survey_name,MDP_file);
 
 process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
