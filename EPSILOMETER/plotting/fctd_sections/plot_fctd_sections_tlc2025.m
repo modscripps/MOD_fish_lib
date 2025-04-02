@@ -29,7 +29,8 @@ else
         %% Plot some stuff
         %clf
         %%ax = [];
-        fig = figure(1);
+        fig = figure(501);
+        clf(fig)
         fig.Units = 'normalized';
         fig.Position = [0.2848    0.0370    0.4840    0.8667];
         zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
@@ -73,7 +74,7 @@ else
             colormap(ax(3),parula)
             cb(3).Label.String = '\chi';
 
-            switch ax3data
+            switch axdata{3}
                 case 'chla'
                     if isfield(FCTDgrid,'chla')
                         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
@@ -92,7 +93,7 @@ else
             end
 
             ax(4) = subtightplot(5,1,4);
-            switch ax4data
+            switch axdata{4}
                 case 'chi'
                     pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
                     colormap(ax(4),cmocean('matter'))
@@ -168,6 +169,8 @@ else
 
                 datetick(ax(iAx),'x','HH:MM','keeplimits')
             end
+            [ax(1:4).XTickLabel] = deal('');
+            [ax(:).XGrid] = deal('on');
 
             % Depth axes
             [ax(1:5).YLim] = deal(ylims);
@@ -232,6 +235,6 @@ fluor_cols.ticks = cb_ticks;
 fluor_cols.ticklabels = fluor_cols.levels_actual(cb_ticks);
 fluor_cols.cblimits = [0,length(clevels)];
 fluor_cols.cblimits_actual = [0,2.5];
-fluor_cols.units = 'volts';
+fluor_cols.units = 'fluor (V)';
 
 end %end get_fluorometer_colors

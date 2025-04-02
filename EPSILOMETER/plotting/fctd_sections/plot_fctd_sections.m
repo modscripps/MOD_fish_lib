@@ -9,8 +9,26 @@
 % than making a function like plot_fctd_sections('motive2024') because
 % you'd need a lot of inputs.
 
+%% TLC
 plot_fctd_sections_tlc2025
+save_sections_fig(fig)
 fprintf('plot_fctd_sections.m - Plotting FCTD sections for TLC 2025 \n')
 
+plot_fctd_map_tlc2025
+save_map_fig(fig)
+fprintf('plot_fctd_sections.m - Plotting map for TLC 2025 \n')
+
+
+%% MOTIVE
 % plot_fctd_sections_motive2024
-%fprintf('plot_fctd_sections.m - Plotting FCTD sections for MOTIVE 2024 \n')
+% fprintf('plot_fctd_sections.m - Plotting FCTD sections for MOTIVE 2024 \n')
+
+
+%% SUBFUNCTIONS
+function [] = save_sections_fig()
+
+end %end save_sections_fig
+
+function [] = save_map_fig()
+
+end %end save_map_fig

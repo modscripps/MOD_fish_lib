@@ -21,24 +21,15 @@
 %   directory
 % -------------------------------------------------------------------------
 %
-% USER INPUTS
+%% USER INPUTS
 % These will probably be the same for the whole cruise
 clear input_struct
-input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_tlc_2023.txt';
+input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_tlc2025_dye.txt';
 input_struct.refresh_time_sec =  2*60;
 % input_struct.cruise_specifics = 'tfo_2024';
 
-epsi_depth_array = 0:1000;
-fctd_depth_array = 0:1105;
-
-% Set clims
-clims.temperature = [5 25];
-clims.salinity = [34.3 35.5];
-clims.epsilon = [-10 -7.5];
-clims.chi = [-10 -6];
-clims.chi = [-10 -6];
-clims.n2 = [-6 -2.7];
-clims.fluor = [];
+epsi_depth_array = 0:400;
+fctd_depth_array = 0:400;
 
 % Realtime or Simulator mode - this will set the appropriate paths
 % depending on whether you're running this will data coming in in realtime

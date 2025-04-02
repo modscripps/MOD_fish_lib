@@ -14,7 +14,7 @@ rot_strut.rot    = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_f
 rot_strut.raw_copy   = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
 
 root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
-Meta_Data_process_file = 'MDP_motive_2024.txt';
+Meta_Data_process_file = 'MDP_tlc2025_dye.txt';
 input_struct.raw_dir   = rot_strut.raw_incoming;
 Meta_Data_process_dir = fullfile(root_software,'/EPSILOMETER/Meta_Data_Process/');
 input_struct.Meta_Data_process_file = fullfile(Meta_Data_process_dir,Meta_Data_process_file);
