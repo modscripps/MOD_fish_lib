@@ -11,12 +11,12 @@
 
 %% TLC
 plot_fctd_sections_tlc2025
-%save_sections_fig(fig)
+save_sections_fig(fig)
 fprintf('plot_fctd_sections.m - Plotting FCTD sections for TLC 2025 \n')
 
-%plot_fctd_map_tlc2025
-%save_map_fig(fig)
-%fprintf('plot_fctd_sections.m - Plotting map for TLC 2025 \n')
+plot_fctd_map_tlc2025
+save_map_fig(fig)
+fprintf('plot_fctd_sections.m - Plotting map for TLC 2025 \n')
 
 
 %% MOTIVE
