@@ -108,8 +108,8 @@ else
     fom_mle = compute_fom(SpecObs,chi_mle,[kmin kc],Pxx);
 
 
-
-    if Meta_Data.PROCESS.display==1 && ~isnan(fom) && contains(fpo7_channel,'t2')
+    do_fom_fig = 0;
+    if do_fom_fig
         figure(1)
         color_chi='g';
         if fom>1.15

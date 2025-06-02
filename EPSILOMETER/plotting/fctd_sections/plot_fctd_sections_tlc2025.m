@@ -12,7 +12,7 @@ axdata{5} = 'fluorometer';
 clims.temperature = [8 25];
 clims.salinity = [30 35];
 clims.chi = [-9 -6];
-clims.N2 = [-6 -3];
+clims.n2 = [-6 -3];
 clims.fluoromter = fluor_cols.cblimits;
 
 ylims = [0 300];
