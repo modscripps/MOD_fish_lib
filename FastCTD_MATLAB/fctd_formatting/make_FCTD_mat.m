@@ -127,7 +127,7 @@ if ~isempty(matData.ctd)
     % Hz), it actually becomes and N x 20 array - there are 20
     % uConductivity/fluorometer data points for every 1 SBE data point. We
     % also save time_fast as an N x 20 array.
-    if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd)
+    if ~isempty(epsi) && isfield(epsi,'c1_count') && ~isempty(ctd) %Changed from c1_count to s2_count on TLC2025 - couldnt find c1_count
 
         time_fast = linspace(ctd.dnum(1),ctd.dnum(end),length(ctd.dnum)*20);
         FCTD.time_fast = reshape(time_fast,20,[])';
@@ -149,7 +149,7 @@ if ~isempty(matData.ctd)
     end
 
     % f1_volt = fluorometer
-    if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)
+    if ~isempty(epsi) && isfield(epsi,'f1_volt')  && ~isempty(ctd)  %Changed from f1_volt to s1_volt on TLC2025 - couldnt find f1_volt. Then changed back during d10. The changed back again during d12!
         % NC February 2025 - occasionally there's a bad file where dnum is
         % corrupt. It works to make sure that the number of unique dnums
         % is the same as the total number.

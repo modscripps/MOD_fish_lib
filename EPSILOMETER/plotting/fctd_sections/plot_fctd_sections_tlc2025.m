@@ -9,13 +9,13 @@ axdata{3} = 'chi';
 axdata{4} = 'N2';
 axdata{5} = 'fluorometer';
 
-clims.temperature = [8 25];
-clims.salinity = [30 35];
+clims.temperature = [9 18];
+clims.salinity = [33.5 34.5];
 clims.chi = [-9 -6];
 clims.n2 = [-6 -3];
 clims.fluoromter = fluor_cols.cblimits;
 
-ylims = [0 300];
+ylims = [0 200];
 
 %%
 fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
@@ -143,20 +143,25 @@ else
 
             % We're going to plot fluorometer data by "painting by numbers". Get
             % the color the corresponds to each fluorometer bin.
-            fluorBins = nan(size(FCTDgrid.fluorometer));
+            fluorometer = FCTDall.fluorometer(:,1);
+            fluorBins = nan(size(fluorometer));
             for iRange=1:length(fluor_cols.levels)-1
-                fluorBins(FCTDgrid.fluorometer > fluor_cols.levels_actual(iRange) &...
-                    FCTDgrid.fluorometer <= fluor_cols.levels_actual(iRange+1)) = iRange;
+                fluorBins(fluorometer > fluor_cols.levels_actual(iRange) &...
+                    fluorometer <= fluor_cols.levels_actual(iRange+1)) = iRange;
             end
-            pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,fluorBins(:,iplot));
+            scatter(FCTDall.time,FCTDall.depth,20,fluorometer,'filled');
+            
 
             % Apply colormap
+            % cb(5) = colorbar;
+            % colormap(ax(5),fluor_cols.cmap);
+            % set(gca,'clim',[fluor_cols.levels(1),fluor_cols.levels(end)]);
+            % cb(5).Ticks = fluor_cols.ticks;
+            % cb(5).TickLabels = fluor_cols.ticklabels;
+            % cb(5).Label.String = fluor_cols.units;
             cb(5) = colorbar;
-            colormap(ax(5),fluor_cols.cmap);
-            set(gca,'clim',[fluor_cols.levels(1),fluor_cols.levels(end)]);
-            cb(5).Ticks = fluor_cols.ticks;
-            cb(5).TickLabels = fluor_cols.ticklabels;
-            cb(5).Label.String = fluor_cols.units;
+            set(gca,'clim',clims.fluorometer)
+            colormap(gca,lansey)
 
             % Add density contours and datetick
             for iAx=1:5
@@ -178,6 +183,9 @@ else
 
             % Link axes
             lp = linkprop([ax(:)],{'xlim','ylim'});
+            drawnow
+            pos1 = get(ax(1),'position');
+            ax(5).Position(3)= pos1(3);
 
             %MHA hack
             %[ax(1:2).YLim] = deal([zlim(1) 500]);
@@ -205,7 +213,8 @@ else
             hold on
         end
         grid on
-        xlim([34.4 35.5]);
+        xlim([33.2 35]);
+        ylim([8 18])
         xlabel('S [psu]','FontName','times new roman','FontSize',13);
         ylabel('T [˚C]','FontName','times new roman','FontSize',13);
         legend

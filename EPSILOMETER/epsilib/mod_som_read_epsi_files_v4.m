@@ -234,7 +234,7 @@ if found_data==0
             cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
             Meta_Data.CTD.name = 'SBE49';
             Meta_Data.CTD.SN = SBE_sn;
-            Meta_Data.CTD.cal=get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
+            SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
             fprintf("  Added calibration data from %s", cal_directory);
     else
             error('Failed to find CTD calibration data for %s.', filename)

@@ -19,7 +19,7 @@ elseif nargin<3
 end
 
 %% If you're running in realtime, view the most recent nSec
-nSec = 1*20;
+nSec = 20;
 nDay = nSec/(3600*24);
 
 %% Set plot properties if you don't have them
@@ -139,8 +139,8 @@ if isclassfield(obj,'fluor')
 if ~isempty(obj.fluor)
     
     % Fluorometer
-    plot(ax(3),time_array.fluor,obj.fluor.chla,'.','Color',cols.chla,'LineWidth',obj.plot_properties.LineWidth);
-    ax(3).YLim = [3.25e4 3.35e4];
+    plot(ax(3),time_array.epsi,obj.epsi.f1_volt,'m.','LineWidth',obj.plot_properties.LineWidth);
+    ax(3).YLim = [0,nanmax(obj.epsi.f1_volt)];
 
 end
 
@@ -213,7 +213,7 @@ end
 
 ylabel(ax(1),'T [°C]');
 ylabel(ax(2),'S');
-ylabel(ax(3),'chla [ ]');
+ylabel(ax(3),'fluor [ ]');
 ylabel(ax(4),'ucond [volt]')
 ylabel(ax(5),'Accel [g]');
 ylabel(ax(7),'z [m]');

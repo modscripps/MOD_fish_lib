@@ -8,8 +8,8 @@
 %
 %%
 
-matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed/MAT_full_cruise_twist_counter/'; %Directory where FCTD*.mat are stored
-rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed/ROT_full_cruise_twist_counter/'; %Directory where rotation data for each FCTD*.mat file will be stored
+matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/'; %Directory where FCTD*.mat are stored
+rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/'; %Directory where rotation data for each FCTD*.mat file will be stored
 matFiles = dir([matDataDir 'EPSI*.mat']);
 rotFiles = dir([rotDataDir 'EPSI*.mat']);
 
@@ -92,7 +92,7 @@ for iFile = numel(rotFiles)-1:numel(matFiles)
         tot_rot_gyro(:,3) = cumsum(gyro(:,3).*dt);
 
         % Save rotation data
-        save([rotDataDir '/' matFiles(iFile).name],'compass','tot_rot_gyro','tot_rot_acc','time','gyro','acce','pressure','file_num');
+        save(fullfile(rotDataDir,matFiles(iFile).name),'compass','tot_rot_gyro','tot_rot_acc','time','gyro','acce','pressure','file_num');
 
         % Clear processed data
         clear compass tot_rot_gyro tot_rot_acc time gyro acce pressure file_num
@@ -233,6 +233,11 @@ if ~isempty(tot_time)
 
     % Print last rotation count
     fprintf("Last rotation count %i\r\n",round(gyro_value(end)))
+
+    % "Neutral is negative"
+    annotation(gcf,'textbox',...
+    [0.274088541666665 0.165666666666666 0.437174479166667 0.0462962962962963],...
+    'String',{'"Neutral is Negative" - Set fin angle to neutral to make the rotation count go down.'});
 
 else
     % If there is no new data, print previous rotation count

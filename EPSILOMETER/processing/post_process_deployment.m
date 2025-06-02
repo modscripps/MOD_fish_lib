@@ -1,9 +1,9 @@
 %% Change these parameters for post-processing data
 epsi_depth_array = 0:200;
-fctd_depth_array = 0:900;
+fctd_depth_array = 0:300;
 
-survey_name = '25_0212_dye_release';
-MDP_file = 'MD_2025_02_12_180960.txt';
+survey_name = '25_0413_d_fctd1_dye_survey';
+MDP_file = 'MD_2025_04_12_032652.txt';
 
 % Colorbar limits for section plots
 clims.temperature = [5 25];
@@ -15,13 +15,14 @@ clims.n2 = [-6 -2.7];
 clims.fluor = [];
 
 %% ----------------------------------------------------------------------
-% Define raw directory for realtime data
+% Define directory containing raw files
 raw_dir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed/';
 
 % Path to setup file
 root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 Meta_Data_process_file = fullfile(raw_dir,survey_name,MDP_file);
 
+% Define parent directory into which you will create this deployment directory with raw, mat, profiles directories inside
 process_dir_root = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/ReProcessed';
 
 % Define the name of the process directory based on survey_name

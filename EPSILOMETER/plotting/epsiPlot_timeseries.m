@@ -18,7 +18,7 @@ elseif nargin<3
 end
 
 %% If you're running in realtime, view the most recent nSec
-nSec = 20;
+nSec = 2*60;%20;
 nDay = nSec/(3600*24);
 
 %% Set plot properties if you don't have them
@@ -173,6 +173,7 @@ if isclassfield(obj,'fluor')
     legend(ax(9),'location','northwest')
     % legend(ax(6),'location','northwest')
 
+    %ax(9).YLim = [0,nanmax(obj.fluor.fDOM)];
     end
 end
 
@@ -184,7 +185,7 @@ end
 % 
 %     % Gyro z
 %     plot(ax(5),time_array.vnav,obj.vnav.gyro(:,3),'.','Color',cols.gyro3,'LineWidth',obj.plot_properties.LineWidth,'displayname','z')
-% 
+% yo
 %     % Gyro x
 %     plot(ax(6),time_array.vnav,obj.vnav.gyro(:,1),'.','Color',cols.gyro1,'LineWidth',obj.plot_properties.LineWidth,'displayname','x')
 %     hold(ax(6),'on')
@@ -229,7 +230,7 @@ end
 
 % Time axes label and limits with 10-sec tick marks
 if isfield(obj.epsi,'dnum') && ~all(isnan(obj.epsi.dnum)) && replaceData
-    sec10 = 10/(3600*24);
+    sec10 = 60/(3600*24);
     % If plotting in realtime, limit view
     % [ax(:).XTick] = deal(fliplr(nanmax(obj.epsi.dnum):-sec10:nanmax(obj.epsi.dnum)-nDay));
     % [ax(:).XLim] = deal([nanmax(obj.epsi.dnum)-nDay,nanmax(obj.epsi.dnum)]);
@@ -279,6 +280,7 @@ ax(4).YAxisLocation = 'right';
 ax(8).Color = 'none';
 %ax(8).YLim = [0 30];
 ax(8).YGrid = 'on';
+ax(9).YLim = [0 3e-5];
 
 % Flip pressure axis
 ax(7).YDir = 'reverse';
