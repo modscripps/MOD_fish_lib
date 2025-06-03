@@ -1,31 +1,31 @@
 function SBEcal=get_CalSBE(filename)
 % Reads calibration file of this format:
-% SERIALNO=0060
-% TCALDATE=05-Apr-22
-% TA0= 8.288308e-004
-% TA1= 2.781357e-004
-% TA2=-1.674304e-006
-% TA3= 1.780517e-007
-% CCALDATE=05-Apr-22
-% CG=-1.025836e+000
-% CH= 1.431014e-001
-% CI=-1.218903e-004
-% CJ= 3.346758e-005
-% CTCOR= 3.250000e-006
-% CPCOR=-9.570000e-008
-% PCALDATE=20-May-22
-% PA0=-2.412566e+000
-% PA1= 4.423399e-003
-% PA2=-1.633298e-011
-% PTCA0= 5.242702e+005
-% PTCA1=-2.051444e+001
-% PTCA2=-1.115824e-001
-% PTCB0= 2.507350e+001
-% PTCB1=-1.125000e-003
-% PTCB2= 0.000000e+000
-% PTEMPA0=-5.424356e+001
-% PTEMPA1= 6.019567e+001
-% PTEMPA2=-1.525723e+000
+SERIALNO=0060
+TCALDATE=05-Apr-22
+TA0= 8.288308e-004
+TA1= 2.781357e-004
+TA2=-1.674304e-006
+TA3= 1.780517e-007
+CCALDATE=05-Apr-22
+CG=-1.025836e+000
+CH= 1.431014e-001
+CI=-1.218903e-004
+CJ= 3.346758e-005
+CTCOR= 3.250000e-006
+CPCOR=-9.570000e-008
+PCALDATE=20-May-22
+PA0=-2.412566e+000
+PA1= 4.423399e-003
+PA2=-1.633298e-011
+PTCA0= 5.242702e+005
+PTCA1=-2.051444e+001
+PTCA2=-1.115824e-001
+PTCB0= 2.507350e+001
+PTCB1=-1.125000e-003
+PTCB2= 0.000000e+000
+PTEMPA0=-5.424356e+001
+PTEMPA1= 6.019567e+001
+PTEMPA2=-1.525723e+000
 
 
 %  reads and apply calibration to the conductivity data
@@ -46,7 +46,6 @@ function SBEcal=get_CalSBE(filename)
     SBEcal.ta3=str2double(line(strfind(line,'=')+1:end));
     % line=fgetl(fid);
     % SBEcal.toffset=str2double(line(strfind(line,'=')+1:end));
-    
     % Conductivity Cal
     line=fgetl(fid);
     SBEcal.CondCal_date=line(strfind(line,'=')+1:end);
@@ -58,14 +57,13 @@ function SBEcal=get_CalSBE(filename)
     SBEcal.i=str2double(line(strfind(line,'=')+1:end));
     line=fgetl(fid);
     SBEcal.j=str2double(line(strfind(line,'=')+1:end));
+
+    line=fgetl(fid);
+    SBEcal.pcor=str2double(line(strfind(line,'=')+1:end));
     line=fgetl(fid);
     SBEcal.tcor=str2double(line(strfind(line,'=')+1:end));
     line=fgetl(fid);
-    SBEcal.pcor=str2double(line(strfind(line,'=')+1:end));
-    
-    %line=fgetl(fid);
-    %SBEcal.cslope=str2double(line(strfind(line,'=')+1:end));
-    
+    SBEcal.cslope=str2double(line(strfind(line,'=')+1:end));
     % Pressure Cal
     line=fgetl(fid);
     SBEcal.PresCal_date=line(strfind(line,'=')+1:end);
@@ -93,8 +91,8 @@ function SBEcal=get_CalSBE(filename)
     SBEcal.ptempa1=str2double(line(strfind(line,'=')+1:end));
     line=fgetl(fid);
     SBEcal.ptempa2=str2double(line(strfind(line,'=')+1:end));
-    %line=fgetl(fid);
-    %SBEcal.poffset=str2double(line(strfind(line,'=')+1:end));
+    line=fgetl(fid);
+    SBEcal.poffset=str2double(line(strfind(line,'=')+1:end));
     fclose(fid);
 
 end
