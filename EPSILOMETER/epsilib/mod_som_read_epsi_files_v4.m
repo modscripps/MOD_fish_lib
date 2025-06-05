@@ -50,9 +50,6 @@ frewind(fid);
 str = fread(fid,'*char')';
 fclose(fid);
 
-% Get time now
-Meta_Data.start_dnum = now;
-
 %% Get indices and tokens for each data type you will process
 % ind_*_start  = starting indices of all matches
 % ind_*_end    = ending indices of all matches
@@ -87,189 +84,11 @@ end
 [ind_ttv_start      , ind_ttv_stop]      = regexp(str,'\$TTV1([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
 
 
-
-%% Get experiment, cruise, vehicle, pressure case and fish flag from setup,
-newSetup_flag=contains(str,'CTD.experiment=');
-if newSetup_flag
-    experiment_str    = str(strfind(str,'CTD.experiment=')+(0:100));
-    cruise_str        = str(strfind(str,'CTD.cruise=')+(0:100));
-    vehicle_str       = str(strfind(str,'CTD.vehicle=')+(0:100));
-    pressure_case_str = str(strfind(str,'CTD.fish_pc=')+(0:100));
-    fishflag_str      = str(strfind(str,'CTD.fishflag=')+(0:100));
-
-    experiment_str    = experiment_str(1:find(uint8(experiment_str)==10,1,'first'));
-    cruise_str        = cruise_str(1:find(uint8(cruise_str)==10,1,'first'));
-    vehicle_str       = vehicle_str(1:find(uint8(vehicle_str)==10,1,'first'));
-    pressure_case_str = pressure_case_str(1:find(uint8(pressure_case_str)==10,1,'first'));
-    fishflag_str      = fishflag_str(1:find(uint8(fishflag_str)==10,1,'first'));
-
-    experiment_name    = strsplit(experiment_str,'=');
-    cruise_name        = strsplit(cruise_str,'=');
-    vehicle_name       = strsplit(vehicle_str,'=');
-    pressure_case_name = strsplit(pressure_case_str,'=');
-    fishflag_name      = strsplit(fishflag_str,'=');
-
-
-    experiment_name    = experiment_name{2}(1:end-2);
-    cruise_name        = cruise_name{2}(1:end-2);
-    vehicle_name       = vehicle_name{2}(1:end-2);
-    pressure_case_name = pressure_case_name{2}(1:end-2);
-    fishflag_name      = fishflag_name{2}(1:end-2);
-else
-    experiment_name    = [];
-    cruise_name        = [];
-    vehicle_name       = [];
-    pressure_case_name = [];
-    fishflag_name      = [];
-
+%% If you want to use Meta_Data from file header, parse the header
+if Meta_Data.PROCESS.use_file_headers
+    Meta_Data = parse_header_for_Meta_Data(str,Meta_Data);
 end
-if newSetup_flag
-    Meta_Data.experiment_name    = experiment_name;
-    Meta_Data.cruise_name        = cruise_name;
-    Meta_Data.vehicle_name       = vehicle_name;
-    Meta_Data.pressure_case_name = pressure_case_name;
-    Meta_Data.fishflag_name      = fishflag_name;
-end
-
-
-%% get CTD cal coef
-header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
-
-% Check if CTD calibration data are listed in format 1
-idx_head_format1=strfind(str,'SERIALNO'); 
-if ~isempty(idx_head_format1)
-    str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
-else
-    str_SBEcalcoef_header1=[];
-end
-
-% Check if CTD calibration data are listed in format 2 (comes directly from fish)
-idx_head_format2=strfind(str,'SERIAL NO'); 
-if ~isempty(idx_head_format2)
-    str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
-else
-    str_SBEcalcoef_header2=[];
-end
-
-% Get the CTD serial number listed in the Setup file - you may need it if
-% the current file doesn't have CTD calibration data to look through
-% previous or later files
-SBE_sn = get_setup_SBE_sn(str);
-
-% If you have format 2, use that
-if ~isempty(str_SBEcalcoef_header2)
-    SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
-    Meta_Data.CTD.cal=SBEcal;
-
-% If you don't have format 2, but you have format 1, use that
-elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
-    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
-    Meta_Data.CTD.cal=SBEcal;
-
-% If you don't have format 2 or 1, try looking in a few files before or
-% after the current one
-elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
-    fprintf('There is no CTD calibration data in the header of %s. \n',filename);
-        %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
-        %files
-        % NC edited to search through previous 10 OR next 10 (for
-        % post-processing)
-
-        found_data = 0; %Initialize
-
-        % List files in raw directory
-        listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
-        list_fullfilename = fullfile({listfile.folder}, {listfile.name});
-        idx_file = find(strcmp(list_fullfilename, filename));
-
-        % Determine the range of indices to search
-        num_files = length(list_fullfilename);
-        num_before = min(10, idx_file - 1);  % Max files before the current file
-        num_after = min(10, num_files - idx_file); % Max files after the current file
-        search_indices = [idx_file-num_before : idx_file-1, ...
-                          idx_file+1 : idx_file+num_after];
-
-        % Loop through surrounding files
-        for idx = search_indices
-            fprintf("  Trying file: %s \n", listfile(idx).name);
-
-            fid1 = fopen(list_fullfilename{idx});
-            if fid1 == -1
-                fprintf("    - Skipping (unable to open) \n");
-                continue; % Skip if file cannot be opened
-            end
-            str1 = fread(fid1, '*char')';
-            fclose(fid1);
-
-            % Extract CTD calibration coefficients
-            header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
-            if isempty(header_length)
-                fprintf("    - Skipping (no valid header found) \n");
-                continue; % Skip if header is not found
-            end
-
-            str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
-
-            if ~isempty(str_SBEcalcoef_header1)
-                % Extract serial number from the file
-                extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
-                if extracted_sn == SBE_sn
-                    SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
-                    fprintf("    - Found matching SBE calibration data \n");
-                    found_data = 1;
-                    break; % Exit loop once a valid matching file is found
-                else
-                    fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
-                end
-            else
-                fprintf("    - Skipping (no calibration data in header) \n");
-            end
-        end %End loop through surrounding files
-
-% If you can't find CTD calibration data in any of the previous or future
-% files, your last chance is to pull calibration values from the
-% calibration directory.
-if found_data==0
-    if ~isempty(SBE_sn)
-            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
-            Meta_Data.CTD.name = 'SBE49';
-            Meta_Data.CTD.SN = SBE_sn;
-            SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
-            fprintf("  Added calibration data from %s", cal_directory);
-    else
-            error('Failed to find CTD calibration data for %s.', filename)
-    end
-end
-
-end %end trying to find CTD calibration data
-
-
-
-%% get Epsi probe Serial Numbers from Header
-str_EPSICHANNEL_start  = strfind(str,'Fish probes serial numbers');
-str_EPSICHANNEL_end    = strfind(str,'end probes serial numbers');
-str_EPSICHANNEL_header = str(str_EPSICHANNEL_start:str_EPSICHANNEL_end-8);
-epsi_probes=[];
-if ~isempty(str_EPSICHANNEL_header)
-    epsi_probes=parse_epsi_channel_string(str_EPSICHANNEL_header);
-
-    % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
-    % calibration value for every profile. Since we're only at the .mat
-    % stage here, don't set it. Eventually, once we understand dTdV a bit
-    % better, we will have a calibration file for each probe.
-    epsi_probes.ch1.cal = 0;
-    epsi_probes.ch2.cal = 0;
-
-    Meta_Data.AFE.t1=epsi_probes.ch1;
-    Meta_Data.AFE.t2=epsi_probes.ch2;
-    Meta_Data.AFE.s1=epsi_probes.ch3;
-    Meta_Data.AFE.s2=epsi_probes.ch4;
-else
-    [a,b,c] = fileparts(filename);
-    fprintf('   No Epsi probe serial number in file %s \n',[b,c])
-
-end
-
+SBEcal = Meta_Data.CTD.cal;
 
 %% Define the header tag format
 % In the versions of the SOM acquisition software since 23 May 2021 (and
@@ -320,6 +139,7 @@ processed_data_types = {};
 no_data_types = {};
 
 %% Process setup SOM3 data
+if Meta_Data.PROCESS.use_file_headers 
 if isempty(ind_som_start)
     no_data_types = [no_data_types,'setup'];
     setup=[];
@@ -362,9 +182,8 @@ else
             end
         end
     end
-
-
-end
+   end
+ end %end if use_file_headers
 if ~isempty(ind_dcal_start)
     % Read SBE tcal from
     str_dcal=str(ind_dcal_start:ind_dcal_stop-5);
@@ -979,9 +798,9 @@ else
         % convert_dissrate = @(x) ((x-apf.data.dissrate_count0)/apf.data.dissrate_per_bit);
         feet2meters = @(x) (x*0.3048);
         inches2meters = @(x) (x*0.0254);
-        angle_deg = Meta_Data.PROCESS.alt_angle_deg;
-        isap_to_crashguard = Meta_Data.PROCESS.alt_dist_from_crashguard_ft;
-        probe_to_crashguard = Meta_Data.PROCESS.alt_probe_dist_from_crashguard_in;
+        angle_deg = Meta_Data.GEOMETRY.alt_angle_deg;
+        isap_to_crashguard = Meta_Data.GEOMETRY.alt_dist_from_crashguard_ft;
+        probe_to_crashguard = Meta_Data.GEOMETRY.alt_probe_dist_from_crashguard_in;
 
         A = isap.dst(iB);
         theta = deg2rad(angle_deg);
@@ -2343,9 +2162,7 @@ make data epsi ctd alt isap act vnav gps seg spec avgspec dissrate apf fluor ttv
 % Save Meta_Data in the process directory
 save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
 
-
 end
-
 
 
 
@@ -2361,6 +2178,198 @@ offset1970_seconds = offset1970_days*(24*60*60);
 time_s = seconds1970 + offset1970_seconds;
 dnum = days1970 + offset1970_days;
 end
+
+%% Parse header for Meta_Data
+function [Meta_Data] = parse_header_for_Meta_Data(str,Meta_Data)
+%% Get experiment, cruise, vehicle, pressure case and fish flag from setup,
+newSetup_flag=contains(str,'CTD.experiment=');
+if newSetup_flag
+    experiment_str    = str(strfind(str,'CTD.experiment=')+(0:100));
+    cruise_str        = str(strfind(str,'CTD.cruise=')+(0:100));
+    vehicle_str       = str(strfind(str,'CTD.vehicle=')+(0:100));
+    pressure_case_str = str(strfind(str,'CTD.fish_pc=')+(0:100));
+    fishflag_str      = str(strfind(str,'CTD.fishflag=')+(0:100));
+
+    experiment_str    = experiment_str(1:find(uint8(experiment_str)==10,1,'first'));
+    cruise_str        = cruise_str(1:find(uint8(cruise_str)==10,1,'first'));
+    vehicle_str       = vehicle_str(1:find(uint8(vehicle_str)==10,1,'first'));
+    pressure_case_str = pressure_case_str(1:find(uint8(pressure_case_str)==10,1,'first'));
+    fishflag_str      = fishflag_str(1:find(uint8(fishflag_str)==10,1,'first'));
+
+    experiment_name    = strsplit(experiment_str,'=');
+    cruise_name        = strsplit(cruise_str,'=');
+    vehicle_name       = strsplit(vehicle_str,'=');
+    pressure_case_name = strsplit(pressure_case_str,'=');
+    fishflag_name      = strsplit(fishflag_str,'=');
+
+
+    experiment_name    = experiment_name{2}(1:end-2);
+    cruise_name        = cruise_name{2}(1:end-2);
+    vehicle_name       = vehicle_name{2}(1:end-2);
+    pressure_case_name = pressure_case_name{2}(1:end-2);
+    fishflag_name      = fishflag_name{2}(1:end-2);
+else
+    experiment_name    = [];
+    cruise_name        = [];
+    vehicle_name       = [];
+    pressure_case_name = [];
+    fishflag_name      = [];
+
+end
+if newSetup_flag
+    Meta_Data.experiment_name    = experiment_name;
+    Meta_Data.cruise_name        = cruise_name;
+    Meta_Data.vehicle_name       = vehicle_name;
+    Meta_Data.pressure_case_name = pressure_case_name;
+    Meta_Data.fishflag_name      = fishflag_name;
+end
+
+% get CTD cal coef
+% -----------------------------
+header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
+
+% Check if CTD calibration data are listed in format 1
+idx_head_format1=strfind(str,'SERIALNO'); 
+if ~isempty(idx_head_format1)
+    str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
+else
+    str_SBEcalcoef_header1=[];
+end
+
+% Check if CTD calibration data are listed in format 2 (comes directly from fish)
+idx_head_format2=strfind(str,'SERIAL NO'); 
+if ~isempty(idx_head_format2)
+    str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
+else
+    str_SBEcalcoef_header2=[];
+end
+
+% Get the CTD serial number listed in the Setup file - you may need it if
+% the current file doesn't have CTD calibration data to look through
+% previous or later files
+SBE_sn = get_setup_SBE_sn(str);
+
+% If you have format 2, use that
+if ~isempty(str_SBEcalcoef_header2)
+    SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
+    Meta_Data.CTD.cal=SBEcal;
+
+% If you don't have format 2, but you have format 1, use that
+elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
+    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+    Meta_Data.CTD.cal=SBEcal;
+
+% If you don't have format 2 or 1, try looking in a few files before or
+% after the current one
+elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
+    fprintf('There is no CTD calibration data in the header of %s. \n',filename);
+        %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
+        %files
+        % NC edited to search through previous 10 OR next 10 (for
+        % post-processing)
+
+        found_data = 0; %Initialize
+
+        % List files in raw directory
+        listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
+        list_fullfilename = fullfile({listfile.folder}, {listfile.name});
+        idx_file = find(strcmp(list_fullfilename, filename));
+
+        % Determine the range of indices to search
+        num_files = length(list_fullfilename);
+        num_before = min(10, idx_file - 1);  % Max files before the current file
+        num_after = min(10, num_files - idx_file); % Max files after the current file
+        search_indices = [idx_file-num_before : idx_file-1, ...
+                          idx_file+1 : idx_file+num_after];
+
+        % Loop through surrounding files
+        for idx = search_indices
+            fprintf("  Trying file: %s \n", listfile(idx).name);
+
+            fid1 = fopen(list_fullfilename{idx});
+            if fid1 == -1
+                fprintf("    - Skipping (unable to open) \n");
+                continue; % Skip if file cannot be opened
+            end
+            str1 = fread(fid1, '*char')';
+            fclose(fid1);
+
+            % Extract CTD calibration coefficients
+            header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
+            if isempty(header_length)
+                fprintf("    - Skipping (no valid header found) \n");
+                continue; % Skip if header is not found
+            end
+
+            str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
+
+            if ~isempty(str_SBEcalcoef_header1)
+                % Extract serial number from the file
+                extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
+                if extracted_sn == SBE_sn
+                    SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+                    fprintf("    - Found matching SBE calibration data \n");
+                    found_data = 1;
+                    break; % Exit loop once a valid matching file is found
+                else
+                    fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
+                end
+            else
+                fprintf("    - Skipping (no calibration data in header) \n");
+            end
+        end %End loop through surrounding files
+
+% If you can't find CTD calibration data in any of the previous or future
+% files, your last chance is to pull calibration values from the
+% calibration directory.
+if found_data==0
+    if ~isempty(SBE_sn)
+            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
+            Meta_Data.CTD.name = 'SBE49';
+            Meta_Data.CTD.SN = SBE_sn;
+            SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
+            fprintf("  Added calibration data from %s", cal_directory);
+    else
+            error('Failed to find CTD calibration data for %s.', filename)
+    end
+end
+
+end %end trying to find CTD calibration data
+
+
+
+% get Epsi probe Serial Numbers from Header
+% ---------------------------------------------
+str_EPSICHANNEL_start  = strfind(str,'Fish probes serial numbers');
+str_EPSICHANNEL_end    = strfind(str,'end probes serial numbers');
+str_EPSICHANNEL_header = str(str_EPSICHANNEL_start:str_EPSICHANNEL_end-8);
+epsi_probes=[];
+if ~isempty(str_EPSICHANNEL_header)
+    epsi_probes=parse_epsi_channel_string(str_EPSICHANNEL_header);
+
+    % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
+    % calibration value for every profile. Since we're only at the .mat
+    % stage here, don't set it. Eventually, once we understand dTdV a bit
+    % better, we will have a calibration file for each probe.
+    epsi_probes.ch1.cal = 0;
+    epsi_probes.ch2.cal = 0;
+
+    Meta_Data.AFE.t1=epsi_probes.ch1;
+    Meta_Data.AFE.t2=epsi_probes.ch2;
+    Meta_Data.AFE.s1=epsi_probes.ch3;
+    Meta_Data.AFE.s2=epsi_probes.ch4;
+else
+    [a,b,c] = fileparts(filename);
+    fprintf('   No Epsi probe serial number in file %s \n',[b,c])
+
+end
+
+end %end parse_header_for_Meta_Data
+
+
+
+
+
 
 %% SBE calibration subfunctions
 function ctd = sbe49_ascii_get_temperature(ctd,sbe)

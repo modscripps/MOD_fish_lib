@@ -13,7 +13,7 @@ clims.temperature = [9 18];
 clims.salinity = [33.5 34.5];
 clims.chi = [-9 -6];
 clims.n2 = [-6 -3];
-clims.fluoromter = fluor_cols.cblimits;
+clims.fluorometer = fluor_cols.cblimits;
 
 ylims = [0 200];
 
