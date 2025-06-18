@@ -229,7 +229,7 @@ classdef epsi_class_yaml < handle
 
             % Copy raw files from datapath to RAWpath
             %list_rawfile = dir(fullfile(obj.Meta_Data.paths.data,['*' obj.Meta_Data.rawfileSuffix]));
-            list_rawfile = dir(fullfile(obj.Meta_Data.paths.raw_data,['*' obj.Meta_Data.rawfileSuffix]));
+            list_rawfile = dir(fullfile(obj.Meta_Data.paths.raw_data,['*' obj.Meta_Data.PROCESS.raw_file_suffix]));
 
             % Some files are called '*data*' and if you look for them, you
             % might  also grab Meta_Data. Get rid of it.
@@ -238,7 +238,7 @@ classdef epsi_class_yaml < handle
             list_rawfile = list_rawfile(~matchArray);
 
             if isempty(list_rawfile)
-                warning(['There are no *' obj.Meta_Data.rawfileSuffix ' * raw files in ' obj.Meta_Data.paths.raw_data])
+                warning(['There are no *' obj.Meta_Data.PROCESS.raw_file_suffix ' * raw files in ' obj.Meta_Data.paths.raw_data])
             else
                 %                 for f=1:length(list_rawfile)
                 %                     copyfile(fullfile(list_rawfile(f).folder, ...

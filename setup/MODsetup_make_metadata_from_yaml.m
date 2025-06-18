@@ -75,6 +75,7 @@ metadata.PROCESS.nb_channels = numel(metadata.PROCESS.channels);
 metadata.PROCESS.latitude = yaml.latitude;
 metadata.PROCESS.profile_dir = yaml.profiling_direction;
 metadata.PROCESS.Fs_epsi = yaml.afe.sample_rate;
+metadata.PROCESS.nfft = yaml.spectral.nfft;
 
 % Make 'timeseries' from 'channels'. (Add _g to acceleration channels and
 for n=1:numel(metadata.PROCESS.channels)
