@@ -58,6 +58,9 @@ obj.f_read_MetaProcess(Meta_Data_process_file);
 obj.Meta_Data = epsiSetup_set_epsi_paths(obj.Meta_Data);
 obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
 
+% Add default flag to read data from modraw headers
+obj.Meta_Data.PROCESS.use_file_headers = 1;
+
 
 % NC TO DO:
 % ADD A 4TH OPTION TO READ SETUP AND METADATA FROM YAML FILE

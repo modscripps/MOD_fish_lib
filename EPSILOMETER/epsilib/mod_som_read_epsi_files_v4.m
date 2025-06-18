@@ -86,7 +86,7 @@ end
 
 %% If you want to use Meta_Data from file header, parse the header
 if Meta_Data.PROCESS.use_file_headers
-    Meta_Data = parse_header_for_Meta_Data(str,Meta_Data);
+    Meta_Data = parse_header_for_Meta_Data(str,filename,Meta_Data);
 end
 SBEcal = Meta_Data.CTD.cal;
 
@@ -2180,7 +2180,7 @@ dnum = days1970 + offset1970_days;
 end
 
 %% Parse header for Meta_Data
-function [Meta_Data] = parse_header_for_Meta_Data(str,Meta_Data)
+function [Meta_Data] = parse_header_for_Meta_Data(str,filename,Meta_Data)
 %% Get experiment, cruise, vehicle, pressure case and fish flag from setup,
 newSetup_flag=contains(str,'CTD.experiment=');
 if newSetup_flag
@@ -2249,6 +2249,16 @@ end
 % previous or later files
 SBE_sn = get_setup_SBE_sn(str);
 
+% If you know there is not CTD calibration information in the header of the
+% modraw files, or you don't want to use it, make an empty SBEcal structure
+if isfield(Meta_Data.PROCESS,'ctd_in_modraw')
+    if ~Meta_Data.PROCESS.ctd_in_modraw
+        fprintf('Not checking for CTD calibration in .modraw header.')
+        SBEcal = get_CalSBE_nan;
+        Meta_Data.CTD.cal=SBEcal;
+    end
+end
+
 % If you have format 2, use that
 if ~isempty(str_SBEcalcoef_header2)
     SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
@@ -2308,6 +2318,7 @@ elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
                 extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
                 if extracted_sn == SBE_sn
                     SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+                    Meta_Data.CTD.cal=SBEcal;
                     fprintf("    - Found matching SBE calibration data \n");
                     found_data = 1;
                     break; % Exit loop once a valid matching file is found
@@ -2328,13 +2339,18 @@ if found_data==0
             Meta_Data.CTD.name = 'SBE49';
             Meta_Data.CTD.SN = SBE_sn;
             SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
+            Meta_Data.CTD.cal=SBEcal;
             fprintf("  Added calibration data from %s", cal_directory);
     else
-            error('Failed to find CTD calibration data for %s.', filename)
+            warning('Failed to find CTD calibration data for %s. Continuing to process with an empty SBE calibration structure', filename)
+            % Continue processing with an empty SBE calibration structure
+            SBEcal = get_CalSBE_nan;
+            Meta_Data.CTD.cal=SBEcal;
     end
 end
 
 end %end trying to find CTD calibration data
+
 
 
 

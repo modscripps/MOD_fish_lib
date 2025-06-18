@@ -35,13 +35,19 @@ metadata.paths.setup_file = yaml_file;
 % Add paths to raw, mat, profiles, and figs
 metadata = epsiSetup_set_epsi_paths(metadata);
 
-
 %metadata.dnum_range = [datenum(yaml.dnum_min),datenum(yaml.dnum_max)];
 
 % Add AFE fields
-AFE_fields = fields(yaml.afe.channels);
+AFE_fields = fields(yaml.afe);
 for ii=1:length(AFE_fields)
-    metadata.AFE.(AFE_fields{ii}) = yaml.afe.channels.(AFE_fields{ii});
+    if ~strcmp(AFE_fields{ii},'channels')
+        metadata.AFE.(AFE_fields{ii}) = yaml.afe.(AFE_fields{ii});
+    end
+end
+
+AFE_fields_2 = fields(yaml.afe.channels);
+for ii=1:length(AFE_fields_2)
+    metadata.AFE.(AFE_fields_2{ii}) = yaml.afe.channels.(AFE_fields_2{ii});
 end
 
 % Add CTD fields
@@ -49,20 +55,39 @@ metadata.CTD.name = yaml.ctd.type;
 metadata.CTD.SN = yaml.sn.ctd;
 metadata.CTD.sample_per_record = yaml.ctd.sample_per_record;
 
+% Add probe serial numbers
 channel_list = fields(yaml.sn);
 for iF=1:numel(channel_list)
     chan = channel_list{iF};
     metadata.AFE.(chan).SN = yaml.sn.(chan);
 end
 
-% Add PROCESS fields
+% Get calibrations for shear probe channels
+metadata = mod_som_get_shear_probe_calibration_v2(metadata);
+
+% Add more PROCESS fields
 metadata.PROCESS.use_file_headers = yaml.use_file_headers;
+metadata.PROCESS.ctd_in_modraw = yaml.ctd_in_modraw;
 metadata.PROCESS.raw_file_version = yaml.raw_files.version;
 metadata.PROCESS.raw_file_suffix = yaml.raw_files.suffix;
 metadata.PROCESS.channels = fields(yaml.afe.channels);
 metadata.PROCESS.nb_channels = numel(metadata.PROCESS.channels);
 metadata.PROCESS.latitude = yaml.latitude;
 metadata.PROCESS.profile_dir = yaml.profiling_direction;
+metadata.PROCESS.Fs_epsi = yaml.afe.sample_rate;
+
+% Make 'timeseries' from 'channels'. (Add _g to acceleration channels and
+for n=1:numel(metadata.PROCESS.channels)
+    if contains(metadata.PROCESS.channels(n),'a')
+        metadata.PROCESS.timeseries{n} = sprintf('%s_g',metadata.PROCESS.channels{n});
+    elseif contains(metadata.PROCESS.channels(n),{'s','t'})
+        metadata.PROCESS.timeseries{n} = sprintf('%s_volt',metadata.PROCESS.channels{n});
+    elseif contains(metadata.PROCESS.channels(n),'c')
+        metadata.PROCESS.timeseries{n} = sprintf('%s_count',metadata.PROCESS.channels{n});
+    elseif contains(metadata.PROCESS.channels(n),'f')
+        metadata.PROCESS.timeseries{n} = sprintf('%s_count',metadata.PROCESS.channels{n});
+    end
+end
 
 % Add GEOMETRY fields
 fish = lower(metadata.fishflag_name);
@@ -77,6 +102,13 @@ for ii=1:length(plot_properties_fields)
         yaml.plot_properties.(plot_properties_fields{ii});
 end
 
-%% Check that CTD and AFE serial numbers have calibration files.
-% Ask for new serial numbers if they don't
-metadata.CTD.cal = get_CalSBE(fullfile(metadata.paths.calibrations.ctd,[metadata.CTD.SN,'.cal']));
+%% Get CTD calibration data
+if metadata.PROCESS.ctd_in_modraw
+    metadata.CTD.cal = get_CalSBE(fullfile(metadata.paths.calibrations.ctd,[metadata.CTD.SN,'.cal']));
+elseif ~metadata.PROCESS.ctd_in_modraw
+    metadata.CTD.cal = get_CalSBE_nan;
+end
+
+%% Save Meta_Data
+Meta_Data = metadata;
+save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');

@@ -17,7 +17,7 @@ elseif isfield(Meta_Data,'epsi') && isfield(Meta_Data,'AFE')
 end
 
 % shearcal_path = strrep([Meta_Data.paths.process_library,'/CALIBRATION/SHEAR_PROBES'],'//','/');
-localpath=fullfile(Meta_Data.paths.process_library,'CALIBRATION','SHEAR_PROBES');
+localpath=fullfile(Meta_Data.paths.process_library,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
 
 shearcal_path = strrep(localpath,'//','/');
 
