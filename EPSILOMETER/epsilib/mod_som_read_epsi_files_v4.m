@@ -704,9 +704,9 @@ else
         convert_dissrate = @(x) ((x-apf.data.dissrate_count0)/apf.data.dissrate_per_bit);
         feet2meters = @(x) (x*0.3048);
         inches2meters = @(x) (x*0.0254);
-        angle_deg = Meta_Data.PROCESS.alt_angle_deg;
-        alt_to_crashguard = Meta_Data.PROCESS.alt_dist_from_crashguard_ft;
-        probe_to_crashguard = Meta_Data.PROCESS.alt_probe_dist_from_crashguard_in;
+        angle_deg = Meta_Data.GEOMETRY.alt_angle_deg;
+        alt_to_crashguard = Meta_Data.GEOMETRY.alt_dist_from_crashguard_ft;
+        probe_to_crashguard = Meta_Data.GEOMETRY.alt_probe_dist_from_crashguard_in;
 
         A = alt.dst(iB);
         theta = deg2rad(angle_deg);
