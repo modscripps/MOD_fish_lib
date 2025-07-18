@@ -46,6 +46,11 @@ switch fish_flag
         speedLim_down_end_m_s = 0.5;
         speedLim_up_start_m_s = 0.5;
         speedLim_up_end_m_s = 0.05;
+    case {'Solo','solo'}
+        speedLim_down_start_m_s = 0.05;
+        speedLim_down_end_m_s = 0.05;
+        speedLim_up_start_m_s = 0.05;
+        speedLim_up_end_m_s = 0.05;
 end
 
 

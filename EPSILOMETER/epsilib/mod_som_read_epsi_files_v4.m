@@ -237,7 +237,18 @@ if found_data==0
             Meta_Data.CTD.cal=get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
             fprintf("  Added calibration data from %s", cal_directory);
     else
-            error('Failed to find CTD calibration data for %s.', filename)
+            warning('Failed to find CTD calibration data for %s.', filename)
+            warning('please Copy the correct .cal where data are. We will use this file to get the cal coef')
+            try
+               disp('look for .cal file') 
+               calfile=dir('*.cal');
+               Meta_Data.CTD.cal=get_CalSBE(calfile.name);
+               SBEcal=Meta_Data.CTD.cal;
+
+            catch
+                error('Failed to find CTD calibration data for %s.', filename)
+            end
+
     end
 end
 
