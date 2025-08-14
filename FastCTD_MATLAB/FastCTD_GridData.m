@@ -22,6 +22,7 @@ function DataGrid = FastCTD_GridData(FCTD,varargin)
 % used 20 point median filter to smooth the pressure
 
 %26 Aug 2024: MHA has redone the short term response matching code.
+% 2025 - response matching code is now in make_FCTDall_L1.m
 
 if ~isfield(FCTD,'pressure')
     disp(FCTD);

@@ -1,10 +1,10 @@
 function [GRID] = epsiProcess_interpolate_Profile_to_P(Profile,P)
 
 % GRID.experiment = Profile.Meta_Data.experiment;
-GRID.mission = Profile.Meta_Data.mission;
+GRID.mission = Profile.Meta_Data.cruise_name;
 GRID.vehicle_name = Profile.Meta_Data.vehicle_name;
 % GRID.station = Profile.Meta_Data.station;
-GRID.deployment = Profile.Meta_Data.deployment;
+GRID.deployment = Profile.Meta_Data.deployment_name;
 GRID.filenames = Profile.filenames;
 
 varList0 = {'profNum','dnum','latitude','longitude'};

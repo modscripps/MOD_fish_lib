@@ -1,6 +1,6 @@
 function z2=remove_sbe_preemphasis(data,fs);
 %function z2=remove_sbe_preemphasis(data,fs);
-%Remove preemphasis filter, following Steve Anderson and Alfor/Pinkel 2000,
+%Remove preemphasis filter, following Steve Anderson and Alford/Pinkel 2000,
 %from SBE conductivity sensor.
 
 %This is taken from Steve's preemphasis2.

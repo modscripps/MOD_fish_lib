@@ -2,7 +2,7 @@ function chi_param=FCTD_DefaultChiParam
 
 %Define sample freqs
 fslow=16;
-fs=160;
+fs=320;
 
 %Offset/gain - iteratively plot below and adjust values here.
 % These are the gain and offsets determined from matching the low-freq
@@ -32,6 +32,6 @@ chi_param.kmin=2;
 chi_param.kmax=200;
 chi_param.min_spd=0.5;
 chi_param.D=D;
-%chi_param.mfile='add_chi_microMHA_v2.m';
+chi_param.mfile='add_chi_microMHA_v3.m';
 chi_param.version='0.2';
 chi_param.plotit=0;

@@ -76,9 +76,9 @@ chi_meta.mfiles='add_chi_microMHA_v3.m, DoOneChi_MHA_v3.m';
 % Check for gaps in data > 1 second before making a new time array
 idx = find(diff(FCTD.time)>days(seconds(1)));
 if ~isempty(idx)
-    disp('Skipping this cast')
+    disp('Skipping this section of data.')
     disp('Gaps in data > 1 second found. Check data used for uconductivity chi calculation.')
-    disp('add_chi_micro_MHA_v3 is outputting nans for this cast')
+    disp('add_chi_micro_MHA_v3 is outputting nans for this section of data.')
 
     FCTD.chi_param=chi_param;
     FCTD.chi_meta=chi_meta;
@@ -89,30 +89,24 @@ if ~isempty(idx)
 else
 
 
-    FCTD.microtime=linspace(FCTD.time(1),FCTD.time(end),chi_param.fs./chi_param.fslow*length(FCTD.time))';
+    FCTD.microtime=linspace(FCTD.time(1),FCTD.time(end),FCTD.chi_param.fs./FCTD.chi_param.fslow*length(FCTD.time))';
 
     i1=1:length(FCTD.microtime);
     %Also compute fall rate in m/s
-    FCTD.dPdt=CenteredConv(diffs(FCTD.pressure)*chi_param.fslow,1,4*chi_param.fslow); %smooth over a few sec
+    FCTD.dPdt=CenteredConv(diffs(FCTD.pressure)*FCTD.chi_param.fslow,1,4*FCTD.chi_param.fslow); %smooth over a few sec
 
     %Now unpack micro and express as raw volts - convert from counts
-    if chi_param.fs==160
+    if FCTD.chi_param.fs==160
         FCTD.ucon=reshape(FCTD.uConductivity.',10*length(FCTD.time),1)/2^16; %pre SOM/epsi - 160 Hz @ 16 bits
-    elseif chi_param.fs==320
+    elseif FCTD.chi_param.fs==320
         FCTD.ucon=reshape(FCTD.uConductivity.',20*length(FCTD.time),1)/2^24; %post SOM/epsi - 320 Hz @ 24 bits
     end
     %reshape takes them columnwise so transpose
 
     data=FCTD.ucon(i1); %This is the uncalibrated voltage
 
-    %
-    plot(FCTD.time,FCTD.uConductivity,'b')
-    hold on
-    plot(FCTD.microtime,FCTD.ucon,'r');
-    a = [];
-
     %This is the function that does all the work.
-    datac=remove_sbe_preemphasisMHA(NANinterp(data),chi_param.fs)*chi_param.gain+chi_param.offset;
+    datac=remove_sbe_preemphasisMHA(NANinterp(data),FCTD.chi_param.fs)*FCTD.chi_param.gain+FCTD.chi_param.offset;
 
     %Store corrected output field with the scaling and offset applied
     FCTD.ucon_corr=nan*FCTD.ucon;
@@ -120,8 +114,8 @@ else
 
     %Now loop through and compute spectra for each block
 
-    %chi_param.plotit=0;
-    tout=FCTD.time(1):(chi_param.dt_sec/24/3600)/8:FCTD.time(end);
+    %FCTD.chi_param.plotit=0;
+    tout=FCTD.time(1):(FCTD.chi_param.dt_sec/24/3600)/8:FCTD.time(end);
     chi_all=nan*tout; %This is chi by simple time-domain RMS'ing, in bins
     chi2_all=nan*tout; %This is chi by integrating the wavenumber spectrum
     w_all=nan*tout;
@@ -129,11 +123,17 @@ else
     for c=1:length(tout)
 
         %DisplayProgress(c,10000)
-        tlim=tout(c)+[-1 1].*chi_param.dt_sec/2 /24/3600; %Make a time window surrounding that center time
+        tlim=tout(c)+[-1 1].*FCTD.chi_param.dt_sec/2 /24/3600; %Make a time window surrounding that center time
+
+        if FCTD.chi_param.plotit
+            close all
+            plot_ucond_and_tlim(FCTD,tlim)
+        end
+
 
         %Use v3
-        %    out=DoOneChi_MHA_v2(FCTD,tlim,chi_param);
-        out=DoOneChi_MHA_v3(FCTD,tlim,chi_param);
+        %    out=DoOneChi_MHA_v2(FCTD,tlim,FCTD.chi_param);
+        out=DoOneChi_MHA_v3(FCTD,tlim,FCTD.chi_param);
 
         w_all(c)=out.w;
         chi2_all(c)=out.chi_stupid;
@@ -143,7 +143,8 @@ else
         OUT{c} = out;
 
         % Print progress status
-        if chi_param.plotit %2/2025 change: only output status if plotit is set to 1
+        showprogress=0;
+        if showprogress
             if mod(c,20)==0 && mod(c,100)~=0
                 fprintf(num2str(c))
             elseif mod(c,100)==0
@@ -226,6 +227,50 @@ else
 
 
 end
+end %end main function - add_chi_microMHA_v3
 
+%% ------------------------------
+% PLOTTING FUNCTIONS
+% -------------------------------
 
+% ---------------------------------------------------------------------
+function [] = plot_ucond_and_tlim(FCTD,tlim)
+
+fig = figure('Units','inches','Position',[0 0 19 11]);
+fig.Name = 'ucond_data';
+
+g = [0.05 0.02];
+v = [0.08 0.08];
+h = [0.08 0.08];
+
+ax(1) = subtightplot(3,1,1,g,v,h);
+plot(FCTD.time,FCTD.uConductivity);
+grid on
+legend('FCTD.uConductivity [counts]')
+
+ax(2) = subtightplot(3,1,2,g,v,h);
+plot(FCTD.microtime,FCTD.ucon);
+grid on
+legend('FCTD.ucon [volts]')
+title('Before removing preemphasis filter')
+
+ax(3) = subtightplot(3,1,3,g,v,h);
+plot(FCTD.microtime,FCTD.ucon_corr);
+grid on
+legend('FCTD.ucon\_corr [units]');
+title('After removing premphasis filter')
+
+lp = linkprop([ax(:)],'xlim');
+datetick(ax(1),'x','keeplimits');
+datetick(ax(2),'x','keeplimits');
+datetick(ax(3),'x','keeplimits');
+
+% Add lines to show tlim on each axes
+nAx = numel(ax);
+for iAx=1:nAx
+    xline(ax(iAx),tlim(1),'--k','LineWidth',1,'DisplayName','tlim(1)');
+    xline(ax(iAx),tlim(2),'--k','LineWidth',1,'DisplayName','tlim(2)');
+end
+
+end %end plot_ucon_and_tlim
 

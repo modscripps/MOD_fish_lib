@@ -6,7 +6,7 @@ disp(fprintf('Creating FCTDall_L0 from .mat files in %s',fctd_mat_dir))
 % Get FCTD files in current directory
 f = dir(fullfile(fctd_mat_dir,'EPSI*.mat'));
 file_list = {f.name};
-
+s
 % Make a list of datenums for each file
 for iF=1:length(file_list)
     yyyy = str2num(['20' file_list{iF}(5:6)]);

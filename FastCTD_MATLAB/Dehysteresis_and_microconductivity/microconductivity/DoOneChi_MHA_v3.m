@@ -83,7 +83,7 @@ function out=DoOneChi_MHA_v3(FCTD,tlim,chi_param)
     p=mean(FCTD.pressure(i2),'omitmissing');
     
     %set new kmax lims to avoid noise at high wavenumber
-    fn=fs/2; %Nyquist
+    fn=fs/2; %Nyquist - this doesn't get used
     % fmax=fn/2; %integrate to half the Nyquist based on observed noise spectra.  
     % ALB the sinc2 has a first dip at 50Hz Should we force the integration to stop
     % at 50Hz

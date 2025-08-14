@@ -1,11 +1,9 @@
 function [FCTDall,FCTDold] = make_FCTDall_L1(FCTDall,fctd_mat_dir)
-% 1. Add temperature/conductivity response matching code here instead of
+% 1. Divide into down and upcasts
+% 2. Add temperature/conductivity response matching code here instead of
 % where it was in FastCTD_GridData. We should save the corrected
 % temperature and conductivity in the FCTDall structure.
-% 2. Divide into down and upcasts
-% 3. Add microconductivity chi calculation here. I think it makes sense to
-% divide this into down/upcasts because fall speed will be weirdly averaged
-% at the top or bottom.
+% 3. Add microconductivity chi calculation at the FCTDall level.
 
 apply_response_matching_code = 0;
 
@@ -39,13 +37,6 @@ FCTDall = rmfield(FCTDall,'drop');
 % original data. You can come back to FCTDold if you need to compare/debug.
 FCTDold = FCTDall;
 
-%% If you're going to add chi fields, make space for them
-if isfield(FCTDall,'uConductivity')
-    FCTDall.chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
-    FCTDall.eps_chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
-    FCTDall.chi_tot = nan(size(FCTDall.time,1),size(FCTDall.time,2));
-end
-
 %% load correction factors for FCTD
 FCTD_SalCorr = load('FCTD_SalinityCorrectionFactors_toCond.mat');
 FCTD_SalCorr.GainPFit = FCTD_SalCorr.GainPFit_Dn;
@@ -76,11 +67,15 @@ for iCast=1:length(casts)
         % ALB end of hack
     end
 
+    % If chi_param exists, add it
+    if isfield(FCTDall,'chi_param')
+        myFCTD.chi_param = FCTDall.chi_param;
+    end
+
     if ~apply_response_matching_code
         fprintf('  Flag set to NOT apply response matching code.\n');
     elseif apply_response_matching_code
-        if max(FCTDall.pressure(ind))-min(FCTDall.pressure(ind))>10 && ...
-                length(ind)>2000 % ALB in the case we are using MHA new code we need at least 2000 samples, which is about 2 minutes (2000/16Hz)
+        if max(FCTDall.pressure(ind))-min(FCTDall.pressure(ind))>10 
 
             %         myFCTD.temperature = FCTD.temperature(ind);
             %         myFCTD.pressure = FCTD.pressure(ind);
@@ -197,8 +192,6 @@ for iCast=1:length(casts)
                 %physical model
                 H=1./ ( (1-2*pi*i*f*tau).*exp(i*2*pi*f*L));
 
-
-
                 if compute_spectra
                     i1=1:length(myFCTD.temperature);
                     it=i1(500:end-500); %choose a random range right now - THIS WILL CHOKE SOMETIMES
@@ -241,6 +234,7 @@ for iCast=1:length(casts)
                     pv_ph(end)=0;
 
                 end %end if compute_spectra
+
                 %2. Load in San's corrections, just for comparison.  The only bit that is
                 %strictly needed here is the creation of the myFCTD.f frequency vector.
                 good_ind = ~isnan(myFCTD.pressure);
@@ -412,27 +406,11 @@ for iCast=1:length(casts)
 
             end %end if use old_code
 
-
-
         else
-            fprintf('  Cast not long enough to process microconductivity.\n')
+            fprintf('  Cast not long enough to apply thermal mass correction.\n')
         end %end if there are at least 2000 samples
 
     end %end if apply_response_matching_code
-
-    % Add microconductivity data (we do it in this step rather than at the level of individual .mat files)
-    % Calculate chi if uConductivity exists
-    if isfield(myFCTD,'uConductivity')
-        disp('  Adding chi')
-        myFCTD.chi_param=FCTD_DefaultChiParam;
-        myFCTD.chi_param.mfile = 'add_chi_microMHA_v3.m';
-        myFCTD.chi_param.fs=320;
-        myFCTD.chi_param.min_spd=0.01; %TFO RR2410 upcast have a slow last part of up cast.
-        myFCTD.chi_param.plotit = 0;
-
-        % Convert microconductivity to chi
-        myFCTD = add_chi_microMHA_v3(myFCTD,myFCTD.chi_param);
-    end
 
     % Replace data in FCTDall
     for iField=1:length(vars2grid_list)
@@ -442,14 +420,73 @@ for iCast=1:length(casts)
     % Add OUT for debugging
     %FCTDall.OUT = myFCTD.OUT;
 
-    % If you added chi, add chi_param and chi_meta too
-    if isfield(FCTDall,'chi_tot')
-        FCTDall.chi_param = myFCTD.chi_param;
-        FCTDall.chi_meta = myFCTD.chi_meta;
-    end
-
     clear myFCTD
 end %end loop through casts
+
+
+%% Process microconductivity data to make chi fields
+
+if isfield(FCTDall,'uConductivity')
+    FCTDall.chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
+    FCTDall.eps_chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
+    FCTDall.chi_tot = nan(size(FCTDall.time,1),size(FCTDall.time,2));
+
+    % Check for gaps in data > 1 second. If there are gaps longer than 1
+    % second, divide the data and process it in pieces to avoid errors
+    % caused by interpolating over large periods.
+    idx = find(diff(FCTDall.time)>days(seconds(1)));
+    if isempty(idx)
+        ranges = [1 length(FCTDall.pressure)];
+    else
+        if isscalar(idx)
+            ranges = [1          idx;...
+                      idx+1,     length(FCTDall.pressure)];
+        elseif numel(idx)>1
+            ranges = [1               idx(1);...
+                      idx(1:end-1)+1, idx(2:end);...
+                      idx(end)+1,     length(FCTDall.pressure)];
+        end
+    end
+
+    for iR=1:length(ranges)
+        inRange = ranges(iR,1):ranges(iR,2);
+
+        fprintf('\nAdding chi to FCTDall range %3.0f of %3.0f.\n',iR,length(ranges));
+        myFCTD.time = FCTDall.time(inRange);
+        for j=1:length(vars2grid_list)
+            try
+                myFCTD.(vars2grid_list{j}) = FCTDall.(vars2grid_list{j})(inRange,:);
+            catch
+                myFCTD.(vars2grid_list{j})=nan.*inRange;
+            end
+
+        end
+
+        if length(myFCTD.pressure)>2000 % ALB in the case we are using MHA new code we need at least 2000 samples, which is about 2 minutes (2000/16Hz). Since we now do this at the level of FCTDall and not in individual .mat files, this should always be okay.
+
+            % Calculate chi if uConductivity exists
+            if ~isfield(myFCTD,'chi_param')
+                myFCTD.chi_param=FCTD_DefaultChiParam;
+                myFCTD.chi_param.min_spd=0.01; %TFO RR2410 upcast have a slow last part of up cast.
+                myFCTD.chi_param.plotit = 1;
+                myFCTD.chi_param.fs = 320;
+            end
+
+            % Convert microconductivity to chi
+            myFCTD = add_chi_microMHA_v3(myFCTD,myFCTD.chi_param);
+
+        else
+            fprintf('  Not enough data in range to process microconductivity.\n')
+        end
+    
+        % Replace data in FCTDall
+        for iField=1:length(vars2grid_list)
+            FCTDall.chi(inRange,:) = myFCTD.chi;
+            FCTDall.eps_chi(inRange,:) = myFCTD.eps_chi;
+            FCTDall.chi_tot(inRange,:) = myFCTD.chi_tot;
+        end
+    end %end loop through range
+end %end if there is microconductivity data
 
 % Output data and save concatenated file
 save(fullfile(fctd_mat_dir,'FCTDall_L1'),'FCTDall','-v7.3')
