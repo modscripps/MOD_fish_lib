@@ -1,8 +1,0 @@
-Leaving this file here so I can quickly check if I really am on the 'nicole' branch.
-
-I want to:
-1. Process epsi or fctd files from raw with .yaml files
-    - Processing reads from .modraw header and from yaml. Anything that is not available from .modraw header is taken from .yaml.
-    - .yaml points to directory for calibrations so you could easily reprocess an old dataset with an old calibration 
-    - The yaml file knows the CTD SN and the shear probe SN so there's no reason why it shouldn't point directly to those files instead of letting the matlab processing build the path to those files
-2. Turn .yaml into Setup in a way that can be read by ./fctd_epsi
