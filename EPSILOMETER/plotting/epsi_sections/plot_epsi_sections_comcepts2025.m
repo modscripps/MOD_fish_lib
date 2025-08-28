@@ -1,4 +1,11 @@
 disp('Start plotting')
+
+clims.temperature = [9 13];
+clims.salinity = [33.5 34.5];
+clims.chi = [-10 -6];
+clims.epsilon = [-10 -6];
+clims.n2 = [-6 -3];
+
 %% Plot temperature, epsilon, and chi with density contours
 data=load(fullfile(ec.Meta_Data.paths.profiles,'griddedProfiles'));
 
@@ -75,8 +82,6 @@ ax(1) =subtightplot(nr,nc,1);
 pcolorjw(data.GRID.dnum(dnummask),data.GRID.z,data.GRID.s(:,dnummask));
 hold on
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:30],'color',.5*[1 1 1]);
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'k','linewidth',2);
 caxis(clims.salinity) %TODO make it a param in RUN_Auto_process
 ylim(ax(1),zlim)
 cax1=colorbar;
@@ -93,8 +98,6 @@ ax(2) =subtightplot(nr,nc,2);
 pcolorjw(data.GRID.dnum(dnummask),data.GRID.z,data.GRID.t(:,dnummask));
 hold on
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(dnummask))
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:30],'color',.5*[1 1 1]);
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'k','linewidth',2);
 caxis(clims.temperature) 
 cax2=colorbar;
 grid(ax(2),'on');
@@ -113,8 +116,6 @@ cax3=colorbar;
 title('Epsilon 1')
 ylabel('Depth','fontname','Times New Roman','fontsize',20);
 hold on
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.5:25],'color',.5*[1 1 1]);
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,sgf*[1 1],'c','linewidth',2);
 caxis(clims.epsilon)
 ylim(ax(3),zlim)
 grid(ax(3),'on');
@@ -131,7 +132,6 @@ cax4=colorbar;
 title('Epsilon 2')
 ylabel('Depth','fontname','Times New Roman','fontsize',20);
 hold on
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask)),'k','levellist',-10:0.5:-6);
 caxis(clims.epsilon)
 ylim(ax(4),zlim)
 grid(ax(4),'on');
@@ -145,7 +145,6 @@ colormap(gca,cmocean(['curl']))
 ax(5) = subtightplot(nr,nc,5);
 pcolorjw(data.GRID.dnum(dnummask),data.GRID.z,log10(data.GRID.chi1(:,dnummask)));
 hold on
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask)),'k','levellist',-10:0.5:-5);
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(:,dnummask))
 title('Chi 1')
 cax5=colorbar;
@@ -166,7 +165,6 @@ colormap(gca,cmocean('amp'))
 ax(6) = subtightplot(nr,nc,6);
 pcolorjw(data.GRID.dnum(dnummask),data.GRID.z,log10(data.GRID.chi2(:,dnummask)));
 hold on
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask)),'k','levellist',-10:0.5:-5);
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(:,dnummask))
 title('Chi 2')
 cax6=colorbar;
@@ -183,7 +181,6 @@ ax(7) = subtightplot(nr,nc,7);
 [bfrq,vort,p_ave] = sw_bfrq(data.GRID.s,data.GRID.t,data.GRID.pr*ones(1,length(data.GRID.dnum)),12);
 pcolorjw(data.GRID.dnum(dnummask),p_ave(:,1),real(log10(bfrq(:,dnummask))));
 hold on
-[c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask)),'k','levellist',-10:0.5:-5);
 %n_fill_bathy(data.GRID.dnum(dnummask),data.GRID.bottom_depth(:,dnummask))
 title('N^2')
 cax7=colorbar;
@@ -191,13 +188,19 @@ grid(ax(7),'on');
 ylim(ax(7),zlim)
 caxis(clims.n2)
 ylabel('Depth','fontname','Times New Roman','fontsize',20)
-xlabel(datestr(nanmin(data.GRID.dnum(:)),"dd-mmm"),'fontname','Times New Roman','fontsize',20)
+%xlabel(datestr(nanmin(data.GRID.dnum(:)),"dd-mmm"),'fontname','Times New Roman','fontsize',20)
 [ax(:).YDir] = deal('reverse');
 ylabel(cax7,'N^2 s^{-2}','fontname','Times New Roman','fontsize',20)
 set(ax(7),'ydir','reverse');
 lp = linkprop([ax(:)],'xlim');
 linkaxes(ax,'xy');
 colormap(gca,cmocean('speed'))
+
+% Add density contours
+for iAx=1:length(ax)
+    axes(ax(iAx))
+    [c,ch]=contour(data.GRID.dnum(dnummask),data.GRID.z,real(data.GRID.sgth(:,dnummask))-1e3,[19:.1:30],'color',.5*[1 1 1]);
+end
 
 for a=1:length(ax)
     ax(a).XTick=data.GRID.dnum(1):2/24:data.GRID.dnum(end);
@@ -209,6 +212,9 @@ try
 catch
     datetick(ax(end),'x','keeplimits')
 end
+
+datetick(ax(end),'x','keeplimits')
+[ax(:).YLim] = deal([0 160]);
 
 % Save section plot
 save_name = fullfile(ec.Meta_Data.paths.figures,'deployment_sections');

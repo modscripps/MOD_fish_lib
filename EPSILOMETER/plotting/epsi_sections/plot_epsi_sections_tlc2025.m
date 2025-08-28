@@ -1,6 +1,5 @@
 disp('Start plotting')
 
-
 clims.temperature = [9 13];
 clims.salinity = [33.5 34.5];
 clims.chi = [-10 -6];

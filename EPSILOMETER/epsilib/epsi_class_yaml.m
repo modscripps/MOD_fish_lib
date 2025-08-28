@@ -73,11 +73,11 @@ classdef epsi_class_yaml < handle
 
                 if ~isempty(checkMD) %Meta_Data already exists
 
-                    [repeat,obj]=epsi_class_MetaData_alreadyexist(data_path,obj);
+                    [repeat,obj]=epsi_class_yaml_MetaData_alreadyexist(data_path,obj);
 
                 elseif isempty(checkMD) %Meta_Data, epsi, and ctd .mat files do not already exist
 
-                    [repeat,obj]=epsi_class_MetaData_doesnot_exist(data_path,obj);
+                    [repeat,obj]=epsi_class_yaml_MetaData_doesnot_exist(data_path,obj);
 
                 end
             end
@@ -263,8 +263,12 @@ classdef epsi_class_yaml < handle
             end %end if list of files is not empty
 
             % Get the Meta_Data from the most recently processed mat file
-            % and add it to epsi_class object.
-            obj.Meta_Data = matData.Meta_Data;
+            % and add it to epsi_class object. If this function was called
+            % after all the files have been converted to .mat, matData will
+            % be empty
+            if isfield(matData,'Meta_Data')
+                obj.Meta_Data = matData.Meta_Data;
+            end
 
         end
         %%
