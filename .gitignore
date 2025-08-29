@@ -1,5 +1,25 @@
 .DS_Store
 
+
+#macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Python
+_pycache__/
+*.py[cod]# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Python
+__pycache__/
+*.py[cod]
+
+# MATLAB autosaves
+*.asv
+
 # Prerequisites
 *.d
 
@@ -55,3 +75,4 @@ dkms.conf
 
 # Acquisition folders
 /Acquisition/fctd_epsi_acq/build/
+/Acquisition/fctd_epsi_acq/fctd_epsi.xcodeproj/
