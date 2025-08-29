@@ -25,11 +25,18 @@ paths_fields = fields(yaml.paths_from_processing_machine);
 for ii=1:length(paths_fields)
     metadata.paths.(paths_fields{ii}) = yaml.paths_from_processing_machine.(paths_fields{ii});
 end
+
 % Reorganize and rename some of the paths names for MOD_fish_lib
 metadata.paths.data = fullfile(metadata.paths.processed_data,metadata.deployment_name);
 metadata.paths.raw_incoming = metadata.paths.raw_incoming_process;
 metadata.paths = rmfield(metadata.paths,'processed_data');
 metadata.paths = rmfield(metadata.paths,'raw_incoming_process');
+
+% If raw_incoming path includes '---deployment_name---', replace it with
+% what's in meta_data.deployment_name
+idx = strfind(metadata.paths.raw_incoming)
+
+
 % Add path to yaml_file
 metadata.paths.setup_file = yaml_file;
 % Add paths to raw, mat, profiles, and figs

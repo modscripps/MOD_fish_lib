@@ -60,6 +60,7 @@ classdef epsi_class_yaml < handle
                 if ~isempty(Meta_Data_yaml_file)
                     obj.f_read_MetaYaml(Meta_Data_yaml_file);
                 else
+                    fprintf('MOD_setup_make_metadata_from_yaml failed')
                     obj.Meta_Data.paths.process_library = '';
                 end
             end
@@ -138,20 +139,21 @@ classdef epsi_class_yaml < handle
         end
 
 %%
-        function obj=f_read_MetaProcess(obj,filename)
-            if nargin==1
-                filename=fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process',...
-                    'Meta_Data_Process.txt');
-            end
-            try
-                obj.Meta_Data = epsiSetup_read_MetaProcess(obj.Meta_Data,filename);
-            catch
-                % Meta_Data = load(filename);
-                % Meta_Data=Meta_Data.Meta_Data;
-                obj.Meta_Data = load(filename,'Meta_Data');
-            end
-            % obj.Meta_Data = Meta_Data;
-        end
+        % function obj=f_read_MetaProcess(obj,filename)
+        %     if nargin==1
+        %         filename=fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process',...
+        %             'Meta_Data_Process.txt');
+        %     end
+        %     try
+        %         obj.Meta_Data = epsiSetup_read_MetaProcess(obj.Meta_Data,filename);
+        %     catch
+        %         % Meta_Data = load(filename);
+        %         % Meta_Data=Meta_Data.Meta_Data;
+        %         fprintf('epsiSetup_read_MetaProcess failed. Loading original Meta_Data')
+        %         obj.Meta_Data = load(filename,'Meta_Data');
+        %     end
+        %     % obj.Meta_Data = Meta_Data;
+        % end
 
 %%
         function obj=f_read_MetaYaml(obj,filename)
