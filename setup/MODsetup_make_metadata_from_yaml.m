@@ -34,7 +34,13 @@ metadata.paths = rmfield(metadata.paths,'raw_incoming_process');
 
 % If raw_incoming path includes '---deployment_name---', replace it with
 % what's in meta_data.deployment_name
-idx = strfind(metadata.paths.raw_incoming)
+idx = strfind(metadata.paths.raw_incoming,'---');
+if numel(idx)==2
+    new_path = fullfile(metadata.paths.raw_incoming(1:idx(1)-1),...
+                        yaml.deployment_name,...
+                        metadata.paths.raw_incoming(idx+4:end));
+    metadata.paths.raw_incoming = new_path;
+end
 
 
 % Add path to yaml_file
