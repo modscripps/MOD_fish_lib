@@ -81,10 +81,17 @@ if isclassfield(obj,'epsi') && ~isempty(obj.epsi)
 %    
     
     % s1 and s2
-    plot(ax(2),time_array.epsi,detrend(obj.epsi.s1_volt,'constant'),'.','Color',cols.s1,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s1 -rms %1.1f',rms(obj.epsi.s1_volt)))
+    try
+        plot(ax(2),time_array.epsi,detrend(obj.epsi.s1_volt,'constant'),'.','Color',cols.s1,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s1 -rms %1.1f',rms(obj.epsi.s1_volt)))
+    catch
+        plot(ax(2),time_array.epsi,detrend(obj.epsi.f1_volt,'constant'),'.','Color',cols.s1,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s1 -rms %1.1f',rms(obj.epsi.f1_volt)))
+    end
     hold(ax(2),'on')
-    plot(ax(2),time_array.epsi,detrend(obj.epsi.s2_volt,'constant'),'.','Color',cols.s2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s2 - rms%1.1f',rms(obj.epsi.s2_volt)))
-
+    try
+        plot(ax(2),time_array.epsi,detrend(obj.epsi.s2_volt,'constant'),'.','Color',cols.s2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s2 - rms%1.1f',rms(obj.epsi.s2_volt)))
+    catch
+        plot(ax(2),time_array.epsi,detrend(obj.epsi.c1_volt,'constant'),'.','Color',cols.s2,'LineWidth',obj.plot_properties.LineWidth,'displayname',sprintf('s2 - rms%1.1f',rms(obj.epsi.c1_volt)))
+    end
     % a1
     plot(ax(3),time_array.epsi,obj.epsi.a1_g,'.','Color',cols.a1,'LineWidth',obj.plot_properties.LineWidth,'displayname','a1')
     
@@ -105,10 +112,18 @@ if isclassfield(obj,'epsi') && ~isempty(obj.epsi)
     plot(ax(1),time_array.epsi(bad1),obj.epsi.t1_volt(bad1)-nanmean(obj.epsi.t1_volt(bad1)),'xr');
     plot(ax(1),time_array.epsi(bad2),obj.epsi.t2_volt(bad2)-nanmean(obj.epsi.t2_volt(bad2)),'xr');
     
-    bad1 = obj.epsi.s1_volt>2.49 | obj.epsi.s1_volt<-2.49;
-    bad2 = obj.epsi.s2_volt>2.49 | obj.epsi.s2_volt<-2.49;
-    plot(ax(2),time_array.epsi(bad1),detrend(obj.epsi.s1_volt(bad1),'constant'),'xr');
-    plot(ax(2),time_array.epsi(bad2),detrend(obj.epsi.s2_volt(bad2),'constant'),'xr');
+    try
+        bad1 = obj.epsi.s1_volt>2.49 | obj.epsi.s1_volt<-2.49;
+        bad2 = obj.epsi.s2_volt>2.49 | obj.epsi.s2_volt<-2.49;
+        plot(ax(2),time_array.epsi(bad1),detrend(obj.epsi.s1_volt(bad1),'constant'),'xr');
+        plot(ax(2),time_array.epsi(bad2),detrend(obj.epsi.s2_volt(bad2),'constant'),'xr');
+    catch
+        bad1 = obj.epsi.f1_volt>2.49 | obj.epsi.f1_volt<-2.49;
+        bad2 = obj.epsi.c1_volt>2.49 | obj.epsi.c1_volt<-2.49;
+        plot(ax(2),time_array.epsi(bad1),detrend(obj.epsi.f1_volt(bad1),'constant'),'xr');
+        plot(ax(2),time_array.epsi(bad2),detrend(obj.epsi.c1_volt(bad2),'constant'),'xr');
+    end
+
 
 end
 
@@ -121,7 +136,7 @@ if isclassfield(obj,'ctd')
         plot(ax(5),time_array.ctd,obj.ctd.T,'.','Color',cols.T,'LineWidth',obj.plot_properties.LineWidth);
         
         % Salinity
-        plot(ax(6),time_array.ctd,obj.ctd.S,'.','Color',cols.S,'LineWidth',obj.plot_properties.LineWidth);
+        plot(ax(6),time_array.ctd,obj.ctd.C,'.','Color',cols.S,'LineWidth',obj.plot_properties.LineWidth);
 
         % Depth and fall speed
        fall_speed = movmean(obj.ctd.dzdt,100,'omitmissing');
@@ -229,6 +244,7 @@ end
 %% AXES
 
 % Time axes label and limits with 10-sec tick marks
+if ~isempty(obj.epsi)
 if isfield(obj.epsi,'dnum') && ~all(isnan(obj.epsi.dnum)) && replaceData
     sec10 = 60/(3600*24);
     % If plotting in realtime, limit view
@@ -246,19 +262,20 @@ elseif ~replaceData
     [ax(:).XLim] = deal([min(obj.epsi.dnum),max(obj.epsi.dnum)]);
     try
         datetick(ax(9),'x','MM:SS','keepticks')
-        ax(9).XLabel.String = 'MM:SS';
+        ax(9).XLabel.String = [datestr(obj.epsi.dnum(1),'dd-mmm-yyyy, HH'),'hr (MM:SS)'];
     catch
     end
 else
     ax(9).XLabel.String = 'epsitime (s)';
 end
-
-% Title, ylabels, and font size
-if isfield(obj,'Meta_Data')
-    title(ax(1),sprintf('%s-%s-%s',strrep(obj.Meta_Data.mission,'_','\_'),...
-        strrep(obj.Meta_Data.vehicle_name,'_','\_'),...
-        strrep(obj.Meta_Data.deployment,'_','\_')));
 end
+
+% % Title, ylabels, and font size
+% if isfield(obj,'Meta_Data')
+%     title(ax(1),sprintf('%s-%s-%s',strrep(obj.Meta_Data.mission,'_','\_'),...
+%         strrep(obj.Meta_Data.vehicle_name,'_','\_'),...
+%         strrep(obj.Meta_Data.deployment,'_','\_')));
+% end
 
 % Labels
 [ax(1:8).XTickLabel]=deal('');
@@ -267,7 +284,7 @@ ylabel(ax(1),'FPO7 [Volt]');
 ylabel(ax(2),'Shear [Volt]');
 ylabel(ax(3),'Accel [g]');
 ylabel(ax(5),'T [°C]');
-ylabel(ax(6),'S');
+ylabel(ax(6),'C');
 ylabel(ax(7),'dz/dt [m/s]'); % ALB TODO add z also 
 ylabel(ax(8),'P [db]');
 ylabel(ax(9),'Rodh [mu-g/L]');
@@ -328,7 +345,7 @@ figure('units','inches','position',[0 0 10 13])
 
 
     gap = [0.02 0.025];
-    margV = [0.045 0.035];
+    margV = [0.08 0.035];
     margH = [0.12 0.08];
 
     ax(1)=subtightplot(8,1,1,gap,margV,margH); %shear
