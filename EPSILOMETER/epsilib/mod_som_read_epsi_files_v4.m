@@ -139,57 +139,63 @@ processed_data_types = {};
 no_data_types = {};
 
 %% Process setup SOM3 data
-if Meta_Data.PROCESS.use_file_headers 
-if isempty(ind_som_start)
-    no_data_types = [no_data_types,'setup'];
-    setup=[];
-    %setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
-    %Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
-    Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
-else
-    % settings=str(ind_som_start+32:ind_som_stop-5);
-    str_setup=str(ind_som_start:ind_som_stop);
-    setup=mod_som_read_setup_from_raw(str_setup);
-    Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
+ if Meta_Data.PROCESS.use_file_headers
+    if isempty(ind_som_start)
+        no_data_types = [no_data_types,'setup'];
+        setup=[];
+        %setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
+        %Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
+        Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
+    else
+        % settings=str(ind_som_start+32:ind_som_stop-5);
+        str_setup=str(ind_som_start:ind_som_stop);
+        setup=mod_som_read_setup_from_raw(str_setup);
+        Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
 
-    if ~isempty(epsi_probes)
-        % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
-        % calibration value for every profile. Since we're only at the .mat
-        % stage here, don't set it. Eventually, once we understand dTdV a bit
-        % better, we will have a calibration file for each probe.
-        epsi_probes.ch1.cal = 0;
-        epsi_probes.ch2.cal = 0;
+        if ~isempty(epsi_probes)
+            % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
+            % calibration value for every profile. Since we're only at the .mat
+            % stage here, don't set it. Eventually, once we understand dTdV a bit
+            % better, we will have a calibration file for each probe.
+            epsi_probes.ch1.cal = 0;
+            epsi_probes.ch2.cal = 0;
 
-        Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
-        Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
-        Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
-        Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
-        Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
-        Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
-        if epsi_probes.ch3.cal~=0
-            Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
-            Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
-        else
-            AFE=get_shear_calibration(Meta_Data.AFE);
-            Meta_Data.AFE=AFE;
-            %ALB epsi case
-            if isfield(Meta_Data.AFE.s1,'Sv')
-                Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
-                Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
+            Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
+            Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
+            Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
+            Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
+            Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
+            Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
+            if epsi_probes.ch3.cal~=0
+                Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
+                Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
             else
-                %ALB fctd case
-                % nothing to do so far
+                AFE=get_shear_calibration(Meta_Data.AFE);
+                Meta_Data.AFE=AFE;
+                %ALB epsi case
+                if isfield(Meta_Data.AFE.s1,'Sv')
+                    Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
+                    Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
+                else
+                    %ALB fctd case
+                    % nothing to do so far
+                end
             end
         end
     end
-   end
- end %end if use_file_headers
-if ~isempty(ind_dcal_start)
-    % Read SBE tcal from
-    str_dcal=str(ind_dcal_start:ind_dcal_stop-5);
-    SBEcal=get_CalSBE_v2(str_dcal);
-    Meta_Data.CTD.cal=SBEcal;
-end
+    if ~isempty(ind_dcal_start)
+        % Read SBE tcal from
+        str_dcal=str(ind_dcal_start:ind_dcal_stop-5);
+        SBEcal=get_CalSBE_v2(str_dcal);
+        Meta_Data.CTD.cal=SBEcal;
+    end
+
+else
+    % Otherwise, read CTD calibration from calibrations folder
+    SBEcal=get_CalSBE(fullfile(Meta_Data.paths.calibrations.ctd,[Meta_Data.CTD.SN '.cal']));
+end %end if use_file_headers
+
+
 
 %% GPS data We have to start with GPS because we need latitude
 if isempty(ind_gps_start)
@@ -856,88 +862,88 @@ end
 
 %% Vector navigation
 try
-if isempty(ind_vnav_start)
-    no_data_types = [no_data_types,'vnav'];
-    vnav=[];
-else
-    processed_data_types = [processed_data_types,'vnav'];
-    %disp('processing vnav data')
+    if isempty(ind_vnav_start)
+        no_data_types = [no_data_types,'vnav'];
+        vnav=[];
+    else
+        processed_data_types = [processed_data_types,'vnav'];
+        %disp('processing vnav data')
 
-    % VNAV-specific quantities
-    % ---------------------------
-    vecnav.data.n_blocks = numel(ind_vnav_start);
-    vecnav.data.recs_per_block = 1;
-    vecnav.data.n_recs = vecnav.data.n_blocks*vecnav.data.recs_per_block;
+        % VNAV-specific quantities
+        % ---------------------------
+        vecnav.data.n_blocks = numel(ind_vnav_start);
+        vecnav.data.recs_per_block = 1;
+        vecnav.data.n_recs = vecnav.data.n_blocks*vecnav.data.recs_per_block;
 
-    ind_time_start = ind_vnav_start-16;
-    ind_time_stop  = ind_vnav_start-1;
+        ind_time_start = ind_vnav_start-16;
+        ind_time_stop  = ind_vnav_start-1;
 
-    % Process VNAV data
-    % ---------------------------
-    % Pre-allocate space for data
-    vnav_timestamp   = nan(vecnav.data.n_recs,1);
-    %vnav.time_s and vnav.dnum will be created from vnav_timestamp once
-    %all its records are filled
-    vnav.compass = nan(vecnav.data.n_recs,3);
-    vnav.acceleration = nan(vecnav.data.n_recs,3);
-    vnav.gyro = nan(vecnav.data.n_recs,3);
-    vnav.yaw = nan(vecnav.data.n_recs,1);
-    vnav.pitch = nan(vecnav.data.n_recs,1);
-    vnav.roll = nan(vecnav.data.n_recs,1);
+        % Process VNAV data
+        % ---------------------------
+        % Pre-allocate space for data
+        vnav_timestamp   = nan(vecnav.data.n_recs,1);
+        %vnav.time_s and vnav.dnum will be created from vnav_timestamp once
+        %all its records are filled
+        vnav.compass = nan(vecnav.data.n_recs,3);
+        vnav.acceleration = nan(vecnav.data.n_recs,3);
+        vnav.gyro = nan(vecnav.data.n_recs,3);
+        vnav.yaw = nan(vecnav.data.n_recs,1);
+        vnav.pitch = nan(vecnav.data.n_recs,1);
+        vnav.roll = nan(vecnav.data.n_recs,1);
 
-    %     % Grab the block of data starting with the header
-    %     vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB));
-    %     %Commented out and moved below by Bethan June 26
-    Lsample=length(str(ind_vnav_start(iB):ind_vnav_stop(iB)));
+        %     % Grab the block of data starting with the header
+        %     vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB));
+        %     %Commented out and moved below by Bethan June 26
+        Lsample=length(str(ind_vnav_start(iB):ind_vnav_stop(iB)));
 
-    % Loop through data blocks and parse strings
-    for iB=1:vecnav.data.n_blocks
+        % Loop through data blocks and parse strings
+        for iB=1:vecnav.data.n_blocks
 
-        % Grab the block of data starting with the header
-        vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB)); %Moved here by Bethan June 26
-        % For the vecnav, we use the hexadecimal timestamp that comes before
-        % $VNMAR
-        % vnav_timestamp(iB) = hex2dec(str(ind_time_start(iB):ind_time_stop(iB)));
-        vnav_timestamp(iB) = hex2dec(str(ind_vnav_start(iB)-16:ind_vnav_start(iB)-1));
+            % Grab the block of data starting with the header
+            vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB)); %Moved here by Bethan June 26
+            % For the vecnav, we use the hexadecimal timestamp that comes before
+            % $VNMAR
+            % vnav_timestamp(iB) = hex2dec(str(ind_time_start(iB):ind_time_stop(iB)));
+            vnav_timestamp(iB) = hex2dec(str(ind_vnav_start(iB)-16:ind_vnav_start(iB)-1));
 
-        % Get the data after the header
-        vnav_block_data = str(ind_vnav_start(iB):ind_vnav_stop(iB)-tag.chksum.length);
+            % Get the data after the header
+            vnav_block_data = str(ind_vnav_start(iB):ind_vnav_stop(iB)-tag.chksum.length);
 
-        % Split the data into parts
-        data_split = strsplit(vnav_block_data,',');
+            % Split the data into parts
+            data_split = strsplit(vnav_block_data,',');
 
-        % Compass, acceleration, and gyro each have x, y, and z components
-        switch Lsample
-            case 38 %yaw pitch roll
-                vnav.yaw(iB)   = str2double(data_split{2});
-                vnav.pitch(iB) = str2double(data_split{3});
-                vnav.roll(iB)  = str2double(data_split{4});
-            otherwise
-                for iC=1:3
-                    vnav.compass(iB,iC)=str2double(data_split{1,iC+1}); %Compass (x,y,z) units = gauss
-                    vnav.acceleration(iB,iC)=str2double(data_split{1,iC+4}); %Acceleration (x,y,x) units = m/s^2
-                    vnav.gyro(iB,iC)=str2double(data_split{1,iC+7}); %Gyro (x,y,z) units = rad/s
-                end
+            % Compass, acceleration, and gyro each have x, y, and z components
+            switch Lsample
+                case 38 %yaw pitch roll
+                    vnav.yaw(iB)   = str2double(data_split{2});
+                    vnav.pitch(iB) = str2double(data_split{3});
+                    vnav.roll(iB)  = str2double(data_split{4});
+                otherwise
+                    for iC=1:3
+                        vnav.compass(iB,iC)=str2double(data_split{1,iC+1}); %Compass (x,y,z) units = gauss
+                        vnav.acceleration(iB,iC)=str2double(data_split{1,iC+4}); %Acceleration (x,y,x) units = m/s^2
+                        vnav.gyro(iB,iC)=str2double(data_split{1,iC+7}); %Gyro (x,y,z) units = rad/s
+                    end
+            end
+
         end
 
-    end
+        % If timestamp has values like 1.6e12, it is in milliseconds since Jan
+        % 1, 1970. Otherwise it's in milliseconds since the start of the record
+        if median(vnav_timestamp)>1e9
+            % time_s - seconds since 1970
+            % dnum - matlab datenum
+            [vnav.time_s,vnav.dnum] = convert_timestamp(vnav_timestamp);
+        else
+            % time_s - seconds since power on
+            vnav.time_s = vnav_timestamp./1000;
+            vnav.dnum = Meta_Data.start_dnum + days(seconds(vnav.time_s));
+        end
 
-    % If timestamp has values like 1.6e12, it is in milliseconds since Jan
-    % 1, 1970. Otherwise it's in milliseconds since the start of the record
-    if median(vnav_timestamp)>1e9
-        % time_s - seconds since 1970
-        % dnum - matlab datenum
-        [vnav.time_s,vnav.dnum] = convert_timestamp(vnav_timestamp);
-    else
-        % time_s - seconds since power on
-        vnav.time_s = vnav_timestamp./1000;
-        vnav.dnum = Meta_Data.start_dnum + days(seconds(vnav.time_s));
-    end
+        % Order vnav fields
+        vnav = orderfields(vnav,{'dnum','time_s','compass','acceleration','gyro','yaw','pitch','roll'});
 
-    % Order vnav fields
-    vnav = orderfields(vnav,{'dnum','time_s','compass','acceleration','gyro','yaw','pitch','roll'});
-
-end %end loop if there is vnav data
+    end %end loop if there is vnav data
 catch
     warning('l.1057 mod_som_read_epai_files_v4.m VNAV chokes')
 end
@@ -1987,7 +1993,7 @@ else
                     fluor.chla(n_rec,1) = (fluor.chla(n_rec,1)./hex2dec('FFFF')-.5)./50;
                     fluor.fDOM(n_rec,1) = (fluor.fDOM(n_rec,1)./hex2dec('FFFF')-.5)./1000;
 
-                    
+
                 catch
                     fluor.bb(n_rec,1)   = nan;
                     fluor.chla(n_rec,1) = nan;
@@ -2229,7 +2235,7 @@ end
 header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
 
 % Check if CTD calibration data are listed in format 1
-idx_head_format1=strfind(str,'SERIALNO'); 
+idx_head_format1=strfind(str,'SERIALNO');
 if ~isempty(idx_head_format1)
     str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
 else
@@ -2237,7 +2243,7 @@ else
 end
 
 % Check if CTD calibration data are listed in format 2 (comes directly from fish)
-idx_head_format2=strfind(str,'SERIAL NO'); 
+idx_head_format2=strfind(str,'SERIAL NO');
 if ~isempty(idx_head_format2)
     str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
 else
@@ -2264,90 +2270,90 @@ if ~isempty(str_SBEcalcoef_header2)
     SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
     Meta_Data.CTD.cal=SBEcal;
 
-% If you don't have format 2, but you have format 1, use that
+    % If you don't have format 2, but you have format 1, use that
 elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
     SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
     Meta_Data.CTD.cal=SBEcal;
 
-% If you don't have format 2 or 1, try looking in a few files before or
-% after the current one
+    % If you don't have format 2 or 1, try looking in a few files before or
+    % after the current one
 elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
     fprintf('There is no CTD calibration data in the header of %s. \n',filename);
-        %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
-        %files
-        % NC edited to search through previous 10 OR next 10 (for
-        % post-processing)
+    %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
+    %files
+    % NC edited to search through previous 10 OR next 10 (for
+    % post-processing)
 
-        found_data = 0; %Initialize
+    found_data = 0; %Initialize
 
-        % List files in raw directory
-        listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
-        list_fullfilename = fullfile({listfile.folder}, {listfile.name});
-        idx_file = find(strcmp(list_fullfilename, filename));
+    % List files in raw directory
+    listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
+    list_fullfilename = fullfile({listfile.folder}, {listfile.name});
+    idx_file = find(strcmp(list_fullfilename, filename));
 
-        % Determine the range of indices to search
-        num_files = length(list_fullfilename);
-        num_before = min(10, idx_file - 1);  % Max files before the current file
-        num_after = min(10, num_files - idx_file); % Max files after the current file
-        search_indices = [idx_file-num_before : idx_file-1, ...
-                          idx_file+1 : idx_file+num_after];
+    % Determine the range of indices to search
+    num_files = length(list_fullfilename);
+    num_before = min(10, idx_file - 1);  % Max files before the current file
+    num_after = min(10, num_files - idx_file); % Max files after the current file
+    search_indices = [idx_file-num_before : idx_file-1, ...
+        idx_file+1 : idx_file+num_after];
 
-        % Loop through surrounding files
-        for idx = search_indices
-            fprintf("  Trying file: %s \n", listfile(idx).name);
+    % Loop through surrounding files
+    for idx = search_indices
+        fprintf("  Trying file: %s \n", listfile(idx).name);
 
-            fid1 = fopen(list_fullfilename{idx});
-            if fid1 == -1
-                fprintf("    - Skipping (unable to open) \n");
-                continue; % Skip if file cannot be opened
-            end
-            str1 = fread(fid1, '*char')';
-            fclose(fid1);
+        fid1 = fopen(list_fullfilename{idx});
+        if fid1 == -1
+            fprintf("    - Skipping (unable to open) \n");
+            continue; % Skip if file cannot be opened
+        end
+        str1 = fread(fid1, '*char')';
+        fclose(fid1);
 
-            % Extract CTD calibration coefficients
-            header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
-            if isempty(header_length)
-                fprintf("    - Skipping (no valid header found) \n");
-                continue; % Skip if header is not found
-            end
+        % Extract CTD calibration coefficients
+        header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
+        if isempty(header_length)
+            fprintf("    - Skipping (no valid header found) \n");
+            continue; % Skip if header is not found
+        end
 
-            str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
+        str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
 
-            if ~isempty(str_SBEcalcoef_header1)
-                % Extract serial number from the file
-                extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
-                if extracted_sn == SBE_sn
-                    SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
-                    Meta_Data.CTD.cal=SBEcal;
-                    fprintf("    - Found matching SBE calibration data \n");
-                    found_data = 1;
-                    break; % Exit loop once a valid matching file is found
-                else
-                    fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
-                end
+        if ~isempty(str_SBEcalcoef_header1)
+            % Extract serial number from the file
+            extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
+            if extracted_sn == SBE_sn
+                SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+                Meta_Data.CTD.cal=SBEcal;
+                fprintf("    - Found matching SBE calibration data \n");
+                found_data = 1;
+                break; % Exit loop once a valid matching file is found
             else
-                fprintf("    - Skipping (no calibration data in header) \n");
+                fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
             end
-        end %End loop through surrounding files
+        else
+            fprintf("    - Skipping (no calibration data in header) \n");
+        end
+    end %End loop through surrounding files
 
-% If you can't find CTD calibration data in any of the previous or future
-% files, your last chance is to pull calibration values from the
-% calibration directory.
-if found_data==0
-    if ~isempty(SBE_sn)
+    % If you can't find CTD calibration data in any of the previous or future
+    % files, your last chance is to pull calibration values from the
+    % calibration directory.
+    if found_data==0
+        if ~isempty(SBE_sn)
             cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
             Meta_Data.CTD.name = 'SBE49';
             Meta_Data.CTD.SN = SBE_sn;
             SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
             Meta_Data.CTD.cal=SBEcal;
             fprintf("  Added calibration data from %s", cal_directory);
-    else
+        else
             warning('Failed to find CTD calibration data for %s. Continuing to process with an empty SBE calibration structure', filename)
             % Continue processing with an empty SBE calibration structure
             SBEcal = get_CalSBE_nan;
             Meta_Data.CTD.cal=SBEcal;
+        end
     end
-end
 
 end %end trying to find CTD calibration data
 

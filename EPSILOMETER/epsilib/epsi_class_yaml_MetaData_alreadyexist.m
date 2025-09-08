@@ -18,6 +18,7 @@ disp('--- epsi_class_yaml_MetaData_alreadyexist.m ---')
 
                     % Meta_Data includes the path to the epsi processing
                     % library, but if the data was processed on another
+            
                     % machine, you won't have access to it.
                     % Find the epsi library on your machine and add it as process path
                     spltpath=strsplit(path,':');
@@ -26,7 +27,7 @@ disp('--- epsi_class_yaml_MetaData_alreadyexist.m ---')
                         strfind(x,'epsilib'),spltpath, ...
                         'UniformOutput',false))};
                     obj.Meta_Data.paths.process_library=fileparts(epsilib_path);
-                    obj.Meta_Data.paths.calibration = fullfile(obj.Meta_Data.paths.process_library,'CALIBRATION','ELECTRONICS');
+                    obj.Meta_Data.paths.calibration = obj.Meta_Data.paths.calibrations.ctd;
 
                     % Always redefine the data path as the current
                     % directory or the directory you input
