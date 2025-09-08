@@ -27,7 +27,8 @@ disp('--- epsi_class_yaml_MetaData_alreadyexist.m ---')
                         strfind(x,'epsilib'),spltpath, ...
                         'UniformOutput',false))};
                     obj.Meta_Data.paths.process_library=fileparts(epsilib_path);
-                    obj.Meta_Data.paths.calibration = obj.Meta_Data.paths.calibrations.ctd;
+                    mod_fish_lib_path = fileparts( obj.Meta_Data.paths.process_library);
+                    obj.Meta_Data.paths.calibration = fullfile(mod_fish_lib_path,'Acquisition','SBECAL');
 
                     % Always redefine the data path as the current
                     % directory or the directory you input
