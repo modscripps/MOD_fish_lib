@@ -73,7 +73,11 @@ for iProf=1:length(PressureTimeseries.startprof)
         Profile = obj.f_cropTimeseries(tMin,tMax);
         Profile.profNum = iProf;
 
-        % Calibrate FPO7 against temperaturer
+        % Calibrate FPO7 against temperature
+        if ~isfield(Profile.Meta_Data.AFE.t1,'cal') || ~isfield(Profile.Meta_Data.AFE.t2,'cal')
+            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
+            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+        end
         if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0
             Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
         end

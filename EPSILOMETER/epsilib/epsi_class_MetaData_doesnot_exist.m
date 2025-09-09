@@ -27,7 +27,10 @@ rmpath(genpath(fullfile(obj.Meta_Data.paths.process_library,'archived_scripts'))
 
 %%
 % Add calibrations path
-obj.Meta_Data.paths.calibration = fullfile(obj.Meta_Data.paths.process_library,'CALIBRATION','ELECTRONICS');
+mod_fish_lib = fileparts(obj.Meta_Data.paths.process_library);
+obj.Meta_Data.paths.calibrations.ctd = fullfile(mod_fish_lib,'Acquisition','SBECAL');
+obj.Meta_Data.paths.calibrations.shear = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
+obj.Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','FPO7');
 %%
 % Read PROCESS Meta_Data from text file -
 % if one is not specified, use the default

@@ -1,6 +1,6 @@
 function epsiPlot_profile_and_spectra(obj,id_profile)
 
-filename=sprintf('Profile%03i.mat',id_profile);
+filename=sprintf('Profile%04i.mat',id_profile);
 rootpath=strsplit(pwd,'/');
 filepath= ...
     fullfile(obj.Meta_Data.paths.profiles,filename);
@@ -168,7 +168,7 @@ axis(ax(a),'ij')
 ax(a).FontSize=strfontsize;
 ax(a).FontName='Time New Roman';
 str_title=sprintf('%s %s Profile %i ',            ...
-                  Profile.Meta_Data.mission,      ...
+                  Profile.Meta_Data.deployment_name,      ...
                   Profile.Meta_Data.vehicle_name, ...
                   Profile.profNum);
 

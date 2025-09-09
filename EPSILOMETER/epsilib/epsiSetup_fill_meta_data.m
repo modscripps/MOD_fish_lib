@@ -74,9 +74,10 @@ Meta_Data.AFE.name=wh_AFE;
 Meta_Data.AFE.rev='EFErev4'; %TODO get info from config file
 Meta_Data.AFE.SN='000';      %TODO get info from config file
 
-% Meta_Data.paths.calibration=fullfile('..','CALIBRATION',[Meta_Data.CTL.rev '_' ...
-%     Meta_Data.CTL.SN '-' Meta_Data.AFE.rev '_' Meta_Data.AFE.SN]);
-Meta_Data.paths.calibration=fullfile(Meta_Data.paths.process_library,'CALIBRATION','ELECTRONICS');
+mod_fish_lib = fileparts(epsilib_path);
+Meta_Data.paths.calibrations.ctd = fullfile(mod_fish_lib,'Acquisition','SBECAL');
+Meta_Data.paths.calibrations.shear = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
+Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','FPO7');
 %% set process parameters
 Meta_Data.PROCESS.nb_channels = setup.(wh_AFE).nb_channel;
 Meta_Data.PROCESS.channels=cellfun(@(x) x.name, setup.(wh_AFE).sensors, 'un',0);

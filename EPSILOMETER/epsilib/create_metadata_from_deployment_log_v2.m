@@ -21,7 +21,11 @@ epsilib_path=spltpath{~cellfun(@isempty, ...
                            
 Meta_Data.paths.process_library=fileparts(epsilib_path);
 Meta_Data.paths.data=pwd;
-Meta_Data.paths.calibration = fullfile(Meta_Data.paths.process_library,'CALIBRATION','ELECTRONICS');
+mod_fish_lib = fileparts(Meta_Data.paths.process_library);
+Meta_Data.paths.calibrations.ctd = fullfile(mod_fish_lib,'Acquisition','SBECAL');
+Meta_Data.paths.calibrations.shear = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
+Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','FPO7');
+
 
 fid=fopen(filename);
 header=fgetl(fid);

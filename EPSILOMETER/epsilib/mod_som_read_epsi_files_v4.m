@@ -193,6 +193,7 @@ no_data_types = {};
 else
     % Otherwise, read CTD calibration from calibrations folder
     SBEcal=get_CalSBE(fullfile(Meta_Data.paths.calibrations.ctd,[Meta_Data.CTD.SN '.cal']));
+    Meta_Data.CTD.cal=SBEcal;
 end %end if use_file_headers
 
 

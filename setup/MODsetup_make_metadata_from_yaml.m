@@ -88,7 +88,20 @@ metadata.PROCESS.nb_channels = numel(metadata.PROCESS.channels);
 metadata.PROCESS.latitude = yaml.latitude;
 metadata.PROCESS.profile_dir = yaml.profiling_direction;
 metadata.PROCESS.Fs_epsi = yaml.afe.sample_rate;
+metadata.PROCESS.Fs_ctd = yaml.ctd.sample_rate;
 metadata.PROCESS.nfft = yaml.spectral.nfft;
+metadata.PROCESS.nfftc = yaml.spectral.nfftc;
+metadata.PROCESS.dof = yaml.spectral.dof;
+metadata.PROCESS.dof_coherence = yaml.spectral.dof_coherence;
+metadata.PROCESS.dz = yaml.spectral.dz;
+metadata.PROCESS.fc1 = yaml.spectral.frequency_cutoff_1;
+metadata.PROCESS.fc2 = yaml.spectral.frequency_cutoff_2;
+metadata.PROCESS.ctd_fc = yaml.spectral.ctd_frequency_cutoff;
+metadata.PROCESS.movmean_window_time = yaml.spectral.movmean_window_time;
+metadata.PROCESS.adjustTemp = yaml.spectral.adjust_temp;
+
+metadata.PROCESS.Prmin = @(x)min(x)+0.2*range(x);
+metadata.PROCESS.Prmax = @(x)min(x)+0.8*range(x);
 
 % Make 'timeseries' from 'channels'. (Add _g to acceleration channels and
 for n=1:numel(metadata.PROCESS.channels)

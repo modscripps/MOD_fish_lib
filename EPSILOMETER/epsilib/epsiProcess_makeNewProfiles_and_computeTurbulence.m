@@ -86,6 +86,10 @@ for iProf=1:length(PressureTimeseries.startprof)
         Profile.profNum = iProf;
 
         %ALB I do not know yet how to deal with dTdV with the new design. 
+         if ~isfield(Profile.Meta_Data.AFE.t1,'cal') || ~isfield(Profile.Meta_Data.AFE.t2,'cal')
+            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
+            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+         end
         if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0
             % warning(sprintf(['\n !!!!!!!!! \n'...
             %     'The calibration value (dTdV) for both temperature probes is 0.\n',...

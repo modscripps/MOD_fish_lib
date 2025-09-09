@@ -82,9 +82,9 @@ end
 
 switch temp_circuit
     case 'Tdiff'
-        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibration,'FPO7_noise.mat'),'n0','n1','n2','n3');
+        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibrations.fpo7,'FPO7_noise.mat'),'n0','n1','n2','n3');
     otherwise
-        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibration,'FPO7_notdiffnoise.mat'),'n0','n1','n2','n3');
+        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibrations.fpo7,'FPO7_notdiffnoise.mat'),'n0','n1','n2','n3');
 end
 
  %% Cut profile to compute coherence

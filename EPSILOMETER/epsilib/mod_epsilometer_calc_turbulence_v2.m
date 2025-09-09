@@ -51,6 +51,30 @@ if isfield(Profile_or_profNum,'gps') && ~isempty(Profile_or_profNum.gps)
     Profile.longitude = mean(Profile_or_profNum.gps.longitude(1:min([idx,nGPS])),'omitmissing');
 end
 
+
+ %ALB I do not know yet how to deal with dTdV with the new design. 
+ if ~isfield(Profile.Meta_Data.AFE.t1,'cal') || ~isfield(Profile.Meta_Data.AFE.t2,'cal')
+            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
+            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+ end
+if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0 
+            % warning(sprintf(['\n !!!!!!!!! \n'...
+            %     'The calibration value (dTdV) for both temperature probes is 0.\n',...
+            %     'Run ec.f_calibrateTemperature or process_calibrate_dTdV.m before continuing.\n'...
+            %     ' !!!!!!!!! \n',...
+            %     'Hit any key to continue or ctrl-C to stop processing.']))
+            % warning(sprintf(['\n !!!!!!!!! \n'...
+            %     'The calibration value (dTdV) for one or both temperature probes is 0.\n',...
+            %     'Running ec.f_calibrateTemperature before continuing.\n'...
+            %     ' !!!!!!!!! \n']))
+
+
+            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
+            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+
+            % pause
+ end
+
 %% Get epsi sampling frequency
 try
     Fs_epsi = Meta_Data.AFE.FS;
@@ -153,16 +177,16 @@ end
 
 switch temp_circuit
     case 'Tdiff'
-        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibration,'FPO7_noise.mat'),'n0','n1','n2','n3');
+        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibrations.fpo7,'FPO7_noise.mat'),'n0','n1','n2','n3');
     otherwise
-        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibration,'FPO7_notdiffnoise.mat'),'n0','n1','n2','n3');
+        Meta_Data.PROCESS.FPO7noise = load(fullfile(Meta_Data.paths.calibrations.fpo7,'FPO7_notdiffnoise.mat'),'n0','n1','n2','n3');
 end
 
 %% Cut profile to compute coherence
 % Find max and min pressure
 % NC rmoutliers only works for Matlab2018b and newer. DEV3 has Matlab 2018a
-% Prmin = Meta_Data.PROCESS.Prmin(rmoutliers(Profile.ctd.P));
-% Prmax = Meta_Data.PROCESS.Prmax(rmoutliers(Profile.ctd.P));
+%Prmin = Meta_Data.PROCESS.Prmin(rmoutliers(Profile.ctd.P));
+%Prmax = Meta_Data.PROCESS.Prmax(rmoutliers(Profile.ctd.P));
 Prmin = Meta_Data.PROCESS.Prmin(Profile.ctd.P);
 Prmax = Meta_Data.PROCESS.Prmax(Profile.ctd.P);
 
