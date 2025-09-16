@@ -63,8 +63,7 @@ if ~isempty(myFileIdx)
         try
             MatData=load([Meta_Data.paths.mat_data '/' TimeIndex.filenames{myFileIdx} '.mat']);
             % if (MatData.Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t1.cal~=0)
-            if (sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0 && ...
-                sum(str2double(Meta_Data.AFE.t1.SN))~=0)    
+            if sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0    
                 MatData.Meta_Data.AFE=Meta_Data.AFE;
             end
             use MatData;
@@ -77,7 +76,7 @@ if ~isempty(myFileIdx)
         % Load the first file and name the structures 'Out'
         try
             MatData=load([Meta_Data.paths.mat_data '/' TimeIndex.filenames{myFileIdx(1)} '.mat']);
-            if (MatData.Meta_Data.AFE.t1.cal==0 && Meta_Data.AFE.t1.cal~=0)
+            if sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0   
                 MatData.Meta_Data.AFE=Meta_Data.AFE;
             end
         catch
@@ -116,8 +115,7 @@ if ~isempty(myFileIdx)
         for iF=2:length(myFileIdx)
             try
                 MatData=load([Meta_Data.paths.mat_data '/' TimeIndex.filenames{myFileIdx(iF)} '.mat']);
-            if (sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0 && ...
-                sum(str2double(Meta_Data.AFE.t1.SN))~=0)    
+            if sum(str2double(MatData.Meta_Data.AFE.t1.SN))==0   
                 MatData.Meta_Data.AFE=Meta_Data.AFE;
             end
 

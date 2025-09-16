@@ -1,0 +1,233 @@
+# This file is read by MODsetup_make_metadata_from_yaml.m to make Meta_Data for Matlab processing
+
+# Mission and deployment info
+cruise_name: COMCEPTS
+experiment_name: COMCEPTS_2025  #ex) cross-Gulf Stream, post-storm survey
+deployment_name: yy_mmdd_minnow#_depl###
+vehicle_name: MINNOW3
+telemetry_case: 
+pressure_case: MINNOW_PC3
+fish_flag: EPSI #EPSI  or FCTD
+profiling_direction: down #up or down for turbulence profiles, CTD data will be processed both directions
+latitude: 32.7
+
+# Use file headers
+use_file_headers: 0 #Set this to 1 if you want to read Meta_Data from each file header. Set to 0 if you always want to use the values in this file.
+
+# CTD info in modraw file headers
+ctd_in_modraw: 0 #generally 0 for minnow, 1 for mako
+
+# Serial numbers
+sn:
+  ctd: '0131' 
+  t1: '452'
+  t2: '453'
+  s1: '412'
+  s2: '403'
+  f1: '' #fluorometer
+  c1: '' #conductivity
+  alt: '' #altimeter
+
+# Directory info - these directories are from the point of view of the machine doing the processing. There is a 
+# script to parse this file and create a 'Setup' file that ./fctd_epsi will read on the acquisition computer and 
+# there is another script on the processing computer that will read this file to do the processing in Matlab. Each 
+# computer needs to know the directories from its own point of view
+#   process_library = path to MODFISH directory. 'CALIBRATION' directory should be inside this directory.
+#   raw_incoming    = directory where raw data are streaming into (for realtime) or where raw data are downloaded (for standalone)
+#   processed_data  = top level directory where data will be processed. The library will create a directory inside this directory with a name specified by  'survey_name'
+paths_from_processing_machine: #Used for both Mako and Minnow
+  process_library: '/Volumes/Epsidrive/COMCEPTS/MOD_fish_lib'
+  raw_incoming_process: '' #Don't need for Minnow. For Mako, this is usually on a different machine.
+  processed_data: '/Volumes/Epsidrive/COMCEPTS/DATA' #top level where deployment directories will be created, each with raw, mat, profiles, etc
+  calibrations: 
+    ctd: '/Volumes/Epsidrive/COMCEPTS/MOD_fish_lib/Acquisition/SBECAL'
+    shear: '/Volumes/Epsidrive/COMCEPTS/MOD_fish_lib/EPSILOMETER/CALIBRATION/SHEAR_PROBES'
+    fpo7: '/Volumes/Epsidrive/COMCEPTS/MOD_fish_lib/EPSILOMETER/CALIBRATION/FPO7'
+
+paths_from_acquisition_machine: #Not used for epsi minnow
+  raw_incoming_acq: '/Users/Shared/FCTD_EPSI_DATA/Current_Cruise/'
+  calibrations: 
+    ctd: '/Users/Shared/Software_current_cruise/MOD_fish_lib/Acquisition/SBECAL'
+    shear: '/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/CALIBRATION/SHEAR_PROBES'
+    fpo7: '/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/CALIBRATION/FPO7'
+
+# Communications - None of this is important for epsi minnow
+comms:
+  data: 
+    port: /dev/tty.usbserial-AV0K4NN9
+  commands: 
+    port: /dev/tty.usbserial-FTU7BXC3
+    speed: 230400
+  gps:
+    port: '/dev/tty.usbserial-FT3T18M2'
+    speed: 4800
+    in_use: 1 #Set to 0 if not in use, 1 if in use
+  ipad:
+    udp: 50210
+    udp_in_use: 1 #Set to 0 if not in use, 1 if in use
+    tcip: 2342
+    tcip_in_use: 0
+
+# -------------------------------------------------------------------------
+# Parameters below this line are not changed often
+# -------------------------------------------------------------------------
+firmare_version: mod_som_som_eferev3_sdio_sampling_app_07152020.sls     
+
+# Settings for creating incoming raw data files
+raw_files:
+  suffix: '.modraw'
+  version: 4 # Data file version (which version of mod_som_read_epsi_files to use to read data)
+  recording_mode: SD
+  name_prefix: EPSI
+  filesize: 5000000
+
+# Controller info
+controller: 
+  name: SOM #MADRE, SOM, PERSISTOR
+  rev: rev4
+  sn: '000'
+
+# Analog Front End (AFE) info
+    #f1: { type: fluorometer,
+    #   full_range: 2.5,
+    #   ADFconf: }
+afe:
+  name: EFE #EFE, MAP, FLUO
+  rev: EFErev4
+  sn: '000'
+  shear: CAmp1.0
+  sample_rate: 320 # in Hz (supply only 1)
+  sampling_mode: continuous # comment about bursting mode or continuous
+  temp_circuit: none
+  channels: #Put these in the same order as sensors.channels t1,t2,s1,s2,a1,a2,a3
+    t1: { type: fpo7, 
+        full_range: 2.5, 
+        ADCconf: Unipolar, 
+        ADCfilter: sinc4} 
+    t2: { type: fpo7, 
+        full_range: 2.5, 
+        ADCconf: Unipolar, 
+        ADCfilter: sinc4} 
+    s1: { type: shear,
+            full_range: 2.5, 
+            ADCconf: Bipolar, 
+            ADCfilter: sinc4} 
+    s2: { type: shear, 
+            full_range: 2.5, 
+            ADCconf: Bipolar, 
+            ADCfilter: sinc4} 
+    a1: { type: acc, 
+        full_range: 1.8, 
+        ADCconf: Unipolar, 
+        ADCfilter: sinc4} 
+    a2: { type: acc,
+        full_range: 1.8, 
+        ADCconf: Unipolar, 
+        ADCfilter: sinc4} 
+    a3: { type: acc, 
+        full_range: 1.8, 
+        ADCconf: Unipolar, 
+        ADCfilter: sinc4} 
+
+# CTD info
+# ctd types: SBE, SBE49, SBE41, SB41, RBR, S49, SB49
+ctd:
+  type: S49 #S49, 
+  sample_per_record: 2
+  sample_rate: 16
+  length: 114
+  output_format: 24
+
+# Display options
+display:
+  print_data: 2 #0=status, 1=engineer format, 2=debug
+  engineer_display_rate: 8 #with engineer display mode(1): rate is times per second -> even 16: 2 or 4 or 8
+
+# Processing - do we really use all of these?
+spectral:
+  dof: 3 # How many degree of freedom for the spectral averaging.
+  dof_coherence: 10 # How many degrees of freedom for coherence averaging
+  nfft: 1024
+  nfftc: 341
+  dz:  0.5
+  frequency_cutoff_1: 5
+  frequency_cutoff_2: 35
+  ctd_frequency_cutoff: 45
+  movmean_window_time: 10
+  adjust_temp: 0 
+
+# Profile picking (epsiProcess_get_profiles_from_PressureTimeseries)
+# All speed limits should be positive values in m/s (technically db/s)
+# Default values for FCTD:
+#        numSec_lowpass; 4
+#        speedLim_down_start_m_s = 0.3;
+#        speedLim_down_end_m_s = 0.1;
+#        speedLim_up_start_m_s = 0.1;
+#        speedLim_up_end_m_s = 0.05;
+# Default values for wirewalker:
+#        numSec_lowpass; 4
+#        speedLim_down_start_m_s = 0.5;
+#        speedLim_down_end_m_s = 0.5;
+#        speedLim_up_start_m_s = 0.5;
+#        speedLim_up_end_m_s = 0.05;
+profiles:
+  numSec_lowpass; 4
+  speedLim_down_start_m_s = 0.5;
+  speedLim_down_end_m_s = 0.5;
+  speedLim_up_start_m_s = 0.5;
+  speedLim_up_end_m_s = 0.05
+  minLength_m = 10;
+  plotFig = 0;
+
+start_dnum: 'Jan-00-0000' #This is required for old datasets before datenum was recorded by instrument. We just had a start time and counted up from there. For new files, Jan-00-0000 will put epsi.dnum in datenum since start if for some reason the clock isn't working.
+
+# Altimeter orientation
+# On Epsilometer, the altimeter is angled at 10 degrees and is positioned 5 ft above the crashguard. The probes sit 2.02 inches behind the crash guard
+altimeter:
+  epsi:  
+    angle_deg: 10 
+    dist_from_crashguard_ft:  5
+    probe_dist_from_crashguard_in: 2.02
+  fctd:
+    angle_deg: 45
+    dist_from_crashguard_ft: 4
+    probe_dist_from_crashguard_in: 0
+
+# Fluorometer orientation
+fluorometer:
+    fctd:
+      dist_from_sbe:
+
+# Plot properties
+plot_properties:
+  FontName:
+  FontSize:
+  LineWidth:
+  Colors: {a1: [0.5059, 0.1059, 0.4392],
+           a2: [0.9216, 0.2510, 0.2392],
+           a3: [0.9608, 0.7804, 0.4627],
+           s1: [0.2353, 0.5255, 0.2980],
+           s2: [0.6784, 0.8431, 0.5333],
+           t1: [0.1137, 0.3059, 0.5490],
+           t2: [0.3059, 0.6784, 0.6784],
+           f1: [0.3020, 0.6863, 0.2902],
+           c1: [0.5961, 0.3059, 0.6392],
+           P: [0, 0, 0],
+           dPdt: [0.4000, 0.4000, 0.4000],
+           T: [0.7255, 0.1490, 0.1020],
+           S: [0, 0, 0.5430],
+           alt: [1, 0.0745, 0.6510],
+           gyro1: [0.5059, 0.1059, 0.4392],
+           gyro2: [0.9216, 0.2510, 0.2392],
+           gyro3: [0.9608, 0.7804, 0.4627],
+           compass1: [0, 0, 0.5430],
+           compass2: [0.7255, 0.1490, 0.1020],
+           compass3: [0, 0, 0],
+           pitch: [0, 0, 0],
+           roll: [0, 0, 0]}
+  Limits: {T: [10, 30],
+           S: [32, 35],
+           P_shear_k: [1e-10, 1e-6],
+           P_t_k: [1e-10, 1e-6],
+           epsilon: [1e-10, 1e-16],
+           chi: [1e-10, 1e-16]}
