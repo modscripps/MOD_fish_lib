@@ -17,22 +17,24 @@ end
 switch fpo7_channel
     case 't1_volt'
         if isfield(Meta_Data,'AFE')
-            dTdV = Meta_Data.AFE.t1.cal;
+            %dTdV = Meta_Data.AFE.t1.cal;
+            volts_to_C = Meta_Data.AFE.t1.volts_to_C; %[slope, intercept]
         else
             try
-                dTdV=Meta_Data.epsi.t1.dTdV;
+                %dTdV=Meta_Data.epsi.t1.dTdV;
             catch
-                dTdV=Meta_Data.epsi.t1.cal;
+                %dTdV=Meta_Data.epsi.t1.cal;
             end
         end
     case 't2_volt'
         if isfield(Meta_Data,'AFE')
-            dTdV = Meta_Data.AFE.t2.cal;
+            %dTdV = Meta_Data.AFE.t2.cal;
+            volts_to_C = Meta_Data.AFE.t2.volts_to_C; %[slope, intercept]
         else
             try
-            dTdV=Meta_Data.epsi.t2.dTdV;
+            %dTdV=Meta_Data.epsi.t2.dTdV;
             catch
-                dTdV=Meta_Data.epsi.t2.cal;
+                %dTdV=Meta_Data.epsi.t2.cal;
             end
         end
     otherwise
@@ -61,9 +63,13 @@ dof=Meta_Data.PROCESS.dof;
 [Pt_volt_f,f] = pwelch(detrend(scan.(fpo7_channel)),nfft,[],nfft,Fs,'psd');
 k = f./w;
 
-% Convert frequency spectrum of volt timeseries to frequency spectrum of
-% temperature in C
-Pt_T_f = (Pt_volt_f*(dTdV^2)) ./ filter_TF;
+% Compute the frequency spectrum of timeseries in degrees C
+[Pt_T_f,f] = pwelch(detrend(scan.(fpo7_channel)*volts_to_C(1) + volts_to_C(2)),nfft,[],nfft,Fs,'psd');
+
+% Old way, using spectral dTdV - NC 10/06/25
+% % Convert frequency spectrum of volt timeseries to frequency spectrum of
+% % temperature in C
+%Pt_T_f = (Pt_volt_f*(dTdV^2)) ./ filter_TF;
 
 % Convert temperature frequency spectrum to temperature gradient wavenumber spectrum
 Pt_Tg_k = ((2*pi*k).^2).*Pt_T_f.*w; %NC 9/2/21 - frequency spectrum should be MULTIPLIED by w, not divided

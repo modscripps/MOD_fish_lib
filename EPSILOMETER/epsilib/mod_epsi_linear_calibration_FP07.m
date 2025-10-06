@@ -36,15 +36,15 @@ indt1=find(cellfun(@(x) strcmp(x,'t1'),Meta_Data.PROCESS.channels));
 indt2=find(cellfun(@(x) strcmp(x,'t2'),Meta_Data.PROCESS.channels));
 
 if ~isempty(indt1)
-Profile.epsi.t1_volt=fillmissing(Profile.epsi.t1_volt,'linear');
-Profile.epsi.t1_volt=filloutliers(Profile.epsi.t1_volt,'center','movmedian',1000);
-nanmask=~isnan(Profile.epsi.t1_volt);
-it1_volt=interp1(Profile.epsi.dnum(nanmask),Profile.epsi.t1_volt(nanmask),Profile.ctd.dnum);
-nanmask=~isnan(it1_volt);
-CalT1 = polyfit(it1_volt(nanmask),T(nanmask),1);
-    dTdV(1)=CalT1(2);
+    Profile.epsi.t1_volt=fillmissing(Profile.epsi.t1_volt,'linear');
+    Profile.epsi.t1_volt=filloutliers(Profile.epsi.t1_volt,'center','movmedian',1000);
+    nanmask=~isnan(Profile.epsi.t1_volt);
+    it1_volt=interp1(Profile.epsi.dnum(nanmask),Profile.epsi.t1_volt(nanmask),Profile.ctd.dnum);
+    nanmask=~isnan(it1_volt);
+    CalT1 = polyfit(it1_volt(nanmask),T(nanmask),1);
+    %dTdV(1)=CalT1(2);
 else
-    dTdV(1)=NaN;
+    CalT1=[nan nan];
 end
 if ~isempty(indt2)
     Profile.epsi.t2_volt=fillmissing(Profile.epsi.t2_volt,'linear');
@@ -53,9 +53,9 @@ if ~isempty(indt2)
     it2_volt=interp1(Profile.epsi.dnum(nanmask),Profile.epsi.t2_volt(nanmask),Profile.ctd.dnum);
     nanmask=~isnan(it2_volt);
     CalT2 = polyfit(it2_volt(nanmask),T(nanmask),1);
-    dTdV(2)=CalT2(2);
+    %dTdV(2)=CalT2(2);
 else
-    dTdV(2)=NaN;
+    CalT2=[nan nan];
 end
 
 
@@ -66,8 +66,11 @@ if isfield(Meta_Data,'AFE')
 elseif isfield(Meta_Data,'epsi')
     field_name = 'epsi';
 end
-Meta_Data.(field_name).t1.cal=dTdV(1);
-Meta_Data.(field_name).t2.cal=dTdV(2);
+%Meta_Data.(field_name).t1.cal=dTdV(1);
+%Meta_Data.(field_name).t2.cal=dTdV(2);
+Meta_Data.(field_name).t1.volts_to_C=CalT1; %[slope, intercept]
+Meta_Data.(field_name).t2.volts_to_C=CalT2; %[slope, intercept]
+
 
 % NC 4/4/25 - I need to sleep!
 saveData = 0;
