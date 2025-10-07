@@ -147,6 +147,11 @@ else
 
         %MHA hack
         %[ax(1:2).YLim] = deal([zlim(1) 500]);
+
+        % Save figure
+        fig_name = fullfile(fig_path,['sections_',datestr(now,'yy_mmdd_HHMMSS')]);
+        n_savepng(fig_name);
+
         end %end if iplot>1
 
         %% Plot TS of last few profiles
@@ -176,6 +181,8 @@ else
         ylabel('T [˚C]','FontName','times new roman','FontSize',13);
         legend
 
+        fig_name = fullfile(fig_path,['TS_',datestr(now,'yy_mmdd_HHMMSS')]);
+        n_savepng(fig_name);
     else
         disp('No FCTDgrid to plot')
     end %end of ~isempty(FCTDgrid)

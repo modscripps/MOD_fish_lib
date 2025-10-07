@@ -64,7 +64,11 @@ matData.ttv   = [];
 matData.fluor = [];
 
 % NC - Only rsync files with the desired suffix
-suffixStr = Meta_Data.PROCESS.raw_file_suffix; %ex. .raw, .ascii, etc
+try
+    suffixStr = Meta_Data.PROCESS.raw_file_suffix; %ex. .raw, .ascii, etc
+catch
+    suffixStr = Meta_Data.PROCESS.rawfileSuffix; %ex. .raw, .ascii, etc
+end
 suffixSearch = ['*' suffixStr];
 
 %% Set default parameters

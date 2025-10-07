@@ -4,9 +4,14 @@ function [FCTDall] = make_FCTDall_L0(fctd_mat_dir)
 disp(fprintf('Creating FCTDall_L0 from .mat files in %s',fctd_mat_dir))
 
 % Get FCTD files in current directory
-f = dir(fullfile(fctd_mat_dir,'EPSI*.mat'));
+f = dir(fullfile(fctd_mat_dir,'*.mat'));
 file_list = {f.name};
-s
+% Get rid of any concatenated or gridded files - they have 'all' or 'grid' in the name
+is_all = contains(file_list,'all');
+file_list(is_all) = [];
+is_grid = contains(file_list,'grid');
+file_list(is_grid) = [];
+
 % Make a list of datenums for each file
 for iF=1:length(file_list)
     yyyy = str2num(['20' file_list{iF}(5:6)]);

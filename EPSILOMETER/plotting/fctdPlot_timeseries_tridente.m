@@ -139,8 +139,8 @@ if isclassfield(obj,'fluor')
 if ~isempty(obj.fluor)
     
     % Fluorometer
-    plot(ax(3),time_array.epsi,obj.epsi.f1_volt,'m.','LineWidth',obj.plot_properties.LineWidth);
-    ax(3).YLim = [0,nanmax(obj.epsi.f1_volt)];
+    plot(ax(3),time_array.fluor,obj.fluor.chla,'.','LineWidth',obj.plot_properties.LineWidth,'MarkerEdgeColor',obj.plot_properties.Colors.chla);
+    ax(3).YLim = [nanmin(obj.fluor.chla),nanmax(obj.fluor.chla)];
 
 end
 
@@ -213,7 +213,7 @@ end
 
 ylabel(ax(1),'T [°C]');
 ylabel(ax(2),'S');
-ylabel(ax(3),'fluor [ ]');
+ylabel(ax(3),'chla [ ]');
 ylabel(ax(4),'ucond [volt]')
 ylabel(ax(5),'Accel [g]');
 ylabel(ax(7),'z [m]');

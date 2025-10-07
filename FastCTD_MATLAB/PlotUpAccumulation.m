@@ -239,6 +239,8 @@ if ~isempty(tot_time)
     [0.274088541666665 0.165666666666666 0.437174479166667 0.0462962962962963],...
     'String',{'"Neutral is Negative" - Set fin angle to neutral to make the rotation count go down.'});
 
+    % Save figure
+
 else
     % If there is no new data, print previous rotation count
     fprintf("No new data\n")

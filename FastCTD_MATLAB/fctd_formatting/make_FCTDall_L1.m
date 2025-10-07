@@ -15,13 +15,16 @@ FCTDall.down = nan(size(FCTDall.time,1),size(FCTDall.time,2));
 FCTDall.up = nan(size(FCTDall.time,1),size(FCTDall.time,2));
 FCTDall.cast = nan(size(FCTDall.time,1),size(FCTDall.time,2));
 
-% Find downcasts
+% Find downcasts as FCTDall.drop and add to FCTDall.down
 FCTDall = FastCTD_FindCasts(FCTDall);
-FCTDall.down(FCTDall.drop>0) = FCTDall.drop(FCTDall.drop>0);
-
-% Find upcasts
+if isfield(FCTDall,'drop')
+    FCTDall.down(FCTDall.drop>0) = FCTDall.drop(FCTDall.drop>0);
+end
+% Find upcasts as FCTDall.drop and add to FCTDall.up
 FCTDall = FastCTD_FindCasts(FCTDall,'upcast');
-FCTDall.up(FCTDall.drop>0) = FCTDall.drop(FCTDall.drop>0);
+if isfield(FCTDall,'drop')
+    FCTDall.up(FCTDall.drop>0) = FCTDall.drop(FCTDall.drop>0);
+end
 
 % Make a 'cast' field wheren downcasts are negative and upcasts are
 % positive
@@ -31,7 +34,9 @@ FCTDall.cast(FCTDall.up>0) = FCTDall.up(FCTDall.up>0);
 % Remove 'drop' since it is EITHER downcasts or upcasts depending on which
 % way you called FastCTD_FindCasts last, and we now have the more specific
 % fields 'down', 'up', and 'cast'.
-FCTDall = rmfield(FCTDall,'drop');
+if isfield(FCTDall,'drop')
+    FCTDall = rmfield(FCTDall,'drop');
+end
 
 % Create a copy of FCTDall so that you don't have to write over the
 % original data. You can come back to FCTDold if you need to compare/debug.
@@ -426,6 +431,8 @@ end %end loop through casts
 
 %% Process microconductivity data to make chi fields
 
+if 0 % NC 10/7/25 temporarily not commputing chi so I can get through processing
+
 if isfield(FCTDall,'uConductivity')
     FCTDall.chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
     FCTDall.eps_chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
@@ -475,18 +482,21 @@ if isfield(FCTDall,'uConductivity')
             % Convert microconductivity to chi
             myFCTD = add_chi_microMHA_v3(myFCTD,myFCTD.chi_param);
 
+            % Replace data in FCTDall
+            for iField=1:length(vars2grid_list)
+                FCTDall.chi(inRange,:) = myFCTD.chi;
+                FCTDall.eps_chi(inRange,:) = myFCTD.eps_chi;
+                FCTDall.chi_tot(inRange,:) = myFCTD.chi_tot;
+            end
+
         else
             fprintf('  Not enough data in range to process microconductivity.\n')
         end
     
-        % Replace data in FCTDall
-        for iField=1:length(vars2grid_list)
-            FCTDall.chi(inRange,:) = myFCTD.chi;
-            FCTDall.eps_chi(inRange,:) = myFCTD.eps_chi;
-            FCTDall.chi_tot(inRange,:) = myFCTD.chi_tot;
-        end
-    end %end loop through range
+    end %end loop through ranges
 end %end if there is microconductivity data
+
+end %end if process chi
 
 % Output data and save concatenated file
 save(fullfile(fctd_mat_dir,'FCTDall_L1'),'FCTDall','-v7.3')

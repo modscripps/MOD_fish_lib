@@ -29,7 +29,7 @@ include_spectra = 0;
 % Meta_Data process file (make sure this file has the correct serial
 % numbers for CTD, s1, s2, t1, t2. If you're running fctd, you can leave
 % s1, s2, t1, t2 = '115')
-Meta_Data_process_file = 'MDP_motive_2024.txt';
+Meta_Data_process_file = 'MDP_motive_2025.txt';
 
 input_struct.refresh_time_sec = 2;
 

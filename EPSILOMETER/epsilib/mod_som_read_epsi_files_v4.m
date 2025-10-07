@@ -140,12 +140,17 @@ no_data_types = {};
 
 %% Process setup SOM3 data
  if Meta_Data.PROCESS.use_file_headers
-    if isempty(ind_som_start)
+    if isempty(ind_som_start) %Can't find index of $SOM3
         no_data_types = [no_data_types,'setup'];
         setup=[];
         %setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
         %Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
-        Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
+        if isfield(Meta_Data.paths,'setup_file') % If you initialized with a yaml file:
+            Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
+        else %If you don't have a yaml file
+            setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
+            Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
+        end
     else
         % settings=str(ind_som_start+32:ind_som_stop-5);
         str_setup=str(ind_som_start:ind_som_stop);
