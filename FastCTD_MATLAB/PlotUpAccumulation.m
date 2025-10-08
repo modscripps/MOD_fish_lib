@@ -10,8 +10,22 @@
 
 matDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/'; %Directory where FCTD*.mat are stored
 rotDataDir = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/'; %Directory where rotation data for each FCTD*.mat file will be stored
-matFiles = dir([matDataDir 'EPSI*.mat']);
-rotFiles = dir([rotDataDir 'EPSI*.mat']);
+
+% List .mat files in mat dir and rot dir
+matFiles = dir([matDataDir '*.mat']);
+matFiles = {matFiles.name};
+rotFiles = dir([rotDataDir '*.mat']);
+rotFiles = {rotFiles.name};
+
+% Discard PressureTimeseries and TimeIndex from list to loop through
+toss = contains(matFiles,'PressureTimeseries');
+matFiles(toss) = [];
+toss = contains(matFiles,'TimeIndex');
+matFiles(toss) = [];
+
+% Discard 'Latest' files from rot list
+toss = contains(rotFiles,'Latest');
+rotFiles(toss) = [];
 
 % -----------------------------------------------------------------------------
 
@@ -22,7 +36,7 @@ for iFile = numel(rotFiles)-1:numel(matFiles)
     end
 
     % Load vnav and ctd data
-    load([matDataDir '/' matFiles(iFile).name],'vnav','ctd');
+    load([matDataDir '/' matFiles{iFile}],'vnav','ctd');
 
     % Convert mat data file to rotation accumulation file
     if exist('vnav','var') && exist('ctd','var') && ...
@@ -92,7 +106,7 @@ for iFile = numel(rotFiles)-1:numel(matFiles)
         tot_rot_gyro(:,3) = cumsum(gyro(:,3).*dt);
 
         % Save rotation data
-        save(fullfile(rotDataDir,matFiles(iFile).name),'compass','tot_rot_gyro','tot_rot_acc','time','gyro','acce','pressure','file_num');
+        save(fullfile(rotDataDir,matFiles{iFile}),'compass','tot_rot_gyro','tot_rot_acc','time','gyro','acce','pressure','file_num');
 
         % Clear processed data
         clear compass tot_rot_gyro tot_rot_acc time gyro acce pressure file_num
@@ -101,9 +115,6 @@ for iFile = numel(rotFiles)-1:numel(matFiles)
 end
 
 %% Load rotation data that you saved in the cell above
-
-rotFiles = dir([rotDataDir 'EPSI*.mat']);
-
 if exist([rotDataDir 'Latest_rot_acc_count.mat'],'file')
     load([rotDataDir 'Latest_rot_acc_count.mat'], ...
         'tot_rot_gyro', ...
@@ -129,7 +140,7 @@ end
 for iFile = last_file_idx:numel(rotFiles)
 
     % Load rotation file
-    rot = load([rotDataDir '/' rotFiles(iFile).name]);
+    rot = load([rotDataDir '/' rotFiles{iFile}]);
 
     if iFile==last_file_idx
 

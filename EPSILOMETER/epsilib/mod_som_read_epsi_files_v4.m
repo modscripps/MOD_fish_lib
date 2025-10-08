@@ -157,36 +157,36 @@ no_data_types = {};
         setup=mod_som_read_setup_from_raw(str_setup);
         Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
 
-        if ~isempty(epsi_probes)
-            % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
-            % calibration value for every profile. Since we're only at the .mat
-            % stage here, don't set it. Eventually, once we understand dTdV a bit
-            % better, we will have a calibration file for each probe.
-            epsi_probes.ch1.cal = 0;
-            epsi_probes.ch2.cal = 0;
-
-            Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
-            Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
-            Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
-            Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
-            Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
-            Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
-            if epsi_probes.ch3.cal~=0
-                Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
-                Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
-            else
-                AFE=get_shear_calibration(Meta_Data.AFE);
-                Meta_Data.AFE=AFE;
-                %ALB epsi case
-                if isfield(Meta_Data.AFE.s1,'Sv')
-                    Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
-                    Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
-                else
-                    %ALB fctd case
-                    % nothing to do so far
-                end
-            end
-        end
+    %     if ~isempty(epsi_probes)
+    %         % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
+    %         % calibration value for every profile. Since we're only at the .mat
+    %         % stage here, don't set it. Eventually, once we understand dTdV a bit
+    %         % better, we will have a calibration file for each probe.
+    %         epsi_probes.ch1.cal = 0;
+    %         epsi_probes.ch2.cal = 0;
+    % 
+    %         Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
+    %         Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
+    %         Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
+    %         Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
+    %         Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
+    %         Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
+    %         if epsi_probes.ch3.cal~=0
+    %             Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
+    %             Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
+    %         else
+    %             AFE=get_shear_calibration(Meta_Data.AFE);
+    %             Meta_Data.AFE=AFE;
+    %             %ALB epsi case
+    %             if isfield(Meta_Data.AFE.s1,'Sv')
+    %                 Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
+    %                 Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
+    %             else
+    %                 %ALB fctd case
+    %                 % nothing to do so far
+    %             end
+    %         end
+    %     end
     end
     if ~isempty(ind_dcal_start)
         % Read SBE tcal from

@@ -17,7 +17,7 @@ elseif isfield(Meta_Data,'epsi') && isfield(Meta_Data,'AFE')
 end
 
 % shearcal_path = strrep([Meta_Data.paths.process_library,'/CALIBRATION/SHEAR_PROBES'],'//','/');
-localpath=fullfile(Meta_Data.paths.process_library,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
+localpath=fullfile(Meta_Data.paths.process_library,'CALIBRATION','SHEAR_PROBES');
 
 shearcal_path = strrep(localpath,'//','/');
 
@@ -36,7 +36,7 @@ if ~strcmp(Meta_Data.(field_name).s1.SN,'000')
         fclose(fid1);
     catch err
         if strcmp(err.identifier,'MATLAB:FileIO:InvalidFid')
-            warning(['Cannot find ' path2file1])
+M            warning(['Cannot find ' path2file1])
         else
             warning(['Loading ' path2file1 ' failed'])
         end
