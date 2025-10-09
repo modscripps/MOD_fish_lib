@@ -34,27 +34,23 @@ obj.Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CAL
 %%
 % Read PROCESS Meta_Data from text file -
 % if one is not specified, use the default
-if isempty(obj.Meta_Data.paths.process_library)
-    if isclassfield(obj.Meta_Data,'PROCESS')
+if isclassfield(obj.Meta_Data,'PROCESS')
 
-        if ~isclassfield(obj.Meta_Data.PROCESS,'filename')
-            Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
-        else
-            % Use the .txt file save in Meta_Data, but find it
-            % in the current user's path
-            [~,fname,fsuffix] = fileparts(obj.Meta_Data.PROCESS.filename);
-            Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,...
-                'Meta_Data_Process',[fname,fsuffix]);
-        end
-    else
+    if ~isclassfield(obj.Meta_Data.PROCESS,'filename') %Use the default file if none is specified
         Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
+    else
+        % Use the .txt file save in Meta_Data.PROCESS.filename, but find it
+        % in the current user's path (all the Meta_Data_Process files are
+        % saved in the EPSILOMETER library but, if Meta_Data was previously
+        % built on a different computer, the full path to the file will be
+        % different than the path of the current computer.
+        [~,fname,fsuffix] = fileparts(obj.Meta_Data.PROCESS.filename);
+        Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,...
+            'Meta_Data_Process',[fname,fsuffix]);
     end
-
-else
-    % If you can't find a MDPfile, use the default one
+else %Use the default file if none is specified
     Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
 end
-
 
 obj.f_read_MetaProcess(Meta_Data_process_file);
 

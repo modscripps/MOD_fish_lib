@@ -1,4 +1,5 @@
-function [Meta_Data,repeat,obj]=epsi_class_MetaData_doesnot_exist(data_path,obj)
+function [repeat,obj]=epsi_class_MetaData_doesnot_exist(data_path,obj)
+disp('--- epsi_class_MetaData_doesnot_exist.m ---')
 
 %fprintf('Initializing epsi_class and creating new Meta_Data \n')
 repeat = 0;
@@ -26,11 +27,13 @@ rmpath(genpath(fullfile(obj.Meta_Data.paths.process_library,'archived_scripts'))
 
 %%
 % Add calibrations path
-obj.Meta_Data.paths.calibration = fullfile(obj.Meta_Data.paths.process_library,'CALIBRATION','ELECTRONICS');
+mod_fish_lib = fileparts(obj.Meta_Data.paths.process_library);
+obj.Meta_Data.paths.calibrations.ctd = fullfile(mod_fish_lib,'Acquisition','SBECAL');
+obj.Meta_Data.paths.calibrations.shear = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
+obj.Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','FPO7');
 %%
 % Read PROCESS Meta_Data from text file -
 % if one is not specified, use the default
-if isempty(obj.Meta_Data.paths.process_library)
     if isclassfield(obj.Meta_Data,'PROCESS')
 
         if ~isclassfield(obj.Meta_Data.PROCESS,'filename')
@@ -47,8 +50,7 @@ if isempty(obj.Meta_Data.paths.process_library)
     end
 
 else
-    % ALB Nicole has the following line I do not quite understand it. 
-    % Meta_Data_process_file = Meta_Data_process_file;
+    % If you can't find a MDPfile, use the default one
     Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
 end
 
@@ -57,6 +59,9 @@ obj.f_read_MetaProcess(Meta_Data_process_file);
 
 obj.Meta_Data = epsiSetup_set_epsi_paths(obj.Meta_Data);
 obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
+
+% Add default flag to read data from modraw headers
+obj.Meta_Data.PROCESS.use_file_headers = 1;
 
 
 % NC TO DO:
@@ -217,7 +222,8 @@ obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
 % catch
 % end
 
-obj.Meta_Data = epsiSetup_set_epsi_paths(obj.Meta_Data);
-obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
+% obj.Meta_Data = epsiSetup_set_epsi_paths(obj.Meta_Data);
+% obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
 Meta_Data = obj.Meta_Data;
 save(fullfile(obj.Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
+
