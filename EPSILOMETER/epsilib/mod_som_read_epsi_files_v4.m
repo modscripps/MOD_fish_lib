@@ -2347,9 +2347,9 @@ elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
     % calibration directory.
     if found_data==0
         if ~isempty(SBE_sn)
-            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
+            cal_directory = Meta_Data.paths.calibrations.ctd;
             Meta_Data.CTD.name = 'SBE49';
-            Meta_Data.CTD.SN = SBE_sn;
+            Meta_Data.CTD.SN = sprintf('%04.0f',str2num(SBE_sn));
             SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
             Meta_Data.CTD.cal=SBEcal;
             fprintf("  Added calibration data from %s", cal_directory);
@@ -2564,5 +2564,9 @@ if ~isempty(idx_SBE_SN)
 else
     SBE_sn = [];
 end
+
+% Make sure SBE_sn is four digits
+SBE_sn = sprintf('%04.0f',str2num(SBE_sn));
+
 end
 
