@@ -188,51 +188,34 @@ end
 if rSync
     file_list_all = dir(fullfile(dirs.raw_incoming,'*.modraw'));
 
+    % ------- modraw_deployment_log ----------------------------------
     % Open modraw_deployment_log.mat and compare to file_list_all to see
     % which files have not been listed with their deployments yet. Add any
     % that aren't there to the log. Make the log if it hasn't been created
     % yet.
-    if exist(fullfile(dirs.raw_copy, 'modraw_deployment_log.mat'),'file')
-        load(fullfile(dirs.raw_copy,'modraw_deployment_log.mat'))
+    if exist(fullfile(dirs.raw_copy, 'ModrawLog.mat'),'file')
+        load(fullfile(dirs.raw_copy,'ModrawLog.mat'))
+        
+        % Which files in file_list_all have NOT been added to
+        % modraw_deployment_log yet?
+        new_file_list = string({file_list_all.name})';
+        unlogged_files = setdiff(new_file_list, ModrawLog.File_Name);
+
+        ModrawLog = epsiProcess_make_ModrawLog(unlogged_files,Meta_Data);
+
     else
+        
        % Loop through all the files in file_list_all, open them and read
        % CTD.survey. Save the name of the file and the survey name. Also
        % save the CTD SN.
 
+       ModrawLog = epsiProcess_make_ModrawLog(file_list_all,Meta_Data);
+
     end
-  
-    % Loop through files and find the ones with survey_name
-    idx_in_survey = false(length(file_list_all),1);
-    tic
-    N = min([30,numel(file_list_all)]);
-    sprintf('Looping through the last %2.0f files in raw_incoming to check for the same survey name.',N)
-    for i=length(file_list_all)-(N-1):length(file_list_all) %NC edit on 11/22/24. Looping through all takes a long time!
-
-        % Open file
-        fid = fopen(fullfile(file_list_all(i).folder,file_list_all(i).name));
-        fseek(fid,0,1);
-        frewind(fid);
-        str = fread(fid,'*char')';
-        fclose(fid);
-
-        % Find line that has survey name
-        survey_flag=contains(str,'CTD.survey');
-
-        if survey_flag
-            surveyflag_str      = str(strfind(str,'CTD.survey')+(0:100));
-            surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
-            surveyflag_name     = strsplit(surveyflag_str,'=');
-            survey_name_in_file = surveyflag_name{2}(1:end-1);
-
-            % Does survey name in file match the survey name we're looking for?
-            if contains(survey_name_in_file,strrep(Meta_Data.deployment_name,'''',''))
-                idx_in_survey(i) = true;
-            end
-        end
-    end %End loop through all files
-    toc
 
     % Keep only files in survey
+    idx_in_survey = contains(ModrawLog.Survey_Name,strrep(Meta_Data.deployment_name,'''',''));
+
     file_list_struct = file_list_all(idx_in_survey);
     file_list = {file_list_struct(:).name};
     
@@ -240,7 +223,7 @@ if rSync
     raw_files_to_copy = strjoin(strcat(dirs.raw_incoming, file_list), ' '); % Create a space-separated list of full paths
     com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, dirs.raw_copy);
     unix(com);
-end
+end %end if rsync
 
 
 %% Loop through files in the deployment raw directory and convert to mat and fctd_mat
