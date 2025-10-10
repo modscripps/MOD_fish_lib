@@ -182,7 +182,7 @@ end
 % OR use this option to copy files from one big directory into individual
 % deployment directories
 if rSync
-    file_list_all = dir(fullfile(dirs.raw_incoming,'EPSI*.modraw'));
+    file_list_all = dir(fullfile(dirs.raw_incoming,'*.modraw'));
 
   
     % Loop through files and find the ones with survey_name

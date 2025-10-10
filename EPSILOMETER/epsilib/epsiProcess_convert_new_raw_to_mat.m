@@ -186,8 +186,20 @@ end
 % OR use this option to copy files from one big directory into individual
 % deployment directories
 if rSync
-    file_list_all = dir(fullfile(dirs.raw_incoming,'EPSI*.modraw'));
+    file_list_all = dir(fullfile(dirs.raw_incoming,'*.modraw'));
 
+    % Open modraw_deployment_log.mat and compare to file_list_all to see
+    % which files have not been listed with their deployments yet. Add any
+    % that aren't there to the log. Make the log if it hasn't been created
+    % yet.
+    if exist(fullfile(dirs.raw_copy, 'modraw_deployment_log.mat'),'file')
+        load(fullfile(dirs.raw_copy,'modraw_deployment_log.mat'))
+    else
+       % Loop through all the files in file_list_all, open them and read
+       % CTD.survey. Save the name of the file and the survey name. Also
+       % save the CTD SN.
+
+    end
   
     % Loop through files and find the ones with survey_name
     idx_in_survey = false(length(file_list_all),1);
@@ -314,12 +326,6 @@ if ~isempty(myASCIIfiles)
 
                 %Empty contents of matData structure
                 use matData
-
-                % Calculate microstructure data - NC added 16 May 2022
-                if calc_micro
-                    matData.micro = epsiProcess_calc_turbulence(Meta_Data,matData,0);
-                    save(fullfile(MatDir,base),'-struct','matData')
-                end
 
                 % Update the .mat file time index
                 if ~isempty(epsi) && isfield(epsi,'time_s')

@@ -39,20 +39,28 @@ if isclassfield(obj.Meta_Data,'PROCESS')
     if ~isclassfield(obj.Meta_Data.PROCESS,'filename') %Use the default file if none is specified
         Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
     else
-        % Use the .txt file save in Meta_Data.PROCESS.filename, but find it
-        % in the current user's path (all the Meta_Data_Process files are
-        % saved in the EPSILOMETER library but, if Meta_Data was previously
-        % built on a different computer, the full path to the file will be
-        % different than the path of the current computer.
-        [~,fname,fsuffix] = fileparts(obj.Meta_Data.PROCESS.filename);
-        Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,...
-            'Meta_Data_Process',[fname,fsuffix]);
+        % First, try to use the file as is.
+        try
+            obj.f_read_MetaProcess(obj.Meta_Data.PROCESS.filename);
+        catch
+            % If you can't use the file as is, try the using the name of .txt
+            % file saved in Meta_Data.PROCESS.filename, but find it in the
+            % current user's path (all the Meta_Data_Process files are saved in
+            % the EPSILOMETER library but, if Meta_Data was previously built on
+            % a different computer, the full path to the file will be different
+            % than the path of the current computer.
+            [~,fname,fsuffix] = fileparts(obj.Meta_Data.PROCESS.filename);
+            Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,...
+                'Meta_Data_Process',[fname,fsuffix]);
+            obj.f_read_MetaProcess(Meta_Data_process_file);
+        end
     end
 else %Use the default file if none is specified
     Meta_Data_process_file = fullfile(obj.Meta_Data.paths.process_library,'Meta_Data_Process','Meta_Data_Process.txt');
+    obj.f_read_MetaProcess(Meta_Data_process_file);
 end
 
-obj.f_read_MetaProcess(Meta_Data_process_file);
+
 
 obj.Meta_Data = epsiSetup_set_epsi_paths(obj.Meta_Data);
 obj.Meta_Data = epsiSetup_get_raw_suffix(obj.Meta_Data);
