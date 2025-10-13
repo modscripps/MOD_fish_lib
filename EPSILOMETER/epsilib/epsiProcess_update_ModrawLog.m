@@ -55,7 +55,8 @@ for i=1:length(file_list_all)
     ModrawLog = [ModrawLog;
         {string(file_list_all(i).name), survey_name_in_file, calfile_SN, dcal_SN}];
 
-    % Save modraw log
-    save(fullfile(Meta_Data.paths.raw_data,'ModrawLog'))
+    % % Save modraw log - save this in epsiProcess_convert_new_raw_to_mat
+    % % instead
+    % save(fullfile(Meta_Data.paths.raw_data,'ModrawLog'))
 
 end %End loop through all files

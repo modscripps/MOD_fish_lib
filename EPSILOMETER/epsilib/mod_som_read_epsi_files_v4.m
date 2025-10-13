@@ -2262,7 +2262,7 @@ end
 SBE_sn = get_setup_SBE_sn(str);
 
 % If you know there is not CTD calibration information in the header of the
-% modraw files, or you don't want to use it, make an empty SBEcal structure
+% modraw files (as for standalone epsi files), or you don't want to use it, make an empty SBEcal structure
 if isfield(Meta_Data.PROCESS,'ctd_in_modraw')
     if ~Meta_Data.PROCESS.ctd_in_modraw
         fprintf('Not checking for CTD calibration in .modraw header.')
@@ -2271,7 +2271,7 @@ if isfield(Meta_Data.PROCESS,'ctd_in_modraw')
     end
 end
 
-% If you have format 2, use that
+% If you have format 2 (from DCAL), use that
 if ~isempty(str_SBEcalcoef_header2)
     SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
     Meta_Data.CTD.cal=SBEcal;

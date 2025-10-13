@@ -193,15 +193,16 @@ if rSync
     % which files have not been listed with their deployments yet. Add any
     % that aren't there to the log. Make the log if it hasn't been created
     % yet.
-    if exist(fullfile(dirs.raw_copy, 'ModrawLog.mat'),'file')
-        load(fullfile(dirs.raw_copy,'ModrawLog.mat'))
+    if exist(fullfile(dirs.raw_incoming, 'ModrawLog.mat'),'file')
+        load(fullfile(dirs.raw_incoming,'ModrawLog.mat'))
         
         % Which files in file_list_all have NOT been added to
         % modraw_deployment_log yet?
         new_file_list = string({file_list_all.name})';
         unlogged_files = setdiff(new_file_list, ModrawLog.File_Name);
 
-        ModrawLog = epsiProcess_make_ModrawLog(unlogged_files,Meta_Data);
+        ModrawLog = epsiProcess_update_ModrawLog(unlogged_files,ModrawLog,Meta_Data);
+        save(fullfile(dirs.raw_incoming,'ModrawLog'),'ModrawLog')
 
     else
         
@@ -210,18 +211,19 @@ if rSync
        % save the CTD SN.
 
        ModrawLog = epsiProcess_make_ModrawLog(file_list_all,Meta_Data);
+       save(fullfile(dirs.raw_incoming,'ModrawLog'),'ModrawLog')
 
     end
 
     % Keep only files in survey
-    idx_in_survey = contains(ModrawLog.Survey_Name,strrep(Meta_Data.deployment_name,'''',''));
+    idx_in_survey = matches(strrep(ModrawLog.Survey_Name,'''',''),strrep(Meta_Data.deployment_name,'''',''));
 
     file_list_struct = file_list_all(idx_in_survey);
     file_list = {file_list_struct(:).name};
     
     % Rsync the files in file_list
     raw_files_to_copy = strjoin(strcat(dirs.raw_incoming, file_list), ' '); % Create a space-separated list of full paths
-    com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, dirs.raw_copy);
+    com = sprintf('/usr/bin/rsync -av %s %s', raw_files_to_copy, strrep(dirs.raw_copy,' ','\ '));
     unix(com);
 end %end if rsync
 

@@ -73,8 +73,8 @@ switch data_mode
 
     case 'realtime'
 
-        % Define raw directory for realtime data
-        input_struct.raw_dir = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Realtime_RAW/raw/';
+        % Define raw directory for full cruise
+        input_struct.raw_dir = '/Volumes/DEV3_HD/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise/'; %make sure there's a trailing /
 
         % Path to setup file
         root_software='/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
