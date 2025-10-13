@@ -21,15 +21,6 @@ function Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup)
 % get setup field name.
 % used to fill up the Meta_Data fields
 setup_fields=fieldnames(setup);
-
-spltpath=strsplit(path,':');
-% If epsilib directory is immediately inside EPSILOMETER directory, the
-% next two lines should appropriately define the process directory
-% ALB to NC: Pretty smart move :).
-epsilib_path={spltpath{~cellfun(@isempty, ...
-                               cellfun(@(x) ...
-                               strfind(x,'epsilib'),spltpath, ...
-                               'UniformOutput',false))}};
                            
 % These paths should have already been defined before entering this
 % function -DON'T USE PWD BECAUSE YOU MIGHT BE WORKING IN A DIFFERENT
@@ -74,10 +65,8 @@ Meta_Data.AFE.name=wh_AFE;
 Meta_Data.AFE.rev='EFErev4'; %TODO get info from config file
 Meta_Data.AFE.SN='000';      %TODO get info from config file
 
-mod_fish_lib = fileparts(epsilib_path);
-Meta_Data.paths.calibrations.ctd = fullfile(mod_fish_lib,'Acquisition','SBECAL');
-Meta_Data.paths.calibrations.shear = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','SHEAR_PROBES');
-Meta_Data.paths.calibrations.fpo7 = fullfile(mod_fish_lib,'EPSILOMETER','CALIBRATION','FPO7');
+Meta_Data = epsiSetup_find_mod_fish_lib(Meta_Data);
+
 %% set process parameters
 Meta_Data.PROCESS.nb_channels = setup.(wh_AFE).nb_channel;
 Meta_Data.PROCESS.channels=cellfun(@(x) x.name, setup.(wh_AFE).sensors, 'un',0);
