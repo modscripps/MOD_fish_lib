@@ -53,11 +53,7 @@ end
 
 
  %ALB I do not know yet how to deal with dTdV with the new design. 
- if ~isfield(Profile.Meta_Data.AFE.t1,'cal') || ~isfield(Profile.Meta_Data.AFE.t2,'cal')
-            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
-            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
- end
-if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0 
+if ~isfield(Profile.Meta_Data.AFE.t1,'volts_to_C') || ~isfield(Profile.Meta_Data.AFE.t2,'volts_to_C')
             % warning(sprintf(['\n !!!!!!!!! \n'...
             %     'The calibration value (dTdV) for both temperature probes is 0.\n',...
             %     'Run ec.f_calibrateTemperature or process_calibrate_dTdV.m before continuing.\n'...
@@ -197,8 +193,8 @@ ctdtime = Profile.ctd.time_s(inRange);
 % ALB data drops can choke the code here (i.e. inRange is empty)
 
 if sum(inRange)==0
-    disp('no CTD data is that Profile')
-    Profile=[];
+    disp('   no CTD data in that Profile')
+    %Profile=[];
 else
     % Remove epsi values outside the time period defined by ctdtime
     % ALB why did I add the suffix _coh here?
@@ -496,7 +492,7 @@ else
     try
         qc.speed = Profile.w>Meta_Data.PROCESS.speed_limit;
     catch
-        disp('No speed limit in Meta_Data.PROCESS')
+        disp('   No speed limit in Meta_Data.PROCESS')
         Meta_Data.PROCESS.speed_limit=.2;
         qc.speed = Profile.w<Meta_Data.PROCESS.speed_limit;
     end

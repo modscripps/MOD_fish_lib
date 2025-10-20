@@ -63,34 +63,39 @@ end
 
 % Loop through the profile indices in PressureTimeseries. Process the new
 % ones
-for iProf=1:length(PressureTimeseries.startprof)
-    if iProf>lastProfNum
-        profIdx = PressureTimeseries.startprof(iProf):PressureTimeseries.endprof(iProf);
-        tMin = PressureTimeseries.dnum(profIdx(1));
-        tMax = PressureTimeseries.dnum(profIdx(end));
-        fprintf('Building Profile%04.0f of %04.0f\n',iProf,length(PressureTimeseries.startprof))
+if ~all(isnan(PressureTimeseries.startprof))
+    for iProf=1:length(PressureTimeseries.startprof)
+        if iProf>lastProfNum
+            profIdx = PressureTimeseries.startprof(iProf):PressureTimeseries.endprof(iProf);
+            tMin = PressureTimeseries.dnum(profIdx(1));
+            tMax = PressureTimeseries.dnum(profIdx(end));
+            fprintf('Building Profile%04.0f of %04.0f\n',iProf,length(PressureTimeseries.startprof))
 
-        Profile = obj.f_cropTimeseries(tMin,tMax);
-        Profile.profNum = iProf;
+            Profile = obj.f_cropTimeseries(tMin,tMax);
+            Profile.profNum = iProf;
 
-        % Calibrate FPO7 against temperature
-        if ~isfield(Profile.Meta_Data.AFE.t1,'cal') || ~isfield(Profile.Meta_Data.AFE.t2,'cal')
-            % Profile.Meta_Data=mod_epsi_temperature_spectra_v4(Profile.Meta_Data,Profile,1,1);
-            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+            % Calibrate FPO7 against temperature
+            if ~isfield(Profile.Meta_Data.AFE.t1,'volts_to_C') || ~isfield(Profile.Meta_Data.AFE.t2,'volts_to_C')
+                Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
+            end
+
+            % Sort Profile by standard field order
+            Profile = sort_profile(Profile);
+
+            % Save new profile
+            saveName = fullfile(obj.Meta_Data.paths.profiles,sprintf('Profile%04.0f',iProf));
+            save(saveName,'Profile');
+            clear Profile
         end
-        if Profile.Meta_Data.AFE.t1.cal==0 || Profile.Meta_Data.AFE.t2.cal==0
-            Profile.Meta_Data=mod_epsi_linear_calibration_FP07(Profile,1);
-        end
 
-        % Sort Profile by standard field order
-        Profile = sort_profile(Profile);
-
-        % Save new profile
-        saveName = fullfile(obj.Meta_Data.paths.profiles,sprintf('Profile%04.0f',iProf));
-        save(saveName,'Profile');
-        clear Profile
     end
+
+elseif all(isnan(PressureTimeseries.startprof))
+    fprintf('   no non-nan values in PressureTimeseries.startprof')
+    return %do nothing if all profile starts are nan
+
 end
+
 
 
 

@@ -18,7 +18,7 @@ function [PT] = epsiProcess_get_profiles_from_PressureTimeseries(PressureTimeser
 
 PT = PressureTimeseries;
 
-if ~all(isnan(PT.dnum))
+if ~all(isnan(PT.P))
 p = PT.P;
 dt = seconds(days(mode(diff(PT.dnum))));
 sampling_rate_Hz = 1/dt;
@@ -308,7 +308,8 @@ if plotFig
 
 end
 
-elseif all(isnan(PT.dnum))
+else %if there is no pressure data, make empty fields
+
     PT.drop = nan(size(PT.dnum,1),size(PT.dnum,2));
     PT.startdown = nan;
     PT.enddown = nan;

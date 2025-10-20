@@ -50,7 +50,6 @@ Controlernames={'SOM','MADRE','PERSISTOR'};% hard coded name of potential CONTRO
 wh_CTL=cellfun(@(y) find(cellfun(@(x) strcmp(x,y),Controlernames)),setup_fields,'un',0);
 wh_CTL=Controlernames{wh_CTL{~cellfun(@isempty,wh_CTL)}};
 
-
 Meta_Data.CTL.name=wh_CTL;
 Meta_Data.CTL.rev='rev4'; %TODO get info from config file
 Meta_Data.CTL.SN='000';      %TODO get info from config file

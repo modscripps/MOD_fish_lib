@@ -309,12 +309,6 @@ if ~isempty(myASCIIfiles)
                 %Empty contents of matData structure
                 use matData
 
-                % Calculate microstructure data - NC added 16 May 2022
-                if calc_micro
-                    matData.micro = epsiProcess_calc_turbulence(Meta_Data,matData,0);
-                    save(fullfile(MatDir,base),'-struct','matData')
-                end
-
                 % Update the .mat file time index
                 if ~isempty(epsi) && isfield(epsi,'time_s')
                     epsiProcess_update_TimeIndex(MatDir,base,epsi);

@@ -229,15 +229,11 @@ end %end if rsync
 
 
 %% Loop through files in the deployment raw directory and convert to mat and fctd_mat
-try
+% If you don't have a separate directory called 'raw_copy', make it the
+% same as 'raw_incoming'
+if ~isfield(dirs,'raw_copy')
+    dirs.raw_copy = dirs.raw_incoming;
     myASCIIfiles = dir(fullfile(dirs.raw_copy, suffixSearch));
-    raw_dir = dirs.raw_copy;
-    if isempty(myASCIIfiles)
-        myASCIIfiles = dir(fullfile(dirs.raw_incoming, suffixSearch));
-        raw_dir = dirs.raw_incoming;
-    end
-catch
-    myASCIIfiles = dir(fullfile(dirs.raw_incoming, suffixSearch));
     raw_dir = dirs.raw_incoming;
 end
 
