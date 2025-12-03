@@ -1,20 +1,20 @@
-%% Choose deployment and profile
-datapath='/Volumes/MOTIVE24/MOD/03_raw_mod_data/Wirewalker_Deployment1/WW1/EPSI-WW2/';
-profile_id  = 55;
-
-%% Load data from chosen deployment and profile
-cd(datapath)
-profile_name=sprintf("Profile%04i",profile_id);
-load(fullfile(datapath,'profiles',profile_name),'Profile');
-
-%%
-Profile.Meta_Data.cruise_name='MOTIVE24';
-Profile.Meta_Data.deployment='Wirewalker_Deployment1';
+% %% Choose deployment and profile
+% datapath='/Volumes/MOTIVE24/MOD/03_raw_mod_data/Wirewalker_Deployment1/WW1/EPSI-WW2/';
+% profile_id  = 55;
+% 
+% %% Load data from chosen deployment and profile
+% cd(datapath)
+% profile_name=sprintf("Profile%04i",profile_id);
+% load(fullfile(datapath,'profiles',profile_name),'Profile');
+% 
+% %%
+% Profile.Meta_Data.cruise_name='MOTIVE24';
+% Profile.Meta_Data.deployment='Wirewalker_Deployment1';
 %%
 %
 cruise = strrep(Profile.Meta_Data.cruise_name(:)','''','');
 depl = strrep(Profile.Meta_Data.deployment(:)','''','');
-name_video=sprintf("figs/%s_%s_%s.mp4",cruise,depl,profile_name);
+name_video=sprintf("%s_%s_%s.mp4",cruise,depl,profile_name);
 close all
 v = VideoWriter(name_video,'MPEG-4');
 v.FrameRate=60;

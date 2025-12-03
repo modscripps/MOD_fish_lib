@@ -201,7 +201,12 @@ if rSync
         new_file_list = string({file_list_all.name})';
         unlogged_files = setdiff(new_file_list, ModrawLog.File_Name);
 
-        ModrawLog = epsiProcess_update_ModrawLog(unlogged_files,ModrawLog,Meta_Data);
+        for i=1:length(unlogged_files)
+            file_list(i).folder = dirs.raw_incoming;
+            file_list(i).name = unlogged_files{i};
+        end
+
+        ModrawLog = epsiProcess_update_ModrawLog(file_list,ModrawLog,Meta_Data);
         save(fullfile(dirs.raw_incoming,'ModrawLog'),'ModrawLog')
 
     else

@@ -13,12 +13,12 @@ yLim = ax.YLim;
 xLow = xLim(1)-10;
 yLow = yLim(2)+10;
 % Technique 2: Expand out from the data limits
-xLow = nanmin(x);
-yLow = nanmax(y)+200;
+xLow = min(x);
+yLow = max(y)+200;
 
 % Find bathy
 nans = isnan(x) | isnan(y);
 x(nans) = [];
 y(nans) = [];
 
-fill([xLow,x,x(end),xLow,xLow],[y(1),y,yLow,yLow,y(1)],[0.5 0.5 0.5]);
+f = fill([xLow,x,x(end),xLow,xLow],[y(1),y,yLow,yLow,y(1)],[0.5 0.5 0.5]);

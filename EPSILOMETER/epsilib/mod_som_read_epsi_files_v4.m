@@ -257,12 +257,13 @@ else
             % Grab the block of data starting with the header
             gps_block_str = str(ind_gps_start(iB):ind_gps_stop(iB)); %Moved here by Bethan June 26
 
-
             % Get the data after the header
             gps_block_data = str(ind_gps_start(iB):ind_gps_stop(iB));
 
             % Split the data into parts
             data_split = strsplit(gps_block_data,',');
+
+            gps_time = str2double(str(ind_time_start(iB):ind_time_stop(iB)))/100/24/3600;
 
             gps.dnum(iB) = str2double(str(ind_time_start(iB):ind_time_stop(iB)))/100/24/3600+FCTD.header.offset_time;
 
@@ -614,17 +615,19 @@ else
                 error('Need latitude to get depth from pressure data. Add to MetaProcess text file.')
             else
                 % ALB add the gps data if it exists.
+                % NC - Force interpolation on non-nan data only
                 if isfield(gps,'latitude')
                     try
                         if length(gps.latitude)>1
-                            ctd_lat  = interp1(gps.dnum,gps.latitude,ctd.dnum);
+                            notNan = ~isnan(gps.dnum);
+                            ctd_lat  = interp1(gps.dnum(notNan),gps.latitude(notNan),ctd.dnum);
                             ctd.z    = sw_dpth(ctd.P,ctd_lat);
                         else
                             ctd_lat  = gps.latitude;
                             ctd.z    = sw_dpth(ctd.P,ctd_lat);
                         end
                     catch
-                        warning("Can not interpolate latitude ctd.num. Line 665 mod_som_read_epsi_v4")
+                        warning("Can not interpolate latitude ctd.dnum in mod_som_read_epsi_v4")
                     end
                 else
                     ctd.z    = sw_dpth(ctd.P,Meta_Data.PROCESS.latitude);
@@ -632,7 +635,7 @@ else
                 try
                     ctd.dzdt = [0; diff(ctd.z)./diff(ctd.time_s)];
                 catch
-                    disp('issue with dzdt mod_som_read_epsi_files_v4 l.689')
+                    disp('issue with dzdt in mod_som_read_epsi_files_v4')
                 end
             end
 
@@ -642,7 +645,7 @@ else
 
                 % Sort ctd fields
                 ctd = orderfields(ctd,{'dnum','time_s','P_raw','T_raw','S_raw',...
-                    'C_raw','PT_raw','P','z','T','S','C','th','sgth','dPdt','dzdt'});
+                   'C_raw','PT_raw','P','z','T','S','C','th','sgth','dPdt','dzdt'});
             end
         end %end if sbe data block is the correct size
         %         % Tracking blocks
