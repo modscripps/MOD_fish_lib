@@ -34,6 +34,7 @@ if exist(fullfile(fctd_mat_dir,'FCTDall_L0.mat'),'file')==2 %If FCTDall already 
     % Keep any file newer than 10 minutes before last_dnum
     idx = file_dnums > last_dnum - days(minutes(10));
     file_list = file_list(idx);
+    start_idx = 1;
 
 else % If FCTDall doesn't already exist
 
@@ -41,13 +42,14 @@ else % If FCTDall doesn't already exist
     load(fullfile(fctd_mat_dir,file_list{1}),'FCTD');
 
     FCTDall = FCTD;
+    start_idx = 2;
 
     fprintf(sprintf('  %s --> FCTDall (file 1 of %.0f) \n',file_list{1},length(file_list)));
 
 end
 
 % Load the rest of the files and merge into FCTD all
-for iF=2:length(file_list)
+for iF=start_idx:length(file_list)
 
     % Load file
     load(fullfile(fctd_mat_dir,file_list{iF}),'FCTD');
@@ -56,7 +58,7 @@ for iF=2:length(file_list)
     FCTDall = FastCTD_MergeFCTD(FCTDall,FCTD);
 
 
-    fprintf(sprintf('  %s --> FCTDall (file %.0f of %.0f) \n',file_list{1},iF,length(file_list)));
+    fprintf(sprintf('  %s --> FCTDall (file %.0f of %.0f) \n',file_list{iF},iF,length(file_list)));
 
 end
 
