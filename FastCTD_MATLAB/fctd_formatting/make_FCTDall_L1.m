@@ -5,11 +5,29 @@ function [FCTDall,FCTDold] = make_FCTDall_L1(FCTDall,fctd_mat_dir)
 % temperature and conductivity in the FCTDall structure.
 % 3. Add microconductivity chi calculation at the FCTDall level.
 
+% !!! TO DO
+% Add these to meta data file and pull into this function via
+% FCTDall
+% !!!
 apply_response_matching_code = 0;
+process_microconductivity = 1;
 
 fprintf('Creating FCTDall_L1 from FCTDall_L0 and saving to %s\n',fctd_mat_dir);
 
+%% Does L1 already exist? If so, load it so you can check to see what has already been processed.
+% Look for FCTDall so you can just add the new ones
+if exist(fullfile(fctd_mat_dir,'FCTDall_L1.mat'),'file')==2 %If FCTDall already exists
+
+    % Load FCTDall_L1
+    L1 = load(fullfile(fctd_mat_dir,'FCTDall_L1'));
+
+end
+
 %% Define downcasts and upcasts
+% !!! TO DO:
+% This gets redone on the whole file every time. Is it faster to focus
+% on the new part?
+% !!!
 % Make space for downcasts and upcasts
 FCTDall.down = nan(size(FCTDall.time,1),size(FCTDall.time,2));
 FCTDall.up = nan(size(FCTDall.time,1),size(FCTDall.time,2));
@@ -42,6 +60,33 @@ end
 % original data. You can come back to FCTDold if you need to compare/debug.
 FCTDold = FCTDall;
 
+
+%% Set up some new fields if they don't exist yet
+flag_fields = {'response_match_applied','microconductivity_processed'};
+for iN=1:numel(flag_fields)
+
+    % If the field doesn't exist in the previously loaded L1 data, create
+    % it
+    if exist('L1','var')
+        if ~isfield(L1.FCTDall,flag_fields{iN})
+            FCTDall.(flag_fields{iN}) = false(size(FCTDall.time,1),size(FCTDall.time,2));
+        end
+
+        % If the field exists but it's not as long as FCTDall.time, add more
+        % nans
+        FCTDall.(flag_fields{iN}) = L1.FCTDall.(flag_fields{iN});
+        nTime = numel(FCTDall.time);
+        nField = numel(FCTDall.(flag_fields{iN}));
+        if nField<nTime
+            FCTDall.(flag_fields{iN})(nField+1:nTime) = false;
+        end
+    elseif ~exist('L1','var')
+        FCTDall.(flag_fields{iN}) = false(size(FCTDall.time,1),size(FCTDall.time,2));
+    end
+
+end
+
+
 %% load correction factors for FCTD
 FCTD_SalCorr = load('FCTD_SalinityCorrectionFactors_toCond.mat');
 FCTD_SalCorr.GainPFit = FCTD_SalCorr.GainPFit_Dn;
@@ -56,9 +101,10 @@ casts_n = casts_u(~isnan(casts_u));
 [~,idx] = sort(abs(casts_n));
 casts = casts_n(idx);
 
+%% Apply response matching code on each cast
 num = 0;
 for iCast=1:length(casts)
-    fprintf('\nProcessing cast %4.0f of %4.0f\n',iCast,length(casts));
+
     ind = find(FCTDall.cast==casts(iCast));
 
     myFCTD.time = FCTDall.time(ind);
@@ -80,7 +126,8 @@ for iCast=1:length(casts)
     if ~apply_response_matching_code
         fprintf('  Flag set to NOT apply response matching code.\n');
     elseif apply_response_matching_code
-        if max(FCTDall.pressure(ind))-min(FCTDall.pressure(ind))>10 
+        fprintf('  Response matching for cast %4.0f of %4.0f\n',iCast,length(casts));
+        if max(FCTDall.pressure(ind))-min(FCTDall.pressure(ind))>10
 
             %         myFCTD.temperature = FCTD.temperature(ind);
             %         myFCTD.pressure = FCTD.pressure(ind);
@@ -415,11 +462,13 @@ for iCast=1:length(casts)
             fprintf('  Cast not long enough to apply thermal mass correction.\n')
         end %end if there are at least 2000 samples
 
+        FCTDall.response_match_applied(ind) = true;
+
     end %end if apply_response_matching_code
 
     % Replace data in FCTDall
     for iField=1:length(vars2grid_list)
-            FCTDall.(vars2grid_list{iField})(ind,:) = myFCTD.(vars2grid_list{iField});
+        FCTDall.(vars2grid_list{iField})(ind,:) = myFCTD.(vars2grid_list{iField});
     end
 
     % Add OUT for debugging
@@ -431,70 +480,104 @@ end %end loop through casts
 
 %% Process microconductivity data to make chi fields
 
-if 0 % NC 10/7/25 temporarily not commputing chi so I can get through processing
+if process_microconductivity % NC 10/7/25 temporarily not commputing chi so I can get through processing
 
-if isfield(FCTDall,'uConductivity')
-    FCTDall.chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
-    FCTDall.eps_chi = nan(size(FCTDall.time,1),size(FCTDall.time,2));
-    FCTDall.chi_tot = nan(size(FCTDall.time,1),size(FCTDall.time,2));
+    if isfield(FCTDall,'uConductivity')
 
-    % Check for gaps in data > 1 second. If there are gaps longer than 1
-    % second, divide the data and process it in pieces to avoid errors
-    % caused by interpolating over large periods.
-    idx = find(diff(FCTDall.time)>days(seconds(1)));
-    if isempty(idx)
-        ranges = [1 length(FCTDall.pressure)];
-    else
-        if isscalar(idx)
-            ranges = [1          idx;...
-                      idx+1,     length(FCTDall.pressure)];
-        elseif numel(idx)>1
-            ranges = [1               idx(1);...
-                      idx(1:end-1)+1, idx(2:end);...
-                      idx(end)+1,     length(FCTDall.pressure)];
+        chi_fields = {'chi','eps_chi','chi_tot'};
+        for iN=1:numel(chi_fields)
+
+            % If no chi has been processed yet, make empty structures the
+            % length of FCTDall.time
+            if ~isfield(FCTDall,chi_fields{iN})
+                FCTDall.(chi_fields{iN}) = nan(size(FCTDall.time,1),size(FCTDall.time,2));
+            end
+
+            % If the field exists but it's not as long as FCTDall.time, add more
+            % nans
+            nTime = numel(FCTDall.time);
+            nField = numel(FCTDall.(chi_fields{iN}));
+            if nField<nTime
+                FCTDall.(chi_fields{iN})(nField+1:nTime) = nan;
+            end
         end
-    end
 
-    for iR=1:length(ranges)
-        inRange = ranges(iR,1):ranges(iR,2);
+        % The indices of FCTDall.chi that need processing should be the same as
+        % where FCTDall.microconductivity_processed is false.
+        ind_to_process = ~FCTDall.microconductivity_processed;
 
-        fprintf('\nAdding chi to FCTDall range %3.0f of %3.0f.\n',iR,length(ranges));
-        myFCTD.time = FCTDall.time(inRange);
+        % Grab the data to process
+        newFCTD.time = FCTDall.time(ind_to_process);
         for j=1:length(vars2grid_list)
             try
-                myFCTD.(vars2grid_list{j}) = FCTDall.(vars2grid_list{j})(inRange,:);
+                newFCTD.(vars2grid_list{j}) = FCTDall.(vars2grid_list{j})(ind_to_process,:);
             catch
-                myFCTD.(vars2grid_list{j})=nan.*inRange;
+                newFCTD.(vars2grid_list{j})=nan.*ind_to_process;
             end
 
         end
 
-        if length(myFCTD.pressure)>2000 % ALB in the case we are using MHA new code we need at least 2000 samples, which is about 2 minutes (2000/16Hz). Since we now do this at the level of FCTDall and not in individual .mat files, this should always be okay.
-
-            % Calculate chi if uConductivity exists
-            if ~isfield(myFCTD,'chi_param')
-                myFCTD.chi_param=FCTD_DefaultChiParam;
-                myFCTD.chi_param.min_spd=0.01; %TFO RR2410 upcast have a slow last part of up cast.
-                myFCTD.chi_param.plotit = 1;
-                myFCTD.chi_param.fs = 320;
-            end
-
-            % Convert microconductivity to chi
-            myFCTD = add_chi_microMHA_v3(myFCTD,myFCTD.chi_param);
-
-            % Replace data in FCTDall
-            for iField=1:length(vars2grid_list)
-                FCTDall.chi(inRange,:) = myFCTD.chi;
-                FCTDall.eps_chi(inRange,:) = myFCTD.eps_chi;
-                FCTDall.chi_tot(inRange,:) = myFCTD.chi_tot;
-            end
-
+        % Check for gaps in data > 1 second. If there are gaps longer than 1
+        % second, divide the data and process it in pieces to avoid errors
+        % caused by interpolating over large periods.
+        idx = find(diff(newFCTD.time)>days(seconds(1)));
+        if isempty(idx)
+            ranges = [1 length(newFCTD.pressure)];
         else
-            fprintf('  Not enough data in range to process microconductivity.\n')
+            if isscalar(idx)
+                ranges = [1          idx;...
+                    idx+1,     length(newFCTD.pressure)];
+            elseif numel(idx)>1
+                ranges = [1               idx(1);...
+                    idx(1:end-1)+1, idx(2:end);...
+                    idx(end)+1,     length(newFCTD.pressure)];
+            end
         end
-    
-    end %end loop through ranges
-end %end if there is microconductivity data
+
+        for iR=1:size(ranges,1)
+            inRange = ranges(iR,1):ranges(iR,2);
+
+            fprintf('\nAdding chi to FCTDall range %3.0f of %3.0f.\n',iR,size(ranges,1));
+            rangeFCTD.time = newFCTD.time(inRange);
+            for j=1:length(vars2grid_list)
+                try
+                    rangeFCTD.(vars2grid_list{j}) = newFCTD.(vars2grid_list{j})(inRange,:);
+                catch
+                    rangeFCTD.(vars2grid_list{j})=nan.*inRange;
+                end
+
+            end
+
+            if length(rangeFCTD.pressure)>2000 % ALB in the case we are using MHA new code we need at least 2000 samples, which is about 2 minutes (2000/16Hz). Since we now do this at the level of FCTDall and not in individual .mat files, this should always be okay.
+
+                %Calculate chi if uConductivity exists
+                % rangeCTD.chi_param=FCTD_DefaultChiParam;
+                % rangeFCTD.chi_param.min_spd=0.01; %TFO RR2410 upcast have a slow last part of up cast.
+                % rangeFCTD.chi_param.plotit = 1;
+                % rangeFCTD.chi_param.fs = 320;
+
+                rangeFCTD = add_chi_microMHA_v3(rangeFCTD);
+
+
+                % Replace data in FCTDall
+                newFCTD.chi(inRange,:) = rangeFCTD.chi;
+                newFCTD.eps_chi(inRange,:) = rangeFCTD.eps_chi;
+                newFCTD.chi_tot(inRange,:) = rangeFCTD.chi_tot;
+
+
+            else
+                fprintf('  Not enough data in range to process microconductivity.\n')
+            end
+
+        end %end loop through ranges
+
+        % Add new data to FCTDall
+        FCTDall.chi(ind_to_process) = newFCTD.chi;
+        FCTDall.eps_chi(ind_to_process) = newFCTD.eps_chi;
+        FCTDall.chi_tot(ind_to_process) = newFCTD.chi_tot;
+
+        FCTDall.microconductivity_processed(ind_to_process) = true;
+    end %end if there is microconductivity data
 
 end %end if process chi
 

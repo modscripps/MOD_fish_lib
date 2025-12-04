@@ -81,15 +81,25 @@ if ~isempty(matData.ctd)
     % Add GPS data
     if isfield(matData,'gps')
         if ~isempty(gps) && isfield(gps,'dnum')
+
             % Sometimes there's a weirdness here with non-unique gps.dnum
             [~,iU] = unique(gps.dnum);
+            gps_dnum = gps.dnum(iU);
+            gps_longitude = gps.longitude(iU);
+            gps_latitude = gps.latitude(iU);
+
+            % Sometimes there's a nan in the first index of gps.dnum from a
+            % bad line in the .modraw file. It will prevent successful
+            % interpolation.
+            notNan = ~isnan(gps_dnum);
+
             if ~isempty(iU)
                 if isscalar(iU)
                     FCTD.longitude=gps.longitude+(ctd.dnum.*0);
                     FCTD.latitude=gps.latitude+(ctd.dnum.*0);
                 else
-                    FCTD.longitude=interp1(gps.dnum(iU),gps.longitude(iU),ctd.dnum);
-                    FCTD.latitude=interp1(gps.dnum(iU),gps.latitude(iU),ctd.dnum);
+                    FCTD.longitude=interp1(gps_dnum(notNan),gps_longitude(notNan),ctd.dnum);
+                    FCTD.latitude=interp1(gps_dnum(notNan),gps_latitude(notNan),ctd.dnum);
                 end
             else
                 FCTD.longitude=nan(length(ctd.dnum),1);

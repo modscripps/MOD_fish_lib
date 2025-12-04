@@ -807,6 +807,7 @@ else
         % crashguard. The probes sit 2.02 inches behind the crash guard.
         % (See Epsi Processing Manual - Altimeter correction for diagram).
         % convert_dissrate = @(x) ((x-apf.data.dissrate_count0)/apf.data.dissrate_per_bit);
+        try
         feet2meters = @(x) (x*0.3048);
         inches2meters = @(x) (x*0.0254);
         angle_deg = Meta_Data.GEOMETRY.alt_angle_deg;
@@ -820,6 +821,9 @@ else
 
         % alt.hab is the height of the probes above the bottom
         isap.hab(iB,1) = A*cos(theta) - altimeter_height_above_probes;
+        catch
+            isap.hab(iB,1) = nan;
+        end
 
     end %end loop through alt blocks
 

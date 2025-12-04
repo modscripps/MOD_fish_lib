@@ -88,17 +88,17 @@ if ~isempty(idx)
 
 else
 
-
-    FCTD.microtime=linspace(FCTD.time(1),FCTD.time(end),FCTD.chi_param.fs./FCTD.chi_param.fslow*length(FCTD.time))';
+    FCTD.microtime=linspace(FCTD.time(1),FCTD.time(end),chi_param.fs./chi_param.fslow*length(FCTD.time))';
 
     i1=1:length(FCTD.microtime);
+
     %Also compute fall rate in m/s
-    FCTD.dPdt=CenteredConv(diffs(FCTD.pressure)*FCTD.chi_param.fslow,1,4*FCTD.chi_param.fslow); %smooth over a few sec
+    FCTD.dPdt=CenteredConv(diffs(FCTD.pressure)*chi_param.fslow,1,4*chi_param.fslow); %smooth over a few sec
 
     %Now unpack micro and express as raw volts - convert from counts
-    if FCTD.chi_param.fs==160
+    if chi_param.fs==160
         FCTD.ucon=reshape(FCTD.uConductivity.',10*length(FCTD.time),1)/2^16; %pre SOM/epsi - 160 Hz @ 16 bits
-    elseif FCTD.chi_param.fs==320
+    elseif chi_param.fs==320
         FCTD.ucon=reshape(FCTD.uConductivity.',20*length(FCTD.time),1)/2^24; %post SOM/epsi - 320 Hz @ 24 bits
     end
     %reshape takes them columnwise so transpose
@@ -106,7 +106,7 @@ else
     data=FCTD.ucon(i1); %This is the uncalibrated voltage
 
     %This is the function that does all the work.
-    datac=remove_sbe_preemphasisMHA(NANinterp(data),FCTD.chi_param.fs)*FCTD.chi_param.gain+FCTD.chi_param.offset;
+    datac=remove_sbe_preemphasisMHA(NANinterp(data),chi_param.fs)*chi_param.gain+chi_param.offset;
 
     %Store corrected output field with the scaling and offset applied
     FCTD.ucon_corr=nan*FCTD.ucon;
@@ -115,7 +115,7 @@ else
     %Now loop through and compute spectra for each block
 
     %FCTD.chi_param.plotit=0;
-    tout=FCTD.time(1):(FCTD.chi_param.dt_sec/24/3600)/8:FCTD.time(end);
+    tout=FCTD.time(1):(chi_param.dt_sec/24/3600)/8:FCTD.time(end);
     chi_all=nan*tout; %This is chi by simple time-domain RMS'ing, in bins
     chi2_all=nan*tout; %This is chi by integrating the wavenumber spectrum
     w_all=nan*tout;
@@ -123,9 +123,9 @@ else
     for c=1:length(tout)
 
         %DisplayProgress(c,10000)
-        tlim=tout(c)+[-1 1].*FCTD.chi_param.dt_sec/2 /24/3600; %Make a time window surrounding that center time
+        tlim=tout(c)+[-1 1].*chi_param.dt_sec/2 /24/3600; %Make a time window surrounding that center time
 
-        if FCTD.chi_param.plotit
+        if chi_param.plotit
             close all
             plot_ucond_and_tlim(FCTD,tlim)
         end
@@ -133,7 +133,7 @@ else
 
         %Use v3
         %    out=DoOneChi_MHA_v2(FCTD,tlim,FCTD.chi_param);
-        out=DoOneChi_MHA_v3(FCTD,tlim,FCTD.chi_param);
+        out=DoOneChi_MHA_v3(FCTD,tlim,chi_param);
 
         w_all(c)=out.w;
         chi2_all(c)=out.chi_stupid;
