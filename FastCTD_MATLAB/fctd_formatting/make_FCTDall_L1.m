@@ -124,7 +124,9 @@ for iCast=1:length(casts)
     end
 
     if ~apply_response_matching_code
-        fprintf('  Flag set to NOT apply response matching code.\n');
+        if iCast==1
+            fprintf('  Flag set to NOT apply response matching code.\n');
+        end
     elseif apply_response_matching_code
         fprintf('  Response matching for cast %4.0f of %4.0f\n',iCast,length(casts));
         if max(FCTDall.pressure(ind))-min(FCTDall.pressure(ind))>10
