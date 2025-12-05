@@ -62,7 +62,7 @@ FCTDold = FCTDall;
 
 
 %% Set up some new fields if they don't exist yet
-flag_fields = {'response_match_applied','microconductivity_processed'};
+flag_fields = {'response_match_applied','microconductivity_processed','chi','eps_chi','chi_tot'};
 for iN=1:numel(flag_fields)
 
     % If the field doesn't exist in the previously loaded L1 data, create
