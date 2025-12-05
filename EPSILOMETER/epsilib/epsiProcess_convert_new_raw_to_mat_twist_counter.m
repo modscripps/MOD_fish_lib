@@ -1,5 +1,5 @@
-function [matData] = epsiProcess_convert_new_raw_to_mat(dirs,Meta_Data,varargin)
-% epsiProcess_convert_new_raw_to_mat
+function [matData] = epsiProcess_convert_new_raw_to_mat_twist_counter(dirs,Meta_Data,varargin)
+% epsiProcess_convert_new_raw_to_mat_twist_counter
 %   Converts new raw files from dirs.raw_incoming to mat files and saves them in dir.raw_copy
 %
 % aleboyer@ucsd.edu adding ttv and fluor
@@ -186,8 +186,9 @@ if rSync
 
   
     % Loop through files and find the ones with survey_name
-    idx_in_survey = false(length(file_list_all),1);
-    idx_in_survey(69:end) = true; %NC 11/16/24 hack for MOTIVE
+    % MOTIVE2025 change
+    % idx_in_survey = false(length(file_list_all),1);
+    % idx_in_survey(69:end) = true; %NC 11/16/24 hack for MOTIVE
     % for i=1:length(file_list_all)
     % 
     %     % Open file
@@ -215,7 +216,9 @@ if rSync
     
 
     % Keep only files in survey
-    file_list_struct = file_list_all(idx_in_survey);
+    % MOTIVE2025 change
+    % file_list_struct = file_list_all(idx_in_survey);
+    file_list_struct = file_list_all;
     file_list = {file_list_struct(:).name};
     
     % Rsync the files in file_list

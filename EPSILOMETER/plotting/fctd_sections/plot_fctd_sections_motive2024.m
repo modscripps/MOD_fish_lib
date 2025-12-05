@@ -5,6 +5,7 @@
 %ax4data = 'chi2';
 ax4data = 'N2';
 ax3data = 'chi';
+ax3data = 'chla';
 
 %%
 fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
@@ -16,18 +17,35 @@ if ~exist('FCTDgrid')
 else
     if ~isempty(FCTDgrid)
         %% Plot some stuff
+
         %clf
         %%ax = [];
         fig = figure(1);
-        fig.Units = 'normalized';
-        fig.Position = [0.2848    0.0370    0.4840    0.8667];
-        zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
+        clf
+        % fig.Units = 'normalized';
+        % fig.Position = [0.1    0.0370    0.3    0.8667];
+        
+        % set depth to deepest observationtemp = FCTDgrid.temperature
+
+        ttemp = FCTDgrid.temperature(~all(isnan(FCTDgrid.temperature), 2), :);
+        [n, ~] = size(ttemp);
+        deep_lim = FCTDgrid.depth(n+10);
+
+
+        % zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
+        zlim = [0 deep_lim];
         % clim_temp = [18 27];
+        clims.temperature = [10 27];
         % clim_sal = [34.5 35];
+        clims.salinity = [34.5 35];
         % % clim_chi = [0.2 1];
-        % clim_chla = [0 100];
+        clim_chla = [0.2e-5 3e-5];
         % clim_chi = [-10 -6];
+        clims.chi = [-10 -6];
         levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
+        clims.dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
+
+        clims.n2 = [-6 -3];
 
         % which data to plot? How about the most recent 1 day
         iplot=find(FCTDgrid.time>FCTDgrid.time-1);
@@ -37,7 +55,7 @@ else
         % Temperature
         ax(1) = subtightplot(4,1,1);
         % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
-        imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
+        pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
         ax(1).CLim = clims.temperature;
         cb(1) = colorbar;
         colormap(ax(1),lansey)
@@ -55,7 +73,9 @@ else
         % chi
         ax(3) = subtightplot(4,1,3);
         % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
-        imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+        if 0
+            imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+        end
         % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
         ax(3).CLim = clims.chi;
         cb(3) = colorbar;
@@ -65,9 +85,11 @@ else
         switch ax3data
             case 'chla'
                 if isfield(FCTDgrid,'chla')
-                    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,((FCTDgrid.chla(:,iplot))/2^16-0.5)*500.0);
+                    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot))%/2^16-0.5)*500.0);
                     %pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot));
-                    ax(3).CLim = [0 3];
+                    ax(3).CLim = clim_chla;
+                    %ax(3).YLim([-200,0])
+                    ylim([-200,0])
                     cb(3) = colorbar;
                     cb(3).Label.String = 'Chla';
                 end
@@ -129,6 +151,7 @@ else
         % Add density contours and datetick
         for iAx=1:4
             axes(ax(iAx))
+            ylabel("depth [m]")
             hold(ax(iAx),'on')
             [c,ch] = contour(FCTDgrid.time,FCTDgrid.depth,real(FCTDgrid.density-1000),['k'],'levellist',levels_dens);
             %contour(FCTDgrid.time,FCTDgrid.depth,FCTDgrid.temperature,'m','levellist',13);
@@ -141,16 +164,20 @@ else
         % Depth axes
         [ax(1:4).YLim] = deal([zlim(1) zlim(2)]);
         [ax(1:4).YDir] = deal('reverse');
+        [ax(3).YLim] = deal([0,300]);
+
+        xticklabels(ax(1), {});
+        xticklabels(ax(2), {});
+        xticklabels(ax(3), {});
+
 
         % Link axes
-        lp = linkprop([ax(:)],{'xlim','ylim'});
-
-        %MHA hack
-        %[ax(1:2).YLim] = deal([zlim(1) 500]);
+        % lp = linkprop([ax(:)],{'xlim','ylim'});
+        lp = linkprop([ax(:)],{'xlim'});
 
         % Save figure
         fig_name = fullfile(fig_path,['sections_',datestr(now,'yy_mmdd_HHMMSS')]);
-        n_savepng(fig_name);
+        % n_savepng(fig_name);
 
         end %end if iplot>1
 
@@ -166,6 +193,8 @@ else
         cols = cmocean('thermal',length(profList));
         figTS = figure(2);
         figTS.Tag = 'ts_plot';
+        figTS.Units = 'normalized';
+        figTS.Position = [0.02    0.50    0.35    0.5];
         for pp=1:length(profList)
             p = profList(pp);
             if mod(p,2)==0
@@ -176,13 +205,14 @@ else
             hold on
         end
         grid on
-        xlim([34.4 35.5]);
-        xlabel('S [psu]','FontName','times new roman','FontSize',13);
-        ylabel('T [˚C]','FontName','times new roman','FontSize',13);
+        xlim([34.5 35.0]);
+        ylim([2 15]);
+        xlabel('S [psu]','FontSize',13);
+        ylabel('T [˚C]','FontSize',13);
         legend
 
         fig_name = fullfile(fig_path,['TS_',datestr(now,'yy_mmdd_HHMMSS')]);
-        n_savepng(fig_name);
+        % n_savepng(fig_name);
     else
         disp('No FCTDgrid to plot')
     end %end of ~isempty(FCTDgrid)

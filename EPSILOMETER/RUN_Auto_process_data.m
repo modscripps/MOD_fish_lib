@@ -25,6 +25,7 @@
 % These will probably be the same for the whole cruise
 clear input_struct
 input_struct.Meta_Data_process_file = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2025.txt';
+% input_struct.Meta_Data_process_file = '/Volumes/Software_current_cruise/MOD_fish_lib/EPSILOMETER/Meta_Data_Process/MDP_motive_2025.txt';
 input_struct.refresh_time_sec =  20*60;
 % input_struct.cruise_specifics = 'tfo_2024';
 
@@ -35,6 +36,12 @@ fctd_depth_array = 0:2000;
 % depending on whether you're running this will data coming in in realtime
 % or if you're simulating data coming in.
 data_mode = 'realtime'; %'realtime' or 'simulator'
+
+% GV: Add a survey name here if you don't want to run the one named in the
+% latest Setup file on DEV1. Comment out and delete variable to go back to
+% latest.
+% survey_name = '25_1130_d01_FCTD1_Test';
+
 
 % -------------------------------------------------------------------------
 
@@ -106,7 +113,10 @@ end
 
 % Look for survey name in Setup file
 newSurvey_flag=contains(str,'CTD.survey');
-if newSetup_flag
+if exist("survey_name", "var")
+    % use pre-defined survey name
+    survey_name_setupfile = survey_name;
+elseif newSetup_flag
     surveyflag_str      = str(strfind(str,'CTD.survey')+(0:100));
     surveyflag_str      = surveyflag_str(1:find(uint8(surveyflag_str)==10,1,'first'));
     surveyflag_name     = strsplit(surveyflag_str,'=');

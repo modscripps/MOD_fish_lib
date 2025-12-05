@@ -200,14 +200,14 @@ if rSync
         % modraw_deployment_log yet?
         new_file_list = string({file_list_all.name})';
         unlogged_files = setdiff(new_file_list, ModrawLog.File_Name);
-
-        for i=1:length(unlogged_files)
-            file_list(i).folder = dirs.raw_incoming;
-            file_list(i).name = unlogged_files{i};
+        if ~isempty(unlogged_files)
+            for i=1:length(unlogged_files)
+                file_list(i).folder = dirs.raw_incoming;
+                file_list(i).name = unlogged_files{i};
+            end
+            ModrawLog = epsiProcess_update_ModrawLog(file_list,ModrawLog,Meta_Data);
+            save(fullfile(dirs.raw_incoming,'ModrawLog'),'ModrawLog')
         end
-
-        ModrawLog = epsiProcess_update_ModrawLog(file_list,ModrawLog,Meta_Data);
-        save(fullfile(dirs.raw_incoming,'ModrawLog'),'ModrawLog')
 
     else
         
@@ -241,6 +241,11 @@ if ~isfield(dirs,'raw_copy')
     myASCIIfiles = dir(fullfile(dirs.raw_copy, suffixSearch));
     raw_dir = dirs.raw_incoming;
 end
+% MOTIVE2025 addingthe two lines below but this should get properly merged
+% with the lines above...
+raw_dir = dirs.raw_incoming;
+myASCIIfiles = dir(fullfile(dirs.raw_copy, suffixSearch));
+
 
 if ~isempty(myASCIIfiles)
     for i=1:length(myASCIIfiles)

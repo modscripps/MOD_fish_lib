@@ -229,7 +229,7 @@ if ~isempty(tot_time)
     set(gca,'XTickLabelRotation',45)
     hold off;
     grid on;
-    xlabel('time');
+    % xlabel('time');
     ylabel('Number of rotations');
 
     % Add title with rotation count
@@ -240,7 +240,7 @@ if ~isempty(tot_time)
     hl = legend('Location','NorthWest');
     set(hl,'Fontsize',20);
     set(gca,'Fontsize',20);
-    set(gca,'XLim',datetime([tot_time(end)-12/24 tot_time(end)],'ConvertFrom','datenum'))
+    set(gca,'XLim',datetime([tot_time(1) tot_time(end)],'ConvertFrom','datenum'))
 
     % Print last rotation count
     fprintf("Last rotation count %i\r\n",round(gyro_value(end)))
