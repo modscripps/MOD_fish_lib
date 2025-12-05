@@ -1,0 +1,7 @@
+# We are using lockfiles for the scripts below so that we never run the same process twice.
+
+0/5 * * * * /usr/bin/lockf -t 0 -k /tmp/rsync_harddrive.lock /Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/bash_scripts/motive2025_rsync_to_harddrive.sh
+
+2/5 * * * * /usr/bin/lockf -t 0 -k /tmp/rsync_sharedrive.lock /Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/bash_scripts/motive2025_rsync_to_sharedrive.sh
+
+1 0/2 * * * /usr/bin/lockf -t 0 -k /tmp/rsync_software_sharedrive.lock /Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/bash_scripts/motive2025_rsync_software_to_sharedrive.sh
