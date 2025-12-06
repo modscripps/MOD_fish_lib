@@ -9,18 +9,19 @@ function [FCTDall,FCTDold] = make_FCTDall_L1(FCTDall,fctd_mat_dir)
 % Add these to meta data file and pull into this function via
 % FCTDall
 % !!!
+
+% processing flags
 apply_response_matching_code = 0;
 process_microconductivity = 1;
 
 fprintf('Creating FCTDall_L1 from FCTDall_L0 and saving to %s\n',fctd_mat_dir);
 
-%% Does L1 already exist? If so, load it so you can check to see what has already been processed.
-% Look for FCTDall so you can just add the new ones
-if exist(fullfile(fctd_mat_dir,'FCTDall_L1.mat'),'file')==2 %If FCTDall already exists
-
-    % Load FCTDall_L1
+%% Load existing L1 data
+% Does L1 already exist? If so, load it so you can check to see what has
+% already been processed.
+if exist(fullfile(fctd_mat_dir,'FCTDall_L1.mat'),'file')==2
+    % Load existing FCTDall_L1
     L1 = load(fullfile(fctd_mat_dir,'FCTDall_L1'));
-
 end
 
 %% Define downcasts and upcasts
@@ -62,7 +63,8 @@ FCTDold = FCTDall;
 
 
 %% Set up some new fields if they don't exist yet
-flag_fields = {'response_match_applied','microconductivity_processed','chi','eps_chi','chi_tot'};
+flag_fields = {'response_match_applied','microconductivity_processed'};
+chi_fields = {'chi','eps_chi','chi_tot'};
 for iN=1:numel(flag_fields)
 
     % If the field doesn't exist in the previously loaded L1 data, create
@@ -70,6 +72,7 @@ for iN=1:numel(flag_fields)
     if exist('L1','var')
         if ~isfield(L1.FCTDall,flag_fields{iN})
             FCTDall.(flag_fields{iN}) = false(size(FCTDall.time,1),size(FCTDall.time,2));
+            FCTDall.(chi_fields{iN}) = ones(size(FCTDall.time,1),size(FCTDall.time,2))*nan;            
         end
 
         % If the field exists but it's not as long as FCTDall.time, add more
