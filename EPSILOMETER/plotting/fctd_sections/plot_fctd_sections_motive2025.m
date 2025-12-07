@@ -36,7 +36,6 @@ else
         zlim = [0 deep_lim];
         % clim_temp = [18 27];
         clims.temperature = [24.5 26];
-        clims.temperature_deep = [15 26];
         % clim_sal = [34.5 35];
         clims.salinity = [34.5 35];
         % % clim_chi = [0.2 1];
@@ -57,7 +56,7 @@ else
         ax(1) = subtightplot(4,2,1);
         % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
         pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.temperature(:,iplot));
-        ax(1).CLim = clims.temperature_deep;
+        ax(1).CLim = clims.temperature;
         colormap(ax(1),lansey)
 
         ax(2) = subtightplot(4,2,2);
