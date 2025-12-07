@@ -1,11 +1,11 @@
 % plot_fctd_sections
 
 %% Decide what to plot in ax(4)
-% ax4data = 'chi';
-%ax4data = 'chi2';
+%ax4data = 'chla';
+% ax4data = 'chi2';
 ax4data = 'N2';
 ax3data = 'chi';
-ax3data = 'chla';
+%ax3data = 'chla';
 
 %%
 fctd_mat_dir = fullfile(ec.Meta_Data.paths.data,'fctd_mat');
@@ -35,11 +35,11 @@ else
         % zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
         zlim = [0 deep_lim];
         % clim_temp = [18 27];
-        clims.temperature = [10 27];
+        clims.temperature = [24.5 26];
         % clim_sal = [34.5 35];
         clims.salinity = [34.5 35];
         % % clim_chi = [0.2 1];
-        clim_chla = [0.2e-5 3e-5];
+        clim_chla = [0.2e-5 5e-5];
         % clim_chi = [-10 -6];
         clims.chi = [-10 -6];
         levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
@@ -70,17 +70,7 @@ else
         cb(2).Label.String = 'Salinity';
         %set(cb(2),'ydir','reverse');
 
-        % chi
-        ax(3) = subtightplot(4,1,3);
-        % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
-        if 0
-            imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
-        end
-        % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
-        ax(3).CLim = clims.chi;
-        cb(3) = colorbar;
-        colormap(ax(3),parula)
-        cb(3).Label.String = '\chi';
+
 
         switch ax3data
             case 'chla'
@@ -100,6 +90,16 @@ else
                     cb(3) = colorbar;
                     cb(3).Label.String = 'fluor';
                 end
+
+            case 'chi'
+                ax(3) = subtightplot(4,1,3);
+                % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+                imagesc(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi(:,iplot)));
+                % pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,log10(FCTDgrid.chi2(:,iplot)));
+                ax(3).CLim = clims.chi;
+                cb(3) = colorbar;
+                colormap(ax(3),cmocean('matter'))
+                cb(3).Label.String = '\chi';
         end
 
         ax(4) = subtightplot(4,1,4);
@@ -116,6 +116,16 @@ else
                 cb(4) = colorbar;
                 ax(4).CLim = clims.chi;
                 cb(4).Label.String = 'chi2';
+            case 'chla'
+                if isfield(FCTDgrid,'chla')
+                    pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot))%/2^16-0.5)*500.0);
+                    %pcolorjw(FCTDgrid.time(iplot),FCTDgrid.depth,FCTDgrid.chla(:,iplot));
+                    ax(4).CLim = clim_chla;
+                    %ax(3).YLim([-200,0])
+                    ylim([-200,0])
+                    cb(4) = colorbar;
+                    cb(4).Label.String = 'Chla';
+                end
             case 'N2'
                 % N^2
                 %pcolorjw(FCTDgrid.time,FCTDgrid.depth,((FCTDgrid.chla)/2^16-0.5)*500.0);
@@ -164,7 +174,10 @@ else
         % Depth axes
         [ax(1:4).YLim] = deal([zlim(1) zlim(2)]);
         [ax(1:4).YDir] = deal('reverse');
-        [ax(3).YLim] = deal([0,300]);
+        [ax(3).YLim] = deal([0,200]);
+        [ax(2).YLim] = deal([0,200]);
+        [ax(1).YLim] = deal([0,100]);
+        [ax(4).YLim] = deal([0,200]);
 
         xticklabels(ax(1), {});
         xticklabels(ax(2), {});
@@ -206,7 +219,7 @@ else
         end
         grid on
         xlim([34.5 35.0]);
-        ylim([2 15]);
+        ylim([2 20]);
         xlabel('S [psu]','FontSize',13);
         ylabel('T [˚C]','FontSize',13);
         legend
