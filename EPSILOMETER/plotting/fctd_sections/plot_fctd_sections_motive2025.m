@@ -29,23 +29,23 @@ else
 
         ttemp = FCTDgrid.temperature(~all(isnan(FCTDgrid.temperature), 2), :);
         [n, ~] = size(ttemp);
-        deep_lim = FCTDgrid.depth(n+10);
+        deep_lim = 2500;%FCTDgrid.depth(n+10);
 
 
         % zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];
         zlim = [0 deep_lim];
         % clim_temp = [18 27];
-        clims.temperature = [24.5 26];
+        clims.temperature = [22.5 25.2];
         % clim_sal = [34.5 35];
-        clims.salinity = [34.5 35];
+        clims.salinity = [34.7 35.4];
         % % clim_chi = [0.2 1];
-        clim_chla = [0.2e-5 5e-5];
+        clim_chla = [0.2e-5 7e-5];
         % clim_chi = [-10 -6];
-        clims.chi = [-10 -6];
-        levels_dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
-        clims.dens = [19:1:25.5 26:0.2:27.7 27.71:0.01:27.8];
+        clims.chi = [-10 -4];
+        levels_dens = [19:0.25:25.5 26:0.2:27.7 27.71:0.01:27.8];
+        clims.dens = [19:0.25:25.5 26:0.2:27.7 27.71:0.01:27.8];
 
-        clims.n2 = [-6 -3];
+        clims.n2 = [-6 -2.5];
 
         % which data to plot? How about the most recent 1 day
         iplot=find(FCTDgrid.time>FCTDgrid.time-1);
@@ -194,7 +194,7 @@ else
             axes(ax(iAx))
             ylabel("depth [m]")
             hold(ax(iAx),'on')
-            [c,ch] = contour(FCTDgrid.time,FCTDgrid.depth,real(FCTDgrid.density-1000),['k'],'levellist',levels_dens);
+            [c,ch] = contour(FCTDgrid.time(iplot),FCTDgrid.depth,real(FCTDgrid.density(:,iplot)-1000),['k'],'levellist',levels_dens);
             %contour(FCTDgrid.time,FCTDgrid.depth,FCTDgrid.temperature,'m','levellist',13);
             %  contour(FCTDgrid.time,FCTDgrid.depth,FCTDgrid.temperature,'c','levellist',15);
             clabel(c,ch);
@@ -204,7 +204,7 @@ else
         for iAx=2:2:8
             axes(ax(iAx))
             hold(ax(iAx),'on')
-            [c,ch] = contour(FCTDgrid.time,FCTDgrid.depth,real(FCTDgrid.density-1000),['k'],'levellist',levels_dens);
+            [c,ch] = contour(FCTDgrid.time(iplot),FCTDgrid.depth,real(FCTDgrid.density(:,iplot)-1000),['k'],'levellist',levels_dens);
             %contour(FCTDgrid.time,FCTDgrid.depth,FCTDgrid.temperature,'m','levellist',13);
             %  contour(FCTDgrid.time,FCTDgrid.depth,FCTDgrid.temperature,'c','levellist',15);
             clabel(c,ch);
@@ -215,6 +215,11 @@ else
         % Depth axes
         [ax(1:8).YLim] = deal([zlim(1) zlim(2)]);
         [ax(1:8).YDir] = deal('reverse');
+        [ax(1).YLim] = deal([0,1300]);
+        [ax(3).YLim] = deal([0,1300]);
+        [ax(5).YLim] = deal([0,1300]);
+        [ax(7).YLim] = deal([0,1300]);
+
         [ax(2).YLim] = deal([0,200]);
         [ax(4).YLim] = deal([0,200]);
         [ax(6).YLim] = deal([0,200]);

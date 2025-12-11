@@ -29,7 +29,7 @@ else
 
         ttemp = FCTDgrid.temperature(~all(isnan(FCTDgrid.temperature), 2), :);
         [n, ~] = size(ttemp);
-        deep_lim = FCTDgrid.depth(n+10);
+        deep_lim = 2500;%FCTDgrid.depth(n+10);
 
 
         % zlim = [input_struct.depth_array(1),input_struct.depth_array(end)];

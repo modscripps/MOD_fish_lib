@@ -24,8 +24,8 @@ end
 
 %% MOTIVE
 if 1
-    plot_fctd_sections_motive2024
-    % fprintf('plot_fctd_sections.m - Plotting FCTD sections for MOTIVE 2024 \n')
+    plot_fctd_sections_motive2025
+    % fprintf('plot_fctd_sections.m - Plotting FCTD sections for MOTIVE 2025 \n')
 end
 
 %% SUBFUNCTIONS
