@@ -25,12 +25,9 @@ rotFiles(toss) = [];
 
 % -----------------------------------------------------------------------------
 
-%Redo the most recent rotFile in case it wasn't complete, and continue through the end of the matFiles
-% for iFile = numel(rotFiles)-1:numel(matFiles)
+% Loop through all matFiles and generate new rotFiles if they are missing
+% or incomplete.
 for iFile = 1:numel(matFiles)
-    if iFile<1
-        iFile=1;
-    end
 
     matFile = [matDataDir '/' matFiles{iFile}];
     rotFile = [rotDataDir '/' matFiles{iFile}];
@@ -63,7 +60,11 @@ for iFile = 1:numel(matFiles)
         rot.time_s       = vnav.time_s(keep);
         rot.dnum         = vnav.dnum(keep);
         if ~isempty(ctd)
-            rot.pressure     = interp1(ctd.dnum,ctd.P,rot.dnum);
+            try
+                rot.pressure     = interp1(ctd.dnum,ctd.P,rot.dnum);
+            catch
+                rot.pressure     = rot.dnum.*nan;
+            end
         else
             rot.pressure     = rot.dnum.*nan;
         end
@@ -163,6 +164,7 @@ else
 end
 
 last_file_idx = 1;
+% Need to list rot files again since we may have produced new ones.
 rotFiles = dir([rotDataDir '*.mat']);
 rotFiles = {rotFiles.name};
 rotFiles = GV_filterFilesByTimestamp(rotFiles, inputTimestamp);

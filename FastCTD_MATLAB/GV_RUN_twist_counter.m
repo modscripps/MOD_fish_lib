@@ -10,20 +10,19 @@ jTextArea=listeners(5); %or listeners(3) or listeners (4) depending on matlab
 jTextArea.setBackground(java.awt.Color(1,0.4,0.4));
 
 % input structure
-rot_struct.raw_incoming = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/incoming/';
-rot_struct.mat = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/mat/';
-rot_struct.rot = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/rot/';
-rot_struct.raw_copy = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/raw/';
+% rot_struct.raw_incoming = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/incoming/';
+% rot_struct.mat = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/mat/';
+% rot_struct.rot = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/rot/';
+% rot_struct.raw_copy = '/Users/gunnar/Projects/motive/cruises/cruise2/fctd-twist-counting/raw/';
+% root_software = '/Users/gunnar/Projects/matlab/toolboxes_git/FromOtherDevelopers/MOD_fish_lib/';
 
-root_software = '/Users/gunnar/Projects/matlab/toolboxes_git/FromOtherDevelopers/MOD_fish_lib/';
 
+rot_struct.raw_incoming = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
+rot_struct.mat = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/';
+rot_struct.rot = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/';
+rot_struct.raw_copy = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
 
-% rot_struct.raw_incoming = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
-% rot_struct.mat = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/MAT_full_cruise_twist_counter/';
-% rot_struct.rot = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/ROT_full_cruise_twist_counter/';
-% rot_struct.raw_copy = '/Users/Shared/EPSI_PROCESSING/Current_Cruise/Processed/RAW_full_cruise_twist_counter/';
-% 
-% root_software = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
+root_software = '/Volumes/DEV1_HD/Users/Shared/Software_current_cruise/MOD_fish_lib/';
 
 
 Meta_Data_process_file = 'MDP_motive_2025.txt';
@@ -40,9 +39,10 @@ obj = epsi_class(input_struct.raw_dir, Meta_Data_process_file);
 f = figure(1);
 clf(f)
 f.Units = 'normalized';
-set(f,'position',[0 0,0.2,0.2]);
+set(f,'position',[0.6, 0, 0.4, 0.4]);
 
-rot = GV_PlotUpAccumulation(rot_struct.mat, rot_struct.rot, '20251211_010000');
+% start counting after spool swap 2025-21-11 03:40 UTC 
+rot = GV_PlotUpAccumulation(rot_struct.mat, rot_struct.rot, '20251211_030000');
 
 % ROT_timer = timer;
 % s = false;
