@@ -81,7 +81,18 @@ end
 [ind_apf1_start     , ind_apf1_stop]     = regexp(str,'\$APF1([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
 [ind_apf2_start     , ind_apf2_stop]     = regexp(str,'\$APF2([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
 [ind_fluor_start    , ind_fluor_stop]    = regexp(str,'\$ECOP([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
-[ind_ttv_start      , ind_ttv_stop]      = regexp(str,'\$TTV1([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
+[ind_ttv1_start      , ind_ttv1_stop]      = regexp(str,'\$TTV1([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
+[ind_ttv2_start      , ind_ttv2_stop]      = regexp(str,'\$TTV2([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
+[ind_ttv3_start      , ind_ttv3_stop]      = regexp(str,'\$TTV3([\S\s]+?)\*([0-9A-Fa-f][0-9A-Fa-f])\r\n','start','end');
+
+
+%% If you want to use Meta_Data from file header, parse the header
+if Meta_Data.PROCESS.use_file_headers
+    Meta_Data = parse_header_for_Meta_Data(str,filename,Meta_Data);
+else
+    Meta_Data.CTD.cal=[];
+end
+SBEcal = Meta_Data.CTD.cal;
 
 %% Define the header tag format
 % In the versions of the SOM acquisition software since 23 May 2021 (and
@@ -131,72 +142,66 @@ tag.laptoptime.indx = get_inds(tag.laptoptime);
 processed_data_types = {};
 no_data_types = {};
 
-%% If you want to use Meta_Data from file header, parse the header
-% Check that paths are accessible on current computer. Find MOD fish lib if
-% needed
-Meta_Data = epsiSetup_find_mod_fish_lib(Meta_Data);
-
-if Meta_Data.PROCESS.use_file_headers
-    Meta_Data = parse_header_for_Meta_Data(str,filename,Meta_Data);
-end
-SBEcal = Meta_Data.CTD.cal;
-
-
-
 %% Process setup SOM3 data
  if Meta_Data.PROCESS.use_file_headers
-    if isempty(ind_som_start) %Can't find index of $SOM3
+    if isempty(ind_som_start)
         no_data_types = [no_data_types,'setup'];
         setup=[];
         %setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
-        %Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
-        if isfield(Meta_Data.paths,'setup_file') % If you initialized with a yaml file:
-            Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
-        else %If you don't have a yaml file
-            setup=mod_som_read_setup_from_config('EPSILOMETER/config_files/bench_config');
-            Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
-        end
+        %Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);        Meta_Data = MODsetup_make_metadata_from_yaml(Meta_Data.paths.setup_file);
     else
         % settings=str(ind_som_start+32:ind_som_stop-5);
         str_setup=str(ind_som_start:ind_som_stop);
         setup=mod_som_read_setup_from_raw(str_setup);
         Meta_Data=epsiSetup_fill_meta_data(Meta_Data,setup);
 
-    %     if ~isempty(epsi_probes)
-    %         % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
-    %         % calibration value for every profile. Since we're only at the .mat
-    %         % stage here, don't set it. Eventually, once we understand dTdV a bit
-    %         % better, we will have a calibration file for each probe.
-    %         epsi_probes.ch1.cal = 0;
-    %         epsi_probes.ch2.cal = 0;
-    % 
-    %         Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
-    %         Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
-    %         Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
-    %         Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
-    %         Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
-    %         Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
-    %         if epsi_probes.ch3.cal~=0
-    %             Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
-    %             Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
-    %         else
-    %             AFE=get_shear_calibration(Meta_Data.AFE);
-    %             Meta_Data.AFE=AFE;
-    %             %ALB epsi case
-    %             if isfield(Meta_Data.AFE.s1,'Sv')
-    %                 Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
-    %                 Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
-    %             else
-    %                 %ALB fctd case
-    %                 % nothing to do so far
-    %             end
-    %         end
-    %     end
+        % if ~isempty(epsi_probes)
+        if exist('epsi_probes','var')
+            % NC 11/13/24 - for now, set t1.cal and t2.cal to zero. We will get the
+            % calibration value for every profile. Since we're only at the .mat
+            % stage here, don't set it. Eventually, once we understand dTdV a bit
+            % better, we will have a calibration file for each probe.
+            epsi_probes.ch1.cal = 0;
+            epsi_probes.ch2.cal = 0;
+
+            Meta_Data.AFE.t1.SN=epsi_probes.ch1.SN;
+            Meta_Data.AFE.t1.cal=epsi_probes.ch1.cal;
+            Meta_Data.AFE.t2.SN=epsi_probes.ch2.SN;
+            Meta_Data.AFE.t2.cal=epsi_probes.ch2.cal;
+            Meta_Data.AFE.s1.SN=epsi_probes.ch3.SN;
+            Meta_Data.AFE.s2.SN=epsi_probes.ch4.SN;
+            if epsi_probes.ch3.cal~=0
+                Meta_Data.AFE.s1.cal=epsi_probes.ch3.cal;
+                Meta_Data.AFE.s2.cal=epsi_probes.ch4.cal;
+            else
+                AFE=get_shear_calibration(Meta_Data.AFE);
+                Meta_Data.AFE=AFE;
+                %ALB epsi case
+                if isfield(Meta_Data.AFE.s1,'Sv')
+                    Meta_Data.AFE.s1.cal=Meta_Data.AFE.s1.Sv;
+                    Meta_Data.AFE.s2.cal=Meta_Data.AFE.s2.Sv;
+                else
+                    %ALB fctd case
+                    % nothing to do so far
+                end
+            end
+        end
+    end
+    if ~isempty(ind_dcal_start)
+        % Read SBE tcal from
+        str_dcal=str(ind_dcal_start:ind_dcal_stop-5);
+        SBEcal=get_CalSBE_v2(str_dcal);
+        Meta_Data.CTD.cal=SBEcal;
     end
 
-else
-
+ else
+     if ~isempty(ind_sbe_start)
+         % Otherwise, read CTD calibration from calibrations folder
+         SBEcal=get_CalSBE(fullfile(Meta_Data.paths.calibrations.ctd,[Meta_Data.CTD.SN '.cal']));
+         Meta_Data.CTD.cal=SBEcal;
+     end
 end %end if use_file_headers
+
 
 
 %% GPS data We have to start with GPS because we need latitude
@@ -257,13 +262,12 @@ else
             % Grab the block of data starting with the header
             gps_block_str = str(ind_gps_start(iB):ind_gps_stop(iB)); %Moved here by Bethan June 26
 
+
             % Get the data after the header
             gps_block_data = str(ind_gps_start(iB):ind_gps_stop(iB));
 
             % Split the data into parts
             data_split = strsplit(gps_block_data,',');
-
-            gps_time = str2double(str(ind_time_start(iB):ind_time_stop(iB)))/100/24/3600;
 
             gps.dnum(iB) = str2double(str(ind_time_start(iB):ind_time_stop(iB)))/100/24/3600+FCTD.header.offset_time;
 
@@ -615,19 +619,17 @@ else
                 error('Need latitude to get depth from pressure data. Add to MetaProcess text file.')
             else
                 % ALB add the gps data if it exists.
-                % NC - Force interpolation on non-nan data only
                 if isfield(gps,'latitude')
                     try
                         if length(gps.latitude)>1
-                            notNan = ~isnan(gps.dnum);
-                            ctd_lat  = interp1(gps.dnum(notNan),gps.latitude(notNan),ctd.dnum);
+                            ctd_lat  = interp1(gps.dnum,gps.latitude,ctd.dnum);
                             ctd.z    = sw_dpth(ctd.P,ctd_lat);
                         else
                             ctd_lat  = gps.latitude;
                             ctd.z    = sw_dpth(ctd.P,ctd_lat);
                         end
                     catch
-                        warning("Can not interpolate latitude ctd.dnum in mod_som_read_epsi_v4")
+                        warning("Can not interpolate latitude ctd.num. Line 665 mod_som_read_epsi_v4")
                     end
                 else
                     ctd.z    = sw_dpth(ctd.P,Meta_Data.PROCESS.latitude);
@@ -635,7 +637,7 @@ else
                 try
                     ctd.dzdt = [0; diff(ctd.z)./diff(ctd.time_s)];
                 catch
-                    disp('issue with dzdt in mod_som_read_epsi_files_v4')
+                    disp('issue with dzdt mod_som_read_epsi_files_v4 l.689')
                 end
             end
 
@@ -645,7 +647,7 @@ else
 
                 % Sort ctd fields
                 ctd = orderfields(ctd,{'dnum','time_s','P_raw','T_raw','S_raw',...
-                   'C_raw','PT_raw','P','z','T','S','C','th','sgth','dPdt','dzdt'});
+                    'C_raw','PT_raw','P','z','T','S','C','th','sgth','dPdt','dzdt'});
             end
         end %end if sbe data block is the correct size
         %         % Tracking blocks
@@ -658,7 +660,7 @@ else
 end %end loop if there is ctd data
 
 %% MOD  Altimeter
-if isempty(ind_alt_start)
+if length(ind_alt_start)<=1
     no_data_types = [no_data_types,'alt'];
     alt=[];
 else
@@ -807,7 +809,6 @@ else
         % crashguard. The probes sit 2.02 inches behind the crash guard.
         % (See Epsi Processing Manual - Altimeter correction for diagram).
         % convert_dissrate = @(x) ((x-apf.data.dissrate_count0)/apf.data.dissrate_per_bit);
-        try
         feet2meters = @(x) (x*0.3048);
         inches2meters = @(x) (x*0.0254);
         angle_deg = Meta_Data.GEOMETRY.alt_angle_deg;
@@ -821,9 +822,6 @@ else
 
         % alt.hab is the height of the probes above the bottom
         isap.hab(iB,1) = A*cos(theta) - altimeter_height_above_probes;
-        catch
-            isap.hab(iB,1) = nan;
-        end
 
     end %end loop through alt blocks
 
@@ -878,7 +876,7 @@ try
         processed_data_types = [processed_data_types,'vnav'];
         %disp('processing vnav data')
 
-        % VNAV-specific quantities
+        % 2-specific quantities
         % ---------------------------
         vecnav.data.n_blocks = numel(ind_vnav_start);
         vecnav.data.recs_per_block = 1;
@@ -903,10 +901,10 @@ try
         %     % Grab the block of data starting with the header
         %     vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB));
         %     %Commented out and moved below by Bethan June 26
-        Lsample=length(str(ind_vnav_start(iB):ind_vnav_stop(iB)));
-
+        
         % Loop through data blocks and parse strings
         for iB=1:vecnav.data.n_blocks
+            Lsample=length(str(ind_vnav_start(iB):ind_vnav_stop(iB)));
 
             % Grab the block of data starting with the header
             vnav_block_str = str(ind_vnav_start(iB):ind_vnav_stop(iB)); %Moved here by Bethan June 26
@@ -2047,137 +2045,164 @@ end %end loop if there is fluor data
 
 %ALB this is engineering data format.
 %ALB will work on other format when they exist
-if isempty(ind_ttv_start)
-    no_data_types = [no_data_types,'ttv'];
-    ttv=[];
+if isempty(ind_ttv1_start)
+    no_data_types = [no_data_types,'ttv1'];
+    ttv1=[];
 else
-    % Ti logan TTV format
-    %UUUUUUUU,DDDDDDDD,TTTTTTTT,VVVVVVVV,LL,AA,uuuu,dddd\n\r
-    % 8+1+8+1+8+1+8+1+2+1+2+1+4+1+4+2
 
-    ttv.data.sample_freq      = 16;
-    ttv.data.sample_period    = 1/ttv.data.sample_freq;
-    ttv.data.n_blocks         = numel(ind_ttv_start);
-    ttv.data.recs_per_block   = 10;
-    ttv.data.n_recs           = ttv.data.n_blocks*ttv.data.recs_per_block;
-    ttv.data.timestamp_length = 16;
-    % ALB I have to change this
-    ttv.data.length           = 53;
+    processed_data_types = [processed_data_types,'ttv1'];
+    ttv1=parse_ttv_block(ind_ttv1_start,ind_ttv1_stop,tag,str)
+%     ttv1.data.ttv_format       = 2;
+%     ttv1.data.sample_freq      = 16;
+%     ttv1.data.sample_period    = 1/ttv1.data.sample_freq;
+%     ttv1.data.n_blocks         = numel(ind_ttv1_start);
+%     ttv1.data.recs_per_block   = 10;
+%     ttv1.data.n_recs           = ttv1.data.n_blocks*ttv1.data.recs_per_block;
+%     ttv1.data.timestamp_length = 16;
+%     % ALB I have to change this
+%     % ttv1.data.length           = 37;   
+%     ttv1.data.length           = 19;   
+% 
+% 
+% 
+% 
+%     % Process ttv data
+%     % --------------------------------
+% 
+%     % Pre-allocate space for data
+%     ttv_timestamp   = nan(ttv1.data.n_recs,1);
+%     %ctd.ctdtime and ctd.ctddnum will be created from ctd_timestamp once
+%     %all its records are filled
+%     ttv1.tof_up   = nan(ttv1.data.n_recs,1);
+%     ttv1.tof_down = nan(ttv1.data.n_recs,1);
+%     ttv1.dtof     = nan(ttv1.data.n_recs,1);
+%     ttv1.vfr      = nan(ttv1.data.n_recs,1); %(volume flow rate)
+% 
+%     % Initialize datarecord counter
+%     n_rec = 0;
+% 
+%     % Loop through data blocks and parse strings
+%     for iB = 1:ttv1.data.n_blocks
+% 
+%         % Grab the block of data starting with the header
+%         ttv_block_str = str(ind_ttv1_start(iB):ind_ttv1_stop(iB));
+% 
+%         % Get the header timestamp and length of data block
+%         ttv1.hextimestamp.value   = hex2dec(ttv_block_str(tag.hextimestamp.inds));
+%         ttv1.hexlengthblock.value = hex2dec(ttv_block_str(tag.hexlengthblock.inds));
+% 
+%         % Get the data after the header.
+%         ttv_block_data = ttv_block_str(tag.data_offset:end-tag.chksum.length);
+% 
+%         if (length(ttv_block_data)~=ttv1.hexlengthblock.value)
+%             fprintf("TTV1 block %i has incorrect length\r\n",iB)
+%         else
+%             %
+%             % Where do 16 and 24 come from?
+%             ttv_block_data=reshape(ttv_block_data,16+ttv1.data.length,ttv1.data.recs_per_block).';
+%             switch ttv1.data.ttv_format
+%                 case 1
+%                     % '00000191536bd52000000000,00000000,00000000,C09DBC00'
+%                     parse_ttv_block_data=sscanf(ttv_block_data.','%016x%08x,%08x,%08x,%08x\r\n');
+%                 case 2
+%                     % ALB poor trick to go further with the new format
+%                     % need to re-write the whole mod-som read as it is
+%                     % getting ugly
+%                     parse_ttv_block_data=zeros(ttv1.data.recs_per_block*5,1);
+%             end
+% 
+%             if length(parse_ttv_block_data)==ttv1.data.recs_per_block*5 % 5 data: timestamp, tofup, tofdown, dtof, vfr (volume flow rate) 
+% 
+%                 for iR=1:ttv1.data.recs_per_block
+% 
+%                     % Count up the record number
+%                     n_rec=n_rec+1;
+% 
+%                     % The ctd data is everything but the last two elements of the
+%                     % block
+%                     element_ttv=ttv_block_data(iR,1:end);
+% 
+%                     % The hexadecimal timestamp is the first 16 characters of the
+%                     % data
+%                     ttv_timestamp(n_rec) = hex2dec(element_ttv(1:16));
+% 
+%                     % Everything after that is the data
+%                     rec_ttv=element_ttv(ttv1.data.timestamp_length+1:end);
+% 
+%                 switch ttv1.data.ttv_format
+%                     case 1
+%                     % parse_ttv_block_data=sscanf(rec_ttv,'%08x,%08x,%08x,%08x\r\n');
+%                     parse_ttv_block_data=strsplit(rec_ttv,',');
+%                     % Convert the hexadecimal string to uint32
+%                     ttv1.tof_up(n_rec)   = double(typecast(uint32(hex2dec(parse_ttv_block_data{1})),'single'));
+%                     ttv1.tof_down(n_rec) = double(typecast(uint32(hex2dec(parse_ttv_block_data{2})),'single'));
+%                     ttv1.dtof(n_rec)     = double(typecast(uint32(hex2dec(parse_ttv_block_data{3})),'single'));
+%                     ttv1.vfr(n_rec)      = double(typecast(uint32(hex2dec(parse_ttv_block_data{4})),'single'));
+%                     case 2
+%                         % data packet uuuuddddDDDDeAABB\r\n
+%                         % 19 bytes total
+%                         % u = Upstream AbsToF  (4-byte float)
+%                         % d = Downstream AbsToF (4-byte float)
+%                         % D = DeltaToF (4-byte float)
+%                         % e = Algorithm error code (1-byte unsigned integer)
+%                         % A = Upstream ADC peak (2-byte unsigned integer)
+%                         % B = Downstream ADC peak (2-byte unsigned integer)
+%                         % q terminated with \r\n
+%                             % Parse individual components
+%                             ttv1.tof_up(n_rec)            = typecast(uint8(rec_ttv(1:4)), 'single');
+%                             ttv1.tof_down(n_rec)          = typecast(uint8(rec_ttv(5:8)), 'single');
+%                             ttv1.dtof(n_rec)              = typecast(uint8(rec_ttv(9:12)), 'single');
+%                             ttv1.errorcode(n_rec)         = uint8(rec_ttv(13));
+%                             ttv1.upstream_adcpeak(n_rec)   = typecast(uint8(rec_ttv(14:15)), 'uint16');
+%                             ttv1.downstream_adcpeak(n_rec) = typecast(uint8(rec_ttv(16:17)), 'uint16');
+% 
+%                 end
+% 
+%                     % If timestamp has values like 1.6e12, it is in milliseconds since Jan
+%                     % 1, 1970. Otherwise it's in milliseconds since the start of the record
+%                     if nanmedian(ttv_timestamp)>1e9
+%                         % time_s - seconds since 1970
+%                         % dnum - matlab datenum
+%                         [ttv1.time_s,ttv1.dnum] = convert_timestamp(ttv_timestamp);
+%                     else
+%                         % time_s - seconds since power on
+%                         ttv1.time_s = ttv_timestamp./1000;
+%                         ttv1.dnum   = Meta_Data.start_dnum + days(seconds(ttv1.time_s));
+%                     end
+%                 end
+% 
+%             end
+%         end %end if ttv data block is the correct size
+%     end %end loop through ttv blocks
+end %end loop if there is ttv1 data
 
-    processed_data_types = [processed_data_types,'ttv'];
+if isempty(ind_ttv2_start)
+    no_data_types = [no_data_types,'ttv2'];
+    ttv2=[];
+else
 
+    processed_data_types = [processed_data_types,'ttv2'];
+    ttv2=parse_ttv_block(ind_ttv2_start,ind_ttv2_stop,tag,str);
+end
+if isempty(ind_ttv3_start)
+    no_data_types = [no_data_types,'ttv1'];
+    ttv3=[];
+else
 
+    processed_data_types = [processed_data_types,'ttv3'];
+    ttv3=parse_ttv_block(ind_ttv3_start,ind_ttv3_stop,tag,str);
+end
 
-    % Process ttv data
-    % --------------------------------
-
-    % Pre-allocate space for data
-    ttv_timestamp   = nan(ttv.data.n_recs,1);
-    %ctd.ctdtime and ctd.ctddnum will be created from ctd_timestamp once
-    %all its records are filled
-    ttv.tof_up   = nan(ttv.data.n_recs,1);
-    ttv.tof_down = nan(ttv.data.n_recs,1);
-    ttv.dtof     = nan(ttv.data.n_recs,1);
-    ttv.vfr      = nan(ttv.data.n_recs,1); %(volume flow rate)
-    ttv.lib_err  = nan(ttv.data.n_recs,1); %(volume flow rate)
-    ttv.alg_err  = nan(ttv.data.n_recs,1); %(volume flow rate)
-    ttv.UpADC    = nan(ttv.data.n_recs,1); %(volume flow rate)
-    ttv.DownADC  = nan(ttv.data.n_recs,1); %(volume flow rate)
-
-    % Initialize datarecord counter
-    n_rec = 0;
-
-    % Loop through data blocks and parse strings
-    for iB = 1:ttv.data.n_blocks
-
-        % Grab the block of data starting with the header
-        ttv_block_str = str(ind_ttv_start(iB):ind_ttv_stop(iB));
-
-        % Get the header timestamp and length of data block
-        ttv.hextimestamp.value   = hex2dec(ttv_block_str(tag.hextimestamp.inds));
-        ttv.hexlengthblock.value = hex2dec(ttv_block_str(tag.hexlengthblock.inds));
-
-        % Get the data after the header.
-        ttv_block_data = ttv_block_str(tag.data_offset:end-tag.chksum.length);
-
-        if (length(ttv_block_data)~=ttv.hexlengthblock.value)
-            fprintf("TTVP block %i has incorrect length\r\n",iB)
-        else
-            %
-            % Where do 16 and 24 come from?
-            ttv_block_data=reshape(ttv_block_data,16+ttv.data.length,ttv.data.recs_per_block).';
-
-            % '00000191536bd52000000000,00000000,00000000,C09DBC00'
-            parse_ttv_block_data=sscanf(ttv_block_data.','%016x%08x,%08x,%08x,%08x,%02x,%02x,%04x,%04x\r\n');
-            if length(parse_ttv_block_data)==ttv.data.recs_per_block*9 % 9 data: timestamp, tofup, tofdown, dtof, vfr (volume flow rate)
-
-                for iR=1:ttv.data.recs_per_block
-
-                    % Count up the record number
-                    n_rec=n_rec+1;
-
-                    % The ctd data is everything but the last two elements of the
-                    % block
-                    element_ttv=ttv_block_data(iR,1:end);
-
-                    % The hexadecimal timestamp is the first 16 characters of the
-                    % data
-                    ttv_timestamp(n_rec) = hex2dec(element_ttv(1:16));
-
-                    % Everything after that is the data
-                    rec_ttv=element_ttv(ttv.data.timestamp_length+1:end);
-                    % parse_ttv_block_data=sscanf(rec_ttv,'%08x,%08x,%08x,%08x\r\n');
-                    parse_ttv_block_data=strsplit(rec_ttv,',');
-
-                    % Convert the hexadecimal string to uint32
-                    % ttv.tof_up(n_rec)   = uint32(hex2dec(parse_ttv_block_data{1}([7 8 5 6 3 4 1 2])));
-                    % ttv.tof_down(n_rec) = uint32(hex2dec(parse_ttv_block_data{2}([7 8 5 6 3 4 1 2])));
-                    % ttv.dtof(n_rec)     = uint32(hex2dec(parse_ttv_block_data{3}([7 8 5 6 3 4 1 2])));
-                    % ttv.vfr(n_rec)      = uint32(hex2dec(parse_ttv_block_data{4}([7 8 5 6 3 4 1 2])));
-                    ttv.tof_up(n_rec)   = double(typecast(uint32(hex2dec(parse_ttv_block_data{1})),'single'));
-                    ttv.tof_down(n_rec) = double(typecast(uint32(hex2dec(parse_ttv_block_data{2})),'single'));
-                    ttv.dtof(n_rec)     = double(typecast(uint32(hex2dec(parse_ttv_block_data{3})),'single'));
-                    ttv.vfr(n_rec)      = double(typecast(uint32(hex2dec(parse_ttv_block_data{4})),'single'));
-                    ttv.lib_err(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{5})),'single'));
-                    ttv.alg_err(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{6})),'single'));
-                    ttv.UpADC(n_rec)    = double(typecast(uint32(hex2dec(parse_ttv_block_data{7})),'single'));
-                    ttv.DownADC(n_rec)  = double(typecast(uint32(hex2dec(parse_ttv_block_data{8})),'single'));
-                    % Convert the uint32 to single precision float
-                    % ttv.tof_up(n_rec)   = typecast(ttv.tof_up(n_rec),'single');
-                    % ttv.tof_down(n_rec) = typecast(ttv.tof_down(n_rec),'single');
-                    % ttv.dtof(n_rec)     = typecast(ttv.dtof(n_rec),'single');
-                    % ttv.vfr(n_rec)      = typecast(ttv.tof_vfr(n_rec),'single');
-
-
-                    % If timestamp has values like 1.6e12, it is in milliseconds since Jan
-                    % 1, 1970. Otherwise it's in milliseconds since the start of the record
-                    if median(ttv_timestamp,'omitmissing')>1e9
-                        % time_s - seconds since 1970
-                        % dnum - matlab datenum
-                        [ttv.time_s,ttv.dnum] = convert_timestamp(ttv_timestamp);
-                    else
-                        % time_s - seconds since power on
-                        ttv.time_s = ttv_timestamp./1000;
-                        ttv.dnum   = Meta_Data.start_dnum + days(seconds(ttv.time_s));
-                    end
-                end
-
-            end
-        end %end if ttv data block is the correct size
-    end %end loop through ttv blocks
-end %end loop if there is ttv data
 
 
 fprintf(['   processed data for: ' repmat('%s ',1,length(processed_data_types)), '\n'], processed_data_types{:})
 fprintf(['   no data for:        ' repmat('%s ',1,length(no_data_types)), '\n'], no_data_types{:})
 
 % Combine all data
-make data epsi ctd alt isap act vnav gps seg spec avgspec dissrate apf fluor ttv Meta_Data
+make data epsi ctd alt isap act vnav gps seg spec avgspec dissrate apf fluor ttv1 ttv2 ttv3 Meta_Data
 
-% Save Meta_Data in the process directory - NC 10/13/25 We shouldn't have
-% BIG Meta_Data because the individual Meta_Data inside the same deployment
-% can be different
-% save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
+% Save Meta_Data in the process directory
+save(fullfile(Meta_Data.paths.data,'Meta_Data'),'Meta_Data');
 
 end
 
@@ -2243,145 +2268,131 @@ end
 
 % get CTD cal coef
 % -----------------------------
+header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
+
+% Check if CTD calibration data are listed in format 1
+idx_head_format1=strfind(str,'SERIALNO');
+if ~isempty(idx_head_format1)
+    str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
+else
+    str_SBEcalcoef_header1=[];
+end
+
+% Check if CTD calibration data are listed in format 2 (comes directly from fish)
+idx_head_format2=strfind(str,'SERIAL NO');
+if ~isempty(idx_head_format2)
+    str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
+else
+    str_SBEcalcoef_header2=[];
+end
+
+% Get the CTD serial number listed in the Setup file - you may need it if
+% the current file doesn't have CTD calibration data to look through
+% previous or later files
+SBE_sn = get_setup_SBE_sn(str);
 
 % If you know there is not CTD calibration information in the header of the
-% modraw files (as for standalone epsi files), or you don't want to use it
-% (perhaps it was entered incorrectly in the Setup file), make an empty
-% SBEcal structure
+% modraw files, or you don't want to use it, make an empty SBEcal structure
 if isfield(Meta_Data.PROCESS,'ctd_in_modraw')
     if ~Meta_Data.PROCESS.ctd_in_modraw
-        fprintf('  Choosing not to check for CTD calibration in .modraw header.\n')
+        fprintf('Not checking for CTD calibration in .modraw header.')
+        SBEcal = get_CalSBE_nan;
+        Meta_Data.CTD.cal=SBEcal;
+    end
+end
 
-        if isfield(Meta_Data.CTD,'SN')
-            cal_directory = Meta_Data.paths.calibrations.ctd;
+% If you have format 2, use that
+if ~isempty(str_SBEcalcoef_header2)
+    SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
+    Meta_Data.CTD.cal=SBEcal;
+
+    % If you don't have format 2, but you have format 1, use that
+elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
+    SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+    Meta_Data.CTD.cal=SBEcal;
+
+    % If you don't have format 2 or 1, try looking in a few files before or
+    % after the current one
+elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
+    fprintf('There is no CTD calibration data in the header of %s. \n',filename);
+    %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
+    %files
+    % NC edited to search through previous 10 OR next 10 (for
+    % post-processing)
+
+    found_data = 0; %Initialize
+
+    % List files in raw directory
+    listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
+    list_fullfilename = fullfile({listfile.folder}, {listfile.name});
+    idx_file = find(strcmp(list_fullfilename, filename));
+
+    % Determine the range of indices to search
+    num_files = length(list_fullfilename);
+    num_before = min(10, idx_file - 1);  % Max files before the current file
+    num_after = min(10, num_files - idx_file); % Max files after the current file
+    search_indices = [idx_file-num_before : idx_file-1, ...
+        idx_file+1 : idx_file+num_after];
+
+    % Loop through surrounding files
+    for idx = search_indices
+        fprintf("  Trying file: %s \n", listfile(idx).name);
+
+        fid1 = fopen(list_fullfilename{idx});
+        if fid1 == -1
+            fprintf("    - Skipping (unable to open) \n");
+            continue; % Skip if file cannot be opened
+        end
+        str1 = fread(fid1, '*char')';
+        fclose(fid1);
+
+        % Extract CTD calibration coefficients
+        header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
+        if isempty(header_length)
+            fprintf("    - Skipping (no valid header found) \n");
+            continue; % Skip if header is not found
+        end
+
+        str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
+
+        if ~isempty(str_SBEcalcoef_header1)
+            % Extract serial number from the file
+            extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
+            if extracted_sn == SBE_sn
+                SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
+                Meta_Data.CTD.cal=SBEcal;
+                fprintf("    - Found matching SBE calibration data \n");
+                found_data = 1;
+                break; % Exit loop once a valid matching file is found
+            else
+                fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
+            end
+        else
+            fprintf("    - Skipping (no calibration data in header) \n");
+        end
+    end %End loop through surrounding files
+
+    % If you can't find CTD calibration data in any of the previous or future
+    % files, your last chance is to pull calibration values from the
+    % calibration directory.
+    if found_data==0
+        if ~isempty(SBE_sn)
+            cal_directory = fullfile(Meta_Data.paths.process_library,'CALIBRATION','SBE49');
             Meta_Data.CTD.name = 'SBE49';
+            Meta_Data.CTD.SN = SBE_sn;
             SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
             Meta_Data.CTD.cal=SBEcal;
             fprintf("  Added calibration data from %s", cal_directory);
         else
-            fprintf('  No CTD SN in Meta_Data.CTD.SN. Making SBE cal all nan\n')
+            warning('Failed to find CTD calibration data for %s. Continuing to process with an empty SBE calibration structure', filename)
+            % Continue processing with an empty SBE calibration structure
             SBEcal = get_CalSBE_nan;
             Meta_Data.CTD.cal=SBEcal;
         end
-
     end
 
-else %If you want to look in the header, check for two different types
+end %end trying to find CTD calibration data
 
-    % Get the CTD serial number listed in the Setup file - you may need it if
-    % the current file doesn't have CTD calibration data to look through
-    % previous or later files
-    SBE_sn = get_setup_SBE_sn(str);
-
-    header_length=strfind(str,'END_FCTD_HEADER_START_RUN');
-
-    % Check if CTD calibration data are listed in format 1
-    idx_head_format1=strfind(str,'SERIALNO');
-    if ~isempty(idx_head_format1)
-        str_SBEcalcoef_header1=str(idx_head_format1(1):header_length);
-    else
-        str_SBEcalcoef_header1=[];
-    end
-
-    % Check if CTD calibration data are listed in format 2 (comes directly from fish)
-    idx_head_format2=strfind(str,'SERIAL NO');
-    if ~isempty(idx_head_format2)
-        str_SBEcalcoef_header2=str(idx_head_format2(1):header_length);
-    else
-        str_SBEcalcoef_header2=[];
-    end
-    % If you have format 2 (from DCAL), use that
-    if ~isempty(str_SBEcalcoef_header2)
-        SBEcal=get_CalSBE_v2(str_SBEcalcoef_header2);
-        Meta_Data.CTD.cal=SBEcal;
-
-        % If you don't have format 2, but you have format 1, use that
-    elseif isempty(str_SBEcalcoef_header2) && ~isempty(str_SBEcalcoef_header1)
-        SBEcal=get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
-        Meta_Data.CTD.cal=SBEcal;
-
-        % If you don't have format 2 or 1, try looking in a few files before or
-        % after the current one
-    elseif isempty(str_SBEcalcoef_header2) && isempty(str_SBEcalcoef_header1)
-        fprintf('There is no CTD calibration data in the header of %s. \n',filename);
-        %ALB If SBEcal missing  ALB using the SBEcal from the previous 10 modraw
-        %files
-        % NC edited to search through previous 10 OR next 10 (for
-        % post-processing)
-
-        found_data = 0; %Initialize
-
-        % List files in raw directory
-        listfile = dir(fullfile(Meta_Data.paths.raw_data, ['*', Meta_Data.PROCESS.rawfileSuffix]));
-        list_fullfilename = fullfile({listfile.folder}, {listfile.name});
-        idx_file = find(strcmp(list_fullfilename, filename));
-
-        % Determine the range of indices to search
-        num_files = length(list_fullfilename);
-        num_before = min(10, idx_file - 1);  % Max files before the current file
-        num_after = min(10, num_files - idx_file); % Max files after the current file
-        search_indices = [idx_file-num_before : idx_file-1, ...
-            idx_file+1 : idx_file+num_after];
-
-        % Loop through surrounding files
-        for idx = search_indices
-            fprintf("  Trying file: %s \n", listfile(idx).name);
-
-            fid1 = fopen(list_fullfilename{idx});
-            if fid1 == -1
-                fprintf("    - Skipping (unable to open) \n");
-                continue; % Skip if file cannot be opened
-            end
-            str1 = fread(fid1, '*char')';
-            fclose(fid1);
-
-            % Extract CTD calibration coefficients
-            header_length = strfind(str1, 'END_FCTD_HEADER_START_RUN');
-            if isempty(header_length)
-                fprintf("    - Skipping (no valid header found) \n");
-                continue; % Skip if header is not found
-            end
-
-            str_SBEcalcoef_header1 = str1(strfind(str1, 'SERIALNO'):header_length);
-
-            if ~isempty(str_SBEcalcoef_header1)
-                % Extract serial number from the file
-                extracted_sn = get_setup_SBE_sn(str1); % Custom function to extract SN
-                if extracted_sn == SBE_sn
-                    SBEcal = get_CalSBE_from_modraw_header(str_SBEcalcoef_header1);
-                    Meta_Data.CTD.cal=SBEcal;
-                    fprintf("    - Found matching SBE calibration data \n");
-                    found_data = 1;
-                    break; % Exit loop once a valid matching file is found
-                else
-                    fprintf("    - Skipping (serial number mismatch: found %s, expected %s) \n", extracted_sn, SBE_sn);
-                end
-            else
-                fprintf("    - Skipping (no calibration data in header) \n");
-            end
-        end %End loop through surrounding files
-
-        % If you can't find CTD calibration data in any of the previous or future
-        % files, your last chance is to pull calibration values from the
-        % calibration directory.
-        if found_data==0
-            if ~isempty(SBE_sn)
-                cal_directory = Meta_Data.paths.calibrations.ctd;
-                Meta_Data.CTD.name = 'SBE49';
-                Meta_Data.CTD.SN = sprintf('%04.0f',str2num(SBE_sn));
-                SBEcal = get_CalSBE(fullfile(cal_directory,[Meta_Data.CTD.SN,'.cal']));
-                Meta_Data.CTD.cal=SBEcal;
-                fprintf("  Added calibration data from %s", cal_directory);
-            else
-                warning('Failed to find CTD calibration data for %s. Continuing to process with an empty SBE calibration structure', filename)
-                % Continue processing with an empty SBE calibration structure
-                SBEcal = get_CalSBE_nan;
-                Meta_Data.CTD.cal=SBEcal;
-            end
-        end
-
-    end %end trying to find CTD calibration data
-end %end getting CTD data from Meta_Data.CTD.SN or .modraw header
 
 
 
@@ -2583,9 +2594,131 @@ if ~isempty(idx_SBE_SN)
 else
     SBE_sn = [];
 end
-
-% Make sure SBE_sn is four digits
-SBE_sn = sprintf('%04.0f',str2num(SBE_sn));
-
 end
+
+function ttv=parse_ttv_block(ind_ttv1_start,ind_ttv1_stop,tag,str)
+
+
+    ttv.data.ttv_format       = 2;
+    ttv.data.sample_freq      = 16;
+    ttv.data.sample_period    = 1/ttv.data.sample_freq;
+    ttv.data.n_blocks         = numel(ind_ttv1_start);
+    ttv.data.recs_per_block   = 10;
+    ttv.data.n_recs           = ttv.data.n_blocks*ttv.data.recs_per_block;
+    ttv.data.timestamp_length = 16;
+    % ALB I have to change this
+    % ttv.data.length           = 37;   
+    ttv.data.length           = 19;   
+
+
+    % Process ttv data
+    % --------------------------------
+    
+    % Pre-allocate space for data
+    ttv_timestamp   = nan(ttv.data.n_recs,1);
+    %ctd.ctdtime and ctd.ctddnum will be created from ctd_timestamp once
+    %all its records are filled
+    ttv.tof_up   = nan(ttv.data.n_recs,1);
+    ttv.tof_down = nan(ttv.data.n_recs,1);
+    ttv.dtof     = nan(ttv.data.n_recs,1);
+    ttv.vfr      = nan(ttv.data.n_recs,1); %(volume flow rate)
+    
+    % Initialize datarecord counter
+    n_rec = 0;
+    
+    % Loop through data blocks and parse strings
+    for iB = 1:ttv.data.n_blocks
+
+        % Grab the block of data starting with the header
+        ttv_block_str = str(ind_ttv1_start(iB):ind_ttv1_stop(iB));
+
+        % Get the header timestamp and length of data block
+        ttv.hextimestamp.value   = hex2dec(ttv_block_str(tag.hextimestamp.inds));
+        ttv.hexlengthblock.value = hex2dec(ttv_block_str(tag.hexlengthblock.inds));
+
+        % Get the data after the header.
+        ttv_block_data = ttv_block_str(tag.data_offset:end-tag.chksum.length);
+
+        if (length(ttv_block_data)~=ttv.hexlengthblock.value)
+            fprintf("TTV1 block %i has incorrect length\r\n",iB)
+        else
+            %
+            % Where do 16 and 24 come from?
+            ttv_block_data=reshape(ttv_block_data,16+ttv.data.length,ttv.data.recs_per_block).';
+            switch ttv.data.ttv_format
+                case 1
+                    % '00000191536bd52000000000,00000000,00000000,C09DBC00'
+                    parse_ttv_block_data=sscanf(ttv_block_data.','%016x%08x,%08x,%08x,%08x\r\n');
+                case 2
+                    % ALB poor trick to go further with the new format
+                    % need to re-write the whole mod-som read as it is
+                    % getting ugly
+                    parse_ttv_block_data=zeros(ttv.data.recs_per_block*5,1);
+            end
+                    
+            if length(parse_ttv_block_data)==ttv.data.recs_per_block*5 % 5 data: timestamp, tofup, tofdown, dtof, vfr (volume flow rate) 
+
+                for iR=1:ttv.data.recs_per_block
+
+                    % Count up the record number
+                    n_rec=n_rec+1;
+
+                    % The ctd data is everything but the last two elements of the
+                    % block
+                    element_ttv=ttv_block_data(iR,1:end);
+
+                    % The hexadecimal timestamp is the first 16 characters of the
+                    % data
+                    ttv_timestamp(n_rec) = hex2dec(element_ttv(1:16));
+
+                    % Everything after that is the data
+                    rec_ttv=element_ttv(ttv.data.timestamp_length+1:end);
+
+                switch ttv.data.ttv_format
+                    case 1
+                    % parse_ttv_block_data=sscanf(rec_ttv,'%08x,%08x,%08x,%08x\r\n');
+                    parse_ttv_block_data=strsplit(rec_ttv,',');
+                    % Convert the hexadecimal string to uint32
+                    ttv.tof_up(n_rec)   = double(typecast(uint32(hex2dec(parse_ttv_block_data{1})),'single'));
+                    ttv.tof_down(n_rec) = double(typecast(uint32(hex2dec(parse_ttv_block_data{2})),'single'));
+                    ttv.dtof(n_rec)     = double(typecast(uint32(hex2dec(parse_ttv_block_data{3})),'single'));
+                    ttv.vfr(n_rec)      = double(typecast(uint32(hex2dec(parse_ttv_block_data{4})),'single'));
+                    case 2
+                        % data packet uuuuddddDDDDeAABB\r\n
+                        % 19 bytes total
+                        % u = Upstream AbsToF  (4-byte float)
+                        % d = Downstream AbsToF (4-byte float)
+                        % D = DeltaToF (4-byte float)
+                        % e = Algorithm error code (1-byte unsigned integer)
+                        % A = Upstream ADC peak (2-byte unsigned integer)
+                        % B = Downstream ADC peak (2-byte unsigned integer)
+                        % q terminated with \r\n
+                            % Parse individual components
+                            ttv.tof_up(n_rec)            = typecast(uint8(rec_ttv(4:-1:1)), 'single');
+                            ttv.tof_down(n_rec)          = typecast(uint8(rec_ttv(8:-1:5)), 'single');
+                            ttv.dtof(n_rec)              = typecast(uint8(rec_ttv(12:-1:9)), 'single');
+                            ttv.errorcode(n_rec)         = uint8(rec_ttv(13));
+                            ttv.upstream_adcpeak(n_rec)   = typecast(uint8(rec_ttv(15:-1:14)), 'uint16');
+                            ttv.downstream_adcpeak(n_rec) = typecast(uint8(rec_ttv(17:-1:16)), 'uint16');
+
+                end
+
+                    % If timestamp has values like 1.6e12, it is in milliseconds since Jan
+                    % 1, 1970. Otherwise it's in milliseconds since the start of the record
+                    if median(ttv_timestamp,'omitmissing')>1e9
+                        % time_s - seconds since 1970
+                        % dnum - matlab datenum
+                        [ttv.time_s,ttv.dnum] = convert_timestamp(ttv_timestamp);
+                    else
+                        % time_s - seconds since power on
+                        ttv.time_s = ttv_timestamp./1000;
+                        ttv.dnum   = Meta_Data.start_dnum + days(seconds(ttv.time_s));
+                    end
+                end
+
+            end
+        end %end if ttv data block is the correct size
+    end %end loop through ttv blocks
+end %end loop if there is ttv data
+
 
