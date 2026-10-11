@@ -2412,10 +2412,13 @@ if ~isempty(str_EPSICHANNEL_header)
     epsi_probes.ch1.cal = 0;
     epsi_probes.ch2.cal = 0;
 
-    Meta_Data.AFE.t1=epsi_probes.ch1;
-    Meta_Data.AFE.t2=epsi_probes.ch2;
-    Meta_Data.AFE.s1=epsi_probes.ch3;
-    Meta_Data.AFE.s2=epsi_probes.ch4;
+    % Update the probe fields rather than replacing the whole structure, so
+    % channel fields set elsewhere (full_range, ADCconf, ADCfilter) are kept
+    % when this file has no $SOM3 setup block to refill them.
+    Meta_Data.AFE.t1=set_probe_fields(Meta_Data.AFE,'t1',epsi_probes.ch1);
+    Meta_Data.AFE.t2=set_probe_fields(Meta_Data.AFE,'t2',epsi_probes.ch2);
+    Meta_Data.AFE.s1=set_probe_fields(Meta_Data.AFE,'s1',epsi_probes.ch3);
+    Meta_Data.AFE.s2=set_probe_fields(Meta_Data.AFE,'s2',epsi_probes.ch4);
 else
     [a,b,c] = fileparts(filename);
     fprintf('   No Epsi probe serial number in file %s \n',[b,c])
@@ -2562,6 +2565,24 @@ else
     val = [];
 end
 return
+end
+
+function chan=set_probe_fields(AFE,chan_name,probe)
+% Copy the per-probe fields parsed from the header (str, SN, cal, datecal,
+% cap) into AFE.(chan_name), keeping any other fields already there. The
+% probe fields are cleared first so datecal/cap from a previous probe
+% don't linger when the new probe has no calibration.
+if isfield(AFE,chan_name)
+    chan = AFE.(chan_name);
+else
+    chan = struct();
+end
+probe_fields = {'str','SN','cal','datecal','cap'};
+chan = rmfield(chan,probe_fields(isfield(chan,probe_fields)));
+f = fieldnames(probe);
+for iF=1:numel(f)
+    chan.(f{iF}) = probe.(f{iF});
+end
 end
 
 function cha=parse_epsi_channel_string(str_EPSICHANNEL_header)
