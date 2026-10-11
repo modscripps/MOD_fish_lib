@@ -39,6 +39,17 @@ for f=1:length(str_meta_data_process)
     end
 end
 
+% Altimeter geometry is defined in the first lines of the Meta_Data_Process
+% file, so it lands in Meta_Data.PROCESS. mod_som_read_epsi_files_v4 and
+% read_modraw read it from Meta_Data.GEOMETRY (as built by
+% MODsetup_make_metadata_from_yaml), so copy it there.
+alt_fields = {'alt_angle_deg','alt_dist_from_crashguard_ft','alt_probe_dist_from_crashguard_in'};
+for iF=1:length(alt_fields)
+    if isfield(Meta_Data,'PROCESS') && isfield(Meta_Data.PROCESS,alt_fields{iF})
+        Meta_Data.GEOMETRY.(alt_fields{iF}) = Meta_Data.PROCESS.(alt_fields{iF});
+    end
+end
+
 Meta_Data.PROCESS.filename = filename;
 
 if isfield(Meta_Data.paths,'data')
